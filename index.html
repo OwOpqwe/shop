@@ -107,7 +107,6 @@
 
 <div class="store-container">
 
-    <!-- DR PEPPER -->
     <div class="item">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
         <h3>Dr Pepper</h3>
@@ -115,7 +114,6 @@
         <button onclick="addToCart('Dr Pepper', 2)">Add to Cart</button>
     </div>
 
-    <!-- CHICKEN NOODLE SNACK -->
     <div class="item">
         <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
         <h3>Chicken Noodle Snack</h3>
@@ -123,7 +121,6 @@
         <button onclick="addToCart('Chicken Noodle Snack', 3)">Add to Cart</button>
     </div>
 
-    <!-- BUNDLE PACK -->
     <div class="item">
         <div class="bundle-images">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
@@ -170,10 +167,10 @@ function updateCart() {
         total += entry.price * entry.quantity;
 
         cartDiv.innerHTML += `
-            <p>
-                ${item} x${entry.quantity} - $${entry.price * entry.quantity}
+            <div style="margin-bottom: 10px;">
+                <strong>${item}</strong> x${entry.quantity} - $${entry.price * entry.quantity}
                 <button class="remove-btn" onclick="removeItem('${item}')">X</button>
-            </p>
+            </div>
         `;
     }
 
