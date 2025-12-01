@@ -2,34 +2,89 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snack Store</title>
 <style>
-body {
-    background-color: black;
-    color: white;
-    font-family: Arial, sans-serif;
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
-h1 { text-align: center; margin-top: 20px; }
+body {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+}
+header {
+    background: linear-gradient(135deg, #1e1e1e 0%, #2d2d44 100%);
+    padding: 25px;
+    text-align: center;
+    font-size: 2.5em;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
 .cash-only {
-    background-color: white;
+    background: linear-gradient(135deg, white 0%, #f0f0f0 100%);
     color: black;
     font-size: 28px;
     font-weight: 900;
     padding: 10px 20px;
     display: inline-block;
     border-radius: 10px;
-    margin: 10px auto;
+    margin: 10px;
+    box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+}
+.cart-icon {
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8em;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 101;
+}
+.cart-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,123,255,0.6);
+}
+.cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    font-weight: bold;
 }
 
 /* Main layout: cart left, store right */
 .main-container {
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: flex-start;
     gap: 30px;
     padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 /* Store styling */
@@ -37,28 +92,44 @@ h1 { text-align: center; margin-top: 20px; }
     display: flex;
     flex-wrap: wrap;
     gap: 25px;
-    max-width: 800px;
+    max-width: 1000px;
 }
 
 .item {
     width: 250px;
-    height: 400px;
+    min-height: 400px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background-color: white;
-    color: black;
+    background: linear-gradient(135deg, #1e1e1e 0%, #2a2a3e 100%);
+    color: white;
     padding: 15px;
     border-radius: 15px;
-    border: 5px solid white;
+    border: 1px solid #444;
     box-sizing: border-box;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+.item h3 {
+    color: #3399ff;
+    margin-bottom: 10px;
+}
+.item p {
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 1.5em;
+    margin: 10px 0;
 }
 .item img {
     width: 100%;
     height: 200px;
     object-fit: cover;
     border-radius: 15px;
-    border: 6px solid black;
+    border: 2px solid #444;
 }
 .bundle-images {
     display: flex;
@@ -70,169 +141,155 @@ h1 { text-align: center; margin-top: 20px; }
     height: 150px;
     object-fit: cover;
     border-radius: 15px;
-    border: 6px solid black;
+    border: 2px solid #444;
+}
+.quantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+.quantity span {
+    font-size: 1.3em;
+    font-weight: bold;
+    min-width: 30px;
 }
 button {
     margin-top: 10px;
     padding: 10px 15px;
-    background-color: white;
-    color: black;
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    color: white;
     font-weight: bold;
-    border: 3px solid black;
+    border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.2s;
+    font-size: 1.1em;
 }
 button:hover {
-    background-color: green;
-    color: white;
+    background: linear-gradient(135deg, #218838 0%, #155724 100%);
+    transform: scale(1.05);
 }
 
 /* Cart styling */
-#cart {
-    width: 300px;
-    background-color: white;
-    color: black;
+.cart-panel {
+    position: fixed;
+    right: -400px;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d44 100%);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+    transition: right 0.3s;
+    z-index: 102;
+    overflow-y: auto;
     padding: 20px;
-    border-radius: 15px;
-    text-align: left;
-    box-sizing: border-box;
-    position: sticky;
-    top: 20px;
-    flex-shrink: 0;
 }
-.cart-item {
+.cart-panel.open {
+    right: 0;
+}
+.cart-header {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #444;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
+    align-items: center;
+}
+.close-cart {
+    cursor: pointer;
+    font-size: 1.2em;
+    background: #dc3545;
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cart-item {
+    background: #2a2a3e;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
 }
 .cart-item .bundle-sub {
     margin-left: 15px;
+    margin-top: 10px;
     font-size: 0.9em;
-    color: #333;
+    color: #aaa;
 }
 .remove-btn {
-    background-color: red;
+    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
     color: white;
     border: none;
-    padding: 5px 8px;
-    border-radius: 5px;
+    padding: 8px 12px;
+    border-radius: 8px;
     cursor: pointer;
-    margin-left: 10px;
-    align-self: flex-start;
+    margin-top: 10px;
+    transition: all 0.2s;
+}
+.remove-btn:hover {
+    background: linear-gradient(135deg, #c82333 0%, #a71d2a 100%);
+    transform: scale(1.05);
+}
+.cart-total {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #444;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+.checkout-btn {
+    background: linear-gradient(135deg, #3399ff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 15px;
+    cursor: pointer;
+    border-radius: 10px;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+.checkout-btn:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+    transform: scale(1.02);
+}
+.empty-cart {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    font-size: 1.2em;
+}
+.add-btn, .qty-remove-btn {
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 1.1em;
+    transition: all 0.2s;
+    font-weight: bold;
+    margin: 0;
+}
+.add-btn {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+.add-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #155724 100%);
+    transform: scale(1.05);
+}
+.qty-remove-btn {
+    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+}
+.qty-remove-btn:hover {
+    background: linear-gradient(135deg, #c82333 0%, #a71d2a 100%);
+    transform: scale(1.05);
 }
 </style>
-</head>
-<body>
-
-<h1>Snack Store</h1>
-<div class="cash-only">CASH ONLY</div>
-
-<div class="main-container">
-
-    <!-- Cart Sidebar -->
-    <div id="cart">
-        <h2>Cart</h2>
-        <div id="cart-items"></div>
-        <h3 id="total"></h3>
-    </div>
-
-    <!-- Store Items -->
-    <div class="store-container">
-
-        <div class="item">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
-            <h3>Dr Pepper</h3>
-            <p>$2</p>
-            <button onclick="addToCart('Dr Pepper', 2)">Add to Cart</button>
-        </div>
-
-        <div class="item">
-            <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
-            <h3>Chicken Noodle Snack</h3>
-            <p>$3</p>
-            <button onclick="addToCart('Chicken Noodle Snack', 3)">Add to Cart</button>
-        </div>
-
-        <div class="item">
-            <div class="bundle-images">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
-                <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
-            </div>
-            <h3>Bundle Pack</h3>
-            <p>$4</p>
-            <button onclick="addToCart('Bundle Pack', 4)">Add to Cart</button>
-        </div>
-
-    </div>
-</div>
-
-<script>
-let cart = {};
-
-// Bundle contents
-const bundles = {
-    "Bundle Pack": { "Dr Pepper": 1, "Chicken Noodle Snack": 1 }
-};
-
-function addToCart(name, price) {
-    if (!cart[name]) {
-        cart[name] = { price: price, quantity: 1 };
-    } else {
-        cart[name].quantity++;
-    }
-    updateCart();
-}
-
-function removeItem(name) {
-    delete cart[name];
-    updateCart();
-}
-
-function updateCart() {
-    const cartDiv = document.getElementById('cart-items');
-    cartDiv.innerHTML = '';
-    let total = 0;
-
-    for (const item in cart) {
-        const entry = cart[item];
-        total += entry.price * entry.quantity;
-
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-
-        const textDiv = document.createElement('div');
-        textDiv.innerHTML = `<strong>${item} x${entry.quantity} - $${entry.price * entry.quantity}</strong>`;
-
-        // Bundle sub-items
-        if (bundles[item]) {
-            const subDiv = document.createElement('div');
-            subDiv.className = 'bundle-sub';
-            for (const subItem in bundles[item]) {
-                const subQty = bundles[item][subItem] * entry.quantity;
-                const subText = document.createElement('div');
-                subText.innerText = `${subItem} x${subQty}`;
-                subDiv.appendChild(subText);
-            }
-            textDiv.appendChild(subDiv);
-        }
-
-        div.appendChild(textDiv);
-
-        const btn = document.createElement('button');
-        btn.className = 'remove-btn';
-        btn.innerText = 'X';
-        btn.onclick = () => removeItem(item);
-
-        div.appendChild(btn);
-        cartDiv.appendChild(div);
-    }
-
-    document.getElementById('total').innerText = 'Total: $' + total;
-}
-</script>
-
-</body>
-</html>
