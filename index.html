@@ -1,248 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Online Store</title>
+import streamlit as st
+
+st.set_page_config(page_title="Snack Store", layout="wide")
+
+st.markdown("""
 <style>
-    body {
-        background-color: black;
-        color: white;
-        font-family: Arial, sans-serif;
-        margin: 0;
-        display: flex;
-    }
-
-    /* Sidebar Cart */
-    #cart {
-        width: 300px;
-        background-color: #111;
-        padding: 20px;
-        border-right: 3px solid white;
-        height: 100vh;
-        overflow-y: auto;
-    }
-
-    /* Main Content */
-    #main {
-        flex: 1;
-        padding: 20px;
-    }
-
-    h1 {
-        text-align: center;
-    }
-
-    .warning {
-        background-color: #ffeb3b;
-        color: black;
-        padding: 15px;
-        border: 2px solid white;
-        border-radius: 10px;
-        font-size: 22px;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 25px;
-    }
-
-    /* Product Grid */
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
-    }
-
-    .product {
-        background-color: #222;
-        padding: 15px;
-        border-radius: 15px;
-        border: 3px solid white;
-        text-align: center;
-    }
-
-    img {
-        width: 180px;
-        border-radius: 15px;
-        border: 6px solid white;
-    }
-
-    button {
-        background-color: black;
-        color: white;
-        border: 1px solid white;
-        padding: 10px;
-        cursor: pointer;
-        margin-top: 10px;
-        width: 100%;
-        font-size: 16px;
-        border-radius: 10px;
-    }
-
-    button:hover {
-        background-color: #28a745;
-        color: white;
-    }
-
-    input {
-        width: 50px;
-    }
-
-    /* Bundle side-by-side images */
-    .bundle-images {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-    }
-
+body {
+    background-color: black !important;
+    color: white !important;
+}
+.css-10trblm, .css-1v0mbdj, .css-1d391kg, .css-1kyxreq {
+    color: white !important;
+}
+.product-img {
+    border-radius: 15px;
+    border: 5px solid white;
+}
+.add-button > button {
+    background-color: white !important;
+    color: black !important;
+    border-radius: 8px !important;
+    transition: 0.3s;
+}
+.add-button > button:hover {
+    background-color: #00ff00 !important;
+    color: black !important;
+}
 </style>
-</head>
-<body>
+""", unsafe_allow_html=True)
 
-<!-- SIDEBAR CART -->
-<div id="cart">
-    <h2>Your Cart</h2>
+st.title("NO REFUNDS")
+st.header("Products")
 
-    <label>Your Name:</label><br>
-    <input id="buyerName" type="text" style="width:100%; margin-bottom:10px;"><br>
-
-    <label>Notes:</label>
-    <textarea id="buyerNotes" style="width:100%; height:70px;"></textarea>
-
-    <h3>Items:</h3>
-    <div id="cartItems">Cart is empty.</div>
-
-    <h3>Total: NT$<span id="total">0</span></h3>
-
-    <button onclick="completePurchase()">Complete Purchase</button>
-
-    <div id="ratingSection" style="display:none; margin-top:20px;">
-        <h3>Rate Our Store</h3>
-        <input id="rating" type="range" min="1" max="5" value="5">
-        <button onclick="submitRating()">Submit Rating</button>
-    </div>
-
-    <div id="ratingDisplay"></div>
-</div>
-
-<!-- MAIN CONTENT -->
-<div id="main">
-    <h1>🚫 NO REFUNDS 🚫</h1>
-
-    <div class="warning">💵 Cash Only — No Card Payments</div>
-
-    <h2>Products</h2>
-
-    <div class="grid">
-
-        <!-- Chicken Noodle Snack -->
-        <div class="product">
-            <h3>Chicken Noodle Snacks</h3>
-            <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
-            <p>Tasty and convenient chicken noodle snacks.</p>
-            <p>Price: NT$17</p>
-            Quantity: <input id="qty1" type="number" value="1" min="1" max="20">
-            <button onclick="addToCart('Chicken Noodle Snacks', 17, 'qty1')">Add to Cart</button>
-        </div>
-
-        <!-- Dr Pepper -->
-        <div class="product">
-            <h3>Dr Pepper</h3>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
-            <p>Refreshing soda drink.</p>
-            <p>Price: NT$37</p>
-            Quantity: <input id="qty2" type="number" value="1" min="1" max="20">
-            <button onclick="addToCart('Dr Pepper', 37, 'qty2')">Add to Cart</button>
-        </div>
-
-        <!-- Bundle -->
-        <div class="product">
-            <h3>Snack & Drink Bundle</h3>
-            <div class="bundle-images">
-                <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg" width="120">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg" width="120">
-            </div>
-            <p>1 Chicken Noodle Snack + 1 Dr Pepper bundle deal.</p>
-            <p>Price: NT$50</p>
-            Quantity: <input id="qty3" type="number" value="1" min="1" max="20">
-            <button onclick="addToCart('Snack & Drink Bundle', 50, 'qty3')">Add to Cart</button>
-        </div>
-
-    </div>
-</div>
-
-<script>
-let cart = [];
-let ratings = [];
-
-// Add to cart
-function addToCart(name, price, qtyId) {
-    let qty = parseInt(document.getElementById(qtyId).value);
-
-    for (let i = 0; i < qty; i++) {
-        cart.push({ name, price });
+products = {
+    "Chicken Noodle Snacks": {
+        "price": 17,
+        "img": "https://images.cdn.saveonfoods.com/detail/00074410700799.jpg",
+        "description": "Tasty and convenient chicken noodle snacks."
+    },
+    "Dr Pepper": {
+        "price": 37,
+        "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg",
+        "description": "Refreshing soda drink."
+    },
+    "Snack & Drink Bundle": {
+        "price": 50,
+        "description": "1 Chicken Noodle Snack + 1 Dr Pepper bundle deal."
     }
-
-    updateCart();
 }
 
-// Update cart display
-function updateCart() {
-    let container = document.getElementById("cartItems");
-    container.innerHTML = "";
+product_names = list(products.keys())
+products_per_row = 2
 
-    let total = 0;
+if "cart" not in st.session_state:
+    st.session_state.cart = []
 
-    cart.forEach((item, index) => {
-        total += item.price;
-        container.innerHTML += `
-            <div>
-                ${item.name} — NT$${item.price}
-                <button onclick="removeItem(${index})" style="width:auto; margin-left:10px;">X</button>
-            </div>
-        `;
-    });
+for i in range(0, len(product_names), products_per_row):
+    cols = st.columns(products_per_row)
+    for j, name in enumerate(product_names[i:i+products_per_row]):
+        with cols[j]:
+            st.subheader(name)
 
-    if (cart.length === 0) container.innerHTML = "Cart is empty.";
+            if name == "Snack & Drink Bundle":
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.image(products["Chicken Noodle Snacks"]["img"], width=150, caption="Chicken Noodle", use_column_width=False)
+                with col2:
+                    st.image(products["Dr Pepper"]["img"], width=150, caption="Dr Pepper", use_column_width=False)
+            else:
+                st.image(products[name]["img"], width=225, caption=name, use_column_width=False)
 
-    document.getElementById("total").innerText = total;
-}
+            st.write(products[name]["description"])
+            st.write(f"Price: NT${products[name]['price']}")
 
-// Remove a single item
-function removeItem(i) {
-    cart.splice(i, 1);
-    updateCart();
-}
+            qty = st.number_input(f"Quantity for {name}", min_value=1, max_value=20, value=1, key=f"qty_{name}")
 
-// Complete purchase
-function completePurchase() {
-    let name = document.getElementById("buyerName").value;
+            with st.container():
+                with st.container():
+                    button_key = f"add_{name}"
+                    st.markdown('<div class="add-button">', unsafe_allow_html=True)
+                    if st.button(f"Add to Cart", key=button_key):
+                        for _ in range(qty):
+                            st.session_state.cart.append({"name": name, "price": products[name]["price"]})
+                        st.success(f"Added {qty} x {name} to cart!")
+                    st.markdown('</div>', unsafe_allow_html=True)
 
-    if (name.trim() === "") {
-        alert("Please enter your name first.");
-        return;
-    }
+# SIDEBAR CART
+st.sidebar.header("Your Cart")
 
-    alert("Order saved! Pay with cash when delivered.");
+if st.session_state.cart:
+    total = 0
+    to_remove = []
 
-    cart = [];
-    updateCart();
+    for idx, item in enumerate(st.session_state.cart):
+        total += item["price"]
+        col1, col2 = st.sidebar.columns([3, 1])
+        with col1:
+            st.sidebar.write(f"{item['name']} - NT${item['price']}")
+        with col2:
+            if st.sidebar.button("Remove", key=f"remove_{idx}"):
+                to_remove.append(idx)
 
-    document.getElementById("ratingSection").style.display = "block";
-}
+    for idx in reversed(to_remove):
+        st.session_state.cart.pop(idx)
 
-// Submit rating
-function submitRating() {
-    let rating = parseInt(document.getElementById("rating").value);
-    ratings.push(rating);
+    st.sidebar.write(f"**Total: NT${total}**")
 
-    let avg = ratings.reduce((a,b)=>a+b,0) / ratings.length;
-
-    document.getElementById("ratingDisplay").innerHTML =
-        `<p>⭐ Average Rating: ${avg.toFixed(1)}/5 (${ratings.length} ratings)</p>`;
-
-    document.getElementById("ratingSection").style.display = "none";
-}
-
-</script>
-
-</body>
-</html>
+else:
+    st.sidebar.info("Your cart is empty.")
