@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Online Store</title>
+<style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        display: flex;
+    }
+
+    /* Sidebar Cart */
+    #cart {
+        width: 300px;
+        background-color: #111;
+        padding: 20px;
+        border-right: 3px solid white;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    /* Main Content */
+    #main {
+        flex: 1;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    .warning {
+        background-color: #ffeb3b;
+        color: black;
+        padding: 15px;
+        border: 2px solid white;
+        border-radius: 10px;
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    /* Product Grid */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+
+    .product {
+        background-color: #222;
+        padding: 15px;
+        border-radius: 15px;
+        border: 3px solid white;
+        text-align: center;
+    }
+
+    img {
+        width: 180px;
+        border-radius: 15px;
+        border: 6px solid white;
+    }
+
+    button {
+        background-color: black;
+        color: white;
+        border: 1px solid white;
+        padding: 10px;
+        cursor: pointer;
+        margin-top: 10px;
+        width: 100%;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    button:hover {
+        background-color: #28a745;
+        color: white;
+    }
+
+    input {
+        width: 50px;
+    }
+
+    /* Bundle side-by-side images */
+    .bundle-images {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR CART -->
+<div id="cart">
+    <h2>Your Cart</h2>
+
+    <label>Your Name:</label><br>
+    <input id="buyerName" type="text" style="width:100%; margin-bottom:10px;"><br>
+
+    <label>Notes:</label>
+    <textarea id="buyerNotes" style="width:100%; height:70px;"></textarea>
+
+    <h3>Items:</h3>
+    <div id="cartItems">Cart is empty.</div>
+
+    <h3>Total: NT$<span id="total">0</span></h3>
+
+    <button onclick="completePurchase()">Complete Purchase</button>
+
+    <div id="ratingSection" style="display:none; margin-top:20px;">
+        <h3>Rate Our Store</h3>
+        <input id="rating" type="range" min="1" max="5" value="5">
+        <button onclick="submitRating()">Submit Rating</button>
+    </div>
+
+    <div id="ratingDisplay"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main">
+    <h1>🚫 NO REFUNDS 🚫</h1>
+
+    <div class="warning">💵 Cash Only — No Card Payments</div>
+
+    <h2>Products</h2>
+
+    <div class="grid">
+
+        <!-- Chicken Noodle Snack -->
+        <div class="product">
+            <h3>Chicken Noodle Snacks</h3>
+            <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
+            <p>Tasty and convenient chicken noodle snacks.</p>
+            <p>Price: NT$17</p>
+            Quantity: <input id="qty1" type="number" value="1" min="1" max="20">
+            <button onclick="addToCart('Chicken Noodle Snacks', 17, 'qty1')">Add to Cart</button>
+        </div>
+
+        <!-- Dr Pepper -->
+        <div class="product">
+            <h3>Dr Pepper</h3>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
+            <p>Refreshing soda drink.</p>
+            <p>Price: NT$37</p>
+            Quantity: <input id="qty2" type="number" value="1" min="1" max="20">
+            <button onclick="addToCart('Dr Pepper', 37, 'qty2')">Add to Cart</button>
+        </div>
+
+        <!-- Bundle -->
+        <div class="product">
+            <h3>Snack & Drink Bundle</h3>
+            <div class="bundle-images">
+                <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg" width="120">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg" width="120">
+            </div>
+            <p>1 Chicken Noodle Snack + 1 Dr Pepper bundle deal.</p>
+            <p>Price: NT$50</p>
+            Quantity: <input id="qty3" type="number" value="1" min="1" max="20">
+            <button onclick="addToCart('Snack & Drink Bundle', 50, 'qty3')">Add to Cart</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let cart = [];
+let ratings = [];
+
+// Add to cart
+function addToCart(name, price, qtyId) {
+    let qty = parseInt(document.getElementById(qtyId).value);
+
+    for (let i = 0; i < qty; i++) {
+        cart.push({ name, price });
+    }
+
+    updateCart();
+}
+
+// Update cart display
+function updateCart() {
+    let container = document.getElementById("cartItems");
+    container.innerHTML = "";
+
+    let total = 0;
+
+    cart.forEach((item, index) => {
+        total += item.price;
+        container.innerHTML += `
+            <div>
+                ${item.name} — NT$${item.price}
+                <button onclick="removeItem(${index})" style="width:auto; margin-left:10px;">X</button>
+            </div>
+        `;
+    });
+
+    if (cart.length === 0) container.innerHTML = "Cart is empty.";
+
+    document.getElementById("total").innerText = total;
+}
+
+// Remove a single item
+function removeItem(i) {
+    cart.splice(i, 1);
+    updateCart();
+}
+
+// Complete purchase
+function completePurchase() {
+    let name = document.getElementById("buyerName").value;
+
+    if (name.trim() === "") {
+        alert("Please enter your name first.");
+        return;
+    }
+
+    alert("Order saved! Pay with cash when delivered.");
+
+    cart = [];
+    updateCart();
+
+    document.getElementById("ratingSection").style.display = "block";
+}
+
+// Submit rating
+function submitRating() {
+    let rating = parseInt(document.getElementById("rating").value);
+    ratings.push(rating);
+
+    let avg = ratings.reduce((a,b)=>a+b,0) / ratings.length;
+
+    document.getElementById("ratingDisplay").innerHTML =
+        `<p>⭐ Average Rating: ${avg.toFixed(1)}/5 (${ratings.length} ratings)</p>`;
+
+    document.getElementById("ratingSection").style.display = "none";
+}
+
+</script>
+
+</body>
+</html>
