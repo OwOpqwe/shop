@@ -28,14 +28,14 @@ header {
     z-index: 100;
 }
 .cash-only {
-    background: linear-gradient(135deg, white 0%, #f0f0f0 100%);
+    background: white;
     color: black;
-    font-size: 28px;
+    font-size: 0.4em;
     font-weight: 900;
-    padding: 10px 20px;
+    padding: 8px 16px;
     display: inline-block;
     border-radius: 10px;
-    margin: 10px;
+    margin-left: 15px;
     box-shadow: 0 4px 12px rgba(255,255,255,0.3);
 }
 .cart-icon {
@@ -72,38 +72,29 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.7em;
+    font-size: 0.6em;
     font-weight: bold;
 }
 
-/* Main layout: cart left, store right */
-.main-container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 30px;
-    padding: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* Store styling */
 .store-container {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 25px;
-    max-width: 1000px;
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .item {
-    width: 250px;
-    min-height: 400px;
+    width: 280px;
+    min-height: 450px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     background: linear-gradient(135deg, #1e1e1e 0%, #2a2a3e 100%);
     color: white;
-    padding: 15px;
+    padding: 20px;
     border-radius: 15px;
     border: 1px solid #444;
     box-sizing: border-box;
@@ -117,71 +108,82 @@ header {
 .item h3 {
     color: #3399ff;
     margin-bottom: 10px;
+    font-size: 1.4em;
 }
 .item p {
     color: #4CAF50;
     font-weight: bold;
-    font-size: 1.5em;
+    font-size: 1.8em;
     margin: 10px 0;
 }
 .item img {
     width: 100%;
     height: 200px;
     object-fit: cover;
-    border-radius: 15px;
+    border-radius: 12px;
     border: 2px solid #444;
+    margin-bottom: 15px;
 }
 .bundle-images {
     display: flex;
     justify-content: center;
-    gap: 5px;
+    gap: 8px;
+    margin-bottom: 15px;
 }
 .bundle-images img {
     width: 48%;
-    height: 150px;
+    height: 180px;
     object-fit: cover;
-    border-radius: 15px;
+    border-radius: 12px;
     border: 2px solid #444;
 }
 .quantity {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
     margin: 15px 0;
 }
 .quantity span {
-    font-size: 1.3em;
+    font-size: 1.5em;
     font-weight: bold;
-    min-width: 30px;
+    min-width: 35px;
+    text-align: center;
 }
-button {
-    margin-top: 10px;
-    padding: 10px 15px;
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+.add-btn, .qty-remove-btn {
     color: white;
-    font-weight: bold;
     border: none;
-    border-radius: 10px;
+    padding: 12px 18px;
     cursor: pointer;
+    border-radius: 10px;
+    font-size: 1.3em;
     transition: all 0.2s;
-    font-size: 1.1em;
+    font-weight: bold;
 }
-button:hover {
+.add-btn {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+.add-btn:hover {
     background: linear-gradient(135deg, #218838 0%, #155724 100%);
     transform: scale(1.05);
 }
+.qty-remove-btn {
+    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+}
+.qty-remove-btn:hover {
+    background: linear-gradient(135deg, #c82333 0%, #a71d2a 100%);
+    transform: scale(1.05);
+}
 
-/* Cart styling */
 .cart-panel {
     position: fixed;
-    right: -400px;
+    right: -420px;
     top: 0;
     width: 400px;
     height: 100vh;
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d44 100%);
     box-shadow: -4px 0 20px rgba(0,0,0,0.5);
-    transition: right 0.3s;
+    transition: right 0.3s ease-in-out;
     z-index: 102;
     overflow-y: auto;
     padding: 20px;
@@ -210,6 +212,11 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s;
+}
+.close-cart:hover {
+    background: #c82333;
+    transform: rotate(90deg);
 }
 .cart-item {
     background: #2a2a3e;
@@ -227,11 +234,13 @@ button:hover {
     background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
     color: white;
     border: none;
-    padding: 8px 12px;
+    padding: 8px 15px;
     border-radius: 8px;
     cursor: pointer;
     margin-top: 10px;
     transition: all 0.2s;
+    font-size: 0.95em;
+    font-weight: bold;
 }
 .remove-btn:hover {
     background: linear-gradient(135deg, #c82333 0%, #a71d2a 100%);
@@ -267,29 +276,175 @@ button:hover {
     color: #888;
     font-size: 1.2em;
 }
-.add-btn, .qty-remove-btn {
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    cursor: pointer;
-    border-radius: 8px;
-    font-size: 1.1em;
-    transition: all 0.2s;
-    font-weight: bold;
-    margin: 0;
-}
-.add-btn {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-}
-.add-btn:hover {
-    background: linear-gradient(135deg, #218838 0%, #155724 100%);
-    transform: scale(1.05);
-}
-.qty-remove-btn {
-    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
-}
-.qty-remove-btn:hover {
-    background: linear-gradient(135deg, #c82333 0%, #a71d2a 100%);
-    transform: scale(1.05);
-}
 </style>
+</head>
+<body>
+<header>🏪 Snack Store <span class="cash-only">CASH ONLY</span></header>
+
+<div class="cart-icon" onclick="toggleCart()">
+    🛒
+    <span class="cart-badge" id="cartBadge">0</span>
+</div>
+
+<div class="store-container">
+    <div class="item">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg" alt="Dr Pepper">
+        <h3>Dr Pepper</h3>
+        <p>$2</p>
+        <div class="quantity">
+            <button class="qty-remove-btn" onclick="removeQuantity('Dr Pepper')">➖</button>
+            <span id="qty-Dr Pepper">0</span>
+            <button class="add-btn" onclick="addToCart('Dr Pepper', 2)">➕</button>
+        </div>
+    </div>
+
+    <div class="item">
+        <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg" alt="Chicken Noodle Snack">
+        <h3>Chicken Noodle Snack</h3>
+        <p>$3</p>
+        <div class="quantity">
+            <button class="qty-remove-btn" onclick="removeQuantity('Chicken Noodle Snack')">➖</button>
+            <span id="qty-Chicken Noodle Snack">0</span>
+            <button class="add-btn" onclick="addToCart('Chicken Noodle Snack', 3)">➕</button>
+        </div>
+    </div>
+
+    <div class="item">
+        <div class="bundle-images">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg" alt="Dr Pepper">
+            <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg" alt="Chicken Noodle Snack">
+        </div>
+        <h3>Bundle Pack</h3>
+        <p>$4</p>
+        <div class="quantity">
+            <button class="qty-remove-btn" onclick="removeQuantity('Bundle Pack')">➖</button>
+            <span id="qty-Bundle Pack">0</span>
+            <button class="add-btn" onclick="addToCart('Bundle Pack', 4)">➕</button>
+        </div>
+    </div>
+</div>
+
+<div class="cart-panel" id="cartPanel">
+    <div class="cart-header">
+        🛒 Your Cart
+        <button class="close-cart" onclick="toggleCart()">✕</button>
+    </div>
+    <div id="cart-items"></div>
+    <div class="cart-total">
+        Total: $<span id="total">0.00</span>
+    </div>
+    <button class="checkout-btn" onclick="checkout()">💳 Checkout</button>
+</div>
+
+<script>
+let cart = {};
+
+const bundles = {
+    "Bundle Pack": { "Dr Pepper": 1, "Chicken Noodle Snack": 1 }
+};
+
+function addToCart(name, price) {
+    if (!cart[name]) {
+        cart[name] = { price: price, quantity: 1 };
+    } else {
+        cart[name].quantity++;
+    }
+    updateCart();
+    updateQuantityDisplay(name);
+}
+
+function removeQuantity(name) {
+    if (cart[name] && cart[name].quantity > 0) {
+        cart[name].quantity--;
+        if (cart[name].quantity === 0) {
+            delete cart[name];
+        }
+        updateCart();
+        updateQuantityDisplay(name);
+    }
+}
+
+function removeItem(name) {
+    delete cart[name];
+    updateCart();
+    updateQuantityDisplay(name);
+}
+
+function updateQuantityDisplay(name) {
+    const qtyElement = document.getElementById(`qty-${name}`);
+    if (qtyElement) {
+        qtyElement.textContent = cart[name] ? cart[name].quantity : 0;
+    }
+}
+
+function updateCart() {
+    const cartDiv = document.getElementById('cart-items');
+    const badge = document.getElementById('cartBadge');
+    cartDiv.innerHTML = '';
+    let total = 0;
+    let itemCount = 0;
+
+    for (const item in cart) {
+        const entry = cart[item];
+        total += entry.price * entry.quantity;
+        itemCount += entry.quantity;
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+
+        let itemHTML = `
+            <div><strong>${item} x${entry.quantity}</strong></div>
+            <div style="color: #888; font-size: 0.9em; margin-top: 5px;">$${entry.price.toFixed(2)} × ${entry.quantity}</div>
+        `;
+
+        if (bundles[item]) {
+            itemHTML += '<div class="bundle-sub">';
+            for (const subItem in bundles[item]) {
+                const subQty = bundles[item][subItem] * entry.quantity;
+                itemHTML += `<div>├ ${subItem} x${subQty}</div>`;
+            }
+            itemHTML += '</div>';
+        }
+
+        itemHTML += `
+            <div style="font-weight: bold; color: #4CAF50; margin-top: 8px; font-size: 1.1em;">$${(entry.price * entry.quantity).toFixed(2)}</div>
+            <button class="remove-btn" onclick="removeItem('${item}')">🗑️ Remove</button>
+        `;
+
+        div.innerHTML = itemHTML;
+        cartDiv.appendChild(div);
+    }
+
+    if (itemCount === 0) {
+        cartDiv.innerHTML = '<div class="empty-cart">🛒 Your cart is empty<br><br>Add items to get started!</div>';
+    }
+
+    badge.textContent = itemCount;
+    document.getElementById('total').innerText = total.toFixed(2);
+    
+    updateQuantityDisplay('Dr Pepper');
+    updateQuantityDisplay('Chicken Noodle Snack');
+    updateQuantityDisplay('Bundle Pack');
+}
+
+function toggleCart() {
+    const panel = document.getElementById('cartPanel');
+    panel.classList.toggle('open');
+}
+
+function checkout() {
+    const total = document.getElementById('total').textContent;
+    if (parseFloat(total) > 0) {
+        alert(`Thank you for your purchase!\nTotal: $${total}\n\n💵 CASH ONLY - Please have exact change ready!\n\n🎉 Your order has been placed!`);
+        cart = {};
+        updateCart();
+        toggleCart();
+    } else {
+        alert('Your cart is empty! Add some items first.');
+    }
+}
+
+updateCart();
+</script>
+</body>
+</html>
