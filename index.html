@@ -129,11 +129,6 @@ button:hover {
 <script>
 let cart = {};
 
-// Define bundle contents
-const bundles = {
-    "Bundle Pack": { "Dr Pepper": 1, "Chicken Noodle Snack": 1 }
-};
-
 function addToCart(name, price) {
     if (!cart[name]) {
         cart[name] = { price: price, quantity: 1 };
@@ -157,27 +152,17 @@ function updateCart() {
         const entry = cart[item];
         total += entry.price * entry.quantity;
 
+        // Create container
         const div = document.createElement('div');
         div.style.marginBottom = '10px';
+        div.style.overflow = 'auto';
 
-        const text = document.createElement('div');
-        text.style.fontWeight = 'bold';
-        text.innerText = `${item} x${entry.quantity} - $${entry.price * entry.quantity}`;
+        // Item text
+        const text = document.createElement('span');
+        text.innerHTML = `<strong>${item}</strong> x${entry.quantity} - $${entry.price * entry.quantity}`;
         div.appendChild(text);
 
-        // If bundle, show contents indented
-        if (bundles[item]) {
-            const subList = document.createElement('div');
-            subList.style.marginLeft = '15px';
-            for (const subItem in bundles[item]) {
-                const subQty = bundles[item][subItem] * entry.quantity;
-                const subText = document.createElement('div');
-                subText.innerText = `${subItem} x${subQty}`;
-                subList.appendChild(subText);
-            }
-            div.appendChild(subList);
-        }
-
+        // Remove button
         const btn = document.createElement('button');
         btn.className = 'remove-btn';
         btn.innerText = 'X';
