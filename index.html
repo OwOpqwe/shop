@@ -142,6 +142,10 @@
 <script>
 let cart = {};
 
+function encodeName(name) {
+    return encodeURIComponent(name);
+}
+
 function addToCart(name, price) {
     if (!cart[name]) {
         cart[name] = { price: price, quantity: 1 };
@@ -166,10 +170,13 @@ function updateCart() {
         let entry = cart[item];
         total += entry.price * entry.quantity;
 
+        // Use encodeName for safe onclick
+        const safeName = encodeName(item);
+
         cartDiv.innerHTML += `
-            <div style="margin-bottom: 10px;">
+            <div style="margin-bottom: 10px; overflow:auto;">
                 <strong>${item}</strong> x${entry.quantity} - $${entry.price * entry.quantity}
-                <button class="remove-btn" onclick="removeItem('${item}')">X</button>
+                <button class="remove-btn" onclick="removeItem(decodeURIComponent('${safeName}'))">X</button>
             </div>
         `;
     }
