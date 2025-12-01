@@ -1,107 +1,48 @@
-import streamlit as st
-
-st.set_page_config(page_title="Snack Store", layout="wide")
-
-st.markdown("""
-<style>
-body {
-    background-color: black !important;
-    color: white !important;
-}
-.css-10trblm, .css-1v0mbdj, .css-1d391kg, .css-1kyxreq {
-    color: white !important;
-}
-.product-img {
-    border-radius: 15px;
-    border: 5px solid white;
-}
-.add-button > button {
-    background-color: white !important;
-    color: black !important;
-    border-radius: 8px !important;
-    transition: 0.3s;
-}
-.add-button > button:hover {
-    background-color: #00ff00 !important;
-    color: black !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-st.title("NO REFUNDS")
-st.header("Products")
-
-products = {
-    "Chicken Noodle Snacks": {
-        "price": 17,
-        "img": "https://images.cdn.saveonfoods.com/detail/00074410700799.jpg",
-        "description": "Tasty and convenient chicken noodle snacks."
-    },
-    "Dr Pepper": {
-        "price": 37,
-        "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg",
-        "description": "Refreshing soda drink."
-    },
-    "Snack & Drink Bundle": {
-        "price": 50,
-        "description": "1 Chicken Noodle Snack + 1 Dr Pepper bundle deal."
-    }
-}
-
-product_names = list(products.keys())
-products_per_row = 2
-
-if "cart" not in st.session_state:
-    st.session_state.cart = []
-
-for i in range(0, len(product_names), products_per_row):
-    cols = st.columns(products_per_row)
-    for j, name in enumerate(product_names[i:i+products_per_row]):
-        with cols[j]:
-            st.subheader(name)
-
-            if name == "Snack & Drink Bundle":
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.image(products["Chicken Noodle Snacks"]["img"], width=150, caption="Chicken Noodle", use_column_width=False)
-                with col2:
-                    st.image(products["Dr Pepper"]["img"], width=150, caption="Dr Pepper", use_column_width=False)
-            else:
-                st.image(products[name]["img"], width=225, caption=name, use_column_width=False)
-
-            st.write(products[name]["description"])
-            st.write(f"Price: NT${products[name]['price']}")
-
-            qty = st.number_input(f"Quantity for {name}", min_value=1, max_value=20, value=1, key=f"qty_{name}")
-
-            with st.container():
-                with st.container():
-                    button_key = f"add_{name}"
-                    st.markdown('<div class="add-button">', unsafe_allow_html=True)
-                    if st.button(f"Add to Cart", key=button_key):
-                        for _ in range(qty):
-                            st.session_state.cart.append({"name": name, "price": products[name]["price"]})
-                        st.success(f"Added {qty} x {name} to cart!")
-                    st.markdown('</div>', unsafe_allow_html=True)
-
 # SIDEBAR CART
 st.sidebar.header("Your Cart")
 
 if st.session_state.cart:
+
+    # Count quantities
+    cart_summary = {}
+    for item in st.session_state.cart:
+        name = item["name"]
+        price = item["price"]
+        if name not in cart_summary:
+            cart_summary[name] = {"price": price, "qty": 0}
+        cart_summary[name]["qty"] += 1
+
     total = 0
-    to_remove = []
 
-    for idx, item in enumerate(st.session_state.cart):
-        total += item["price"]
-        col1, col2 = st.sidebar.columns([3, 1])
-        with col1:
-            st.sidebar.write(f"{item['name']} - NT${item['price']}")
-        with col2:
-            if st.sidebar.button("Remove", key=f"remove_{idx}"):
-                to_remove.append(idx)
+    for name, info in cart_summary.items():
+        qty = info["qty"]
+        price = info["price"]
+        subtotal = qty * price
+        total += subtotal
 
-    for idx in reversed(to_remove):
-        st.session_state.cart.pop(idx)
+        minus_col, item_col, plus_col, price_col = st.sidebar.columns([1, 4, 1, 2])
+
+        # Minus button
+        with minus_col:
+            if st.button("-", key=f"minus_{name}"):
+                # Remove ONE of that item
+                for i, item in enumerate(st.session_state.cart):
+                    if item["name"] == name:
+                        st.session_state.cart.pop(i)
+                        break
+
+        # Item name + quantity
+        with item_col:
+            st.write(f"{name} × {qty}")
+
+        # Plus button
+        with plus_col:
+            if st.button("+", key=f"plus_{name}"):
+                st.session_state.cart.append({"name": name, "price": price})
+
+        # Subtotal for that item
+        with price_col:
+            st.write(f"NT${subtotal}")
 
     st.sidebar.write(f"**Total: NT${total}**")
 
