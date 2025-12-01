@@ -4,100 +4,87 @@
 <meta charset="UTF-8">
 <title>Snack Store</title>
 <style>
-    body {
-        background-color: black;
-        color: white;
-        font-family: Arial, sans-serif;
-        text-align: center;
-    }
-
-    h1 {
-        margin-top: 20px;
-    }
-
-    .cash-only {
-        background-color: white;
-        color: black;
-        font-size: 28px;
-        font-weight: 900;
-        padding: 10px 20px;
-        display: inline-block;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .store-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 25px;
-        padding: 20px;
-    }
-
-    .item {
-        width: 250px;
-        background-color: white;
-        color: black;
-        padding: 15px;
-        border-radius: 15px;
-        border: 5px solid white;
-    }
-
-    .item img {
-        width: 100%;
-        border-radius: 15px;
-        border: 6px solid black;
-    }
-
-    .bundle-images {
-        display: flex;
-        justify-content: center;
-        gap: 5px;
-    }
-
-    .bundle-images img {
-        width: 48%;
-        border-radius: 15px;
-        border: 6px solid black;
-    }
-
-    button {
-        margin-top: 10px;
-        padding: 10px 15px;
-        background-color: white;
-        color: black;
-        font-weight: bold;
-        border: 3px solid black;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    button:hover {
-        background-color: green;
-        color: white;
-    }
-
-    #cart {
-        margin-top: 30px;
-        background-color: white;
-        color: black;
-        display: inline-block;
-        padding: 20px;
-        border-radius: 15px;
-        width: 350px;
-        text-align: left;
-    }
-
-    .remove-btn {
-        background-color: red;
-        color: white;
-        border: none;
-        padding: 5px 8px;
-        border-radius: 5px;
-        cursor: pointer;
-        float: right;
-    }
+body {
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+h1 { margin-top: 20px; }
+.cash-only {
+    background-color: white;
+    color: black;
+    font-size: 28px;
+    font-weight: 900;
+    padding: 10px 20px;
+    display: inline-block;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+.store-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+    padding: 20px;
+}
+.item {
+    width: 250px;
+    background-color: white;
+    color: black;
+    padding: 15px;
+    border-radius: 15px;
+    border: 5px solid white;
+}
+.item img {
+    width: 100%;
+    border-radius: 15px;
+    border: 6px solid black;
+}
+.bundle-images {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+.bundle-images img {
+    width: 48%;
+    border-radius: 15px;
+    border: 6px solid black;
+}
+button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    border: 3px solid black;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+button:hover {
+    background-color: green;
+    color: white;
+}
+#cart {
+    margin-top: 30px;
+    background-color: white;
+    color: black;
+    display: inline-block;
+    padding: 20px;
+    border-radius: 15px;
+    width: 350px;
+    text-align: left;
+}
+.remove-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    float: right;
+}
 </style>
 </head>
 <body>
@@ -142,10 +129,6 @@
 <script>
 let cart = {};
 
-function encodeName(name) {
-    return encodeURIComponent(name);
-}
-
 function addToCart(name, price) {
     if (!cart[name]) {
         cart[name] = { price: price, quantity: 1 };
@@ -161,27 +144,32 @@ function removeItem(name) {
 }
 
 function updateCart() {
-    let cartDiv = document.getElementById("cart-items");
-    cartDiv.innerHTML = "";
-
+    const cartDiv = document.getElementById('cart-items');
+    cartDiv.innerHTML = ''; // clear previous
     let total = 0;
 
-    for (let item in cart) {
-        let entry = cart[item];
+    for (const item in cart) {
+        const entry = cart[item];
         total += entry.price * entry.quantity;
 
-        // Use encodeName for safe onclick
-        const safeName = encodeName(item);
+        const div = document.createElement('div');
+        div.style.marginBottom = '10px';
+        div.style.overflow = 'auto';
 
-        cartDiv.innerHTML += `
-            <div style="margin-bottom: 10px; overflow:auto;">
-                <strong>${item}</strong> x${entry.quantity} - $${entry.price * entry.quantity}
-                <button class="remove-btn" onclick="removeItem(decodeURIComponent('${safeName}'))">X</button>
-            </div>
-        `;
+        const text = document.createElement('span');
+        text.innerHTML = `<strong>${item}</strong> x${entry.quantity} - $${entry.price * entry.quantity}`;
+        div.appendChild(text);
+
+        const btn = document.createElement('button');
+        btn.className = 'remove-btn';
+        btn.innerText = 'X';
+        btn.onclick = function() { removeItem(item); };
+        div.appendChild(btn);
+
+        cartDiv.appendChild(div);
     }
 
-    document.getElementById("total").innerText = "Total: $" + total;
+    document.getElementById('total').innerText = 'Total: $' + total;
 }
 </script>
 
