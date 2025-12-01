@@ -1,50 +1,185 @@
-# SIDEBAR CART
-st.sidebar.header("Your Cart")
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snack Store</title>
+<style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+    }
 
-if st.session_state.cart:
+    h1 {
+        margin-top: 20px;
+    }
 
-    # Count quantities
-    cart_summary = {}
-    for item in st.session_state.cart:
-        name = item["name"]
-        price = item["price"]
-        if name not in cart_summary:
-            cart_summary[name] = {"price": price, "qty": 0}
-        cart_summary[name]["qty"] += 1
+    .cash-only {
+        background-color: white;
+        color: black;
+        font-size: 28px;
+        font-weight: 900;
+        padding: 10px 20px;
+        display: inline-block;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
 
-    total = 0
+    .store-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 25px;
+        padding: 20px;
+    }
 
-    for name, info in cart_summary.items():
-        qty = info["qty"]
-        price = info["price"]
-        subtotal = qty * price
-        total += subtotal
+    .item {
+        width: 250px;
+        background-color: white;
+        color: black;
+        padding: 15px;
+        border-radius: 15px;
+        border: 5px solid white;
+    }
 
-        minus_col, item_col, plus_col, price_col = st.sidebar.columns([1, 4, 1, 2])
+    .item img {
+        width: 100%;
+        border-radius: 15px;
+        border: 6px solid black;
+    }
 
-        # Minus button
-        with minus_col:
-            if st.button("-", key=f"minus_{name}"):
-                # Remove ONE of that item
-                for i, item in enumerate(st.session_state.cart):
-                    if item["name"] == name:
-                        st.session_state.cart.pop(i)
-                        break
+    .bundle-images {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
 
-        # Item name + quantity
-        with item_col:
-            st.write(f"{name} × {qty}")
+    .bundle-images img {
+        width: 48%;
+        border-radius: 15px;
+        border: 6px solid black;
+    }
 
-        # Plus button
-        with plus_col:
-            if st.button("+", key=f"plus_{name}"):
-                st.session_state.cart.append({"name": name, "price": price})
+    button {
+        margin-top: 10px;
+        padding: 10px 15px;
+        background-color: white;
+        color: black;
+        font-weight: bold;
+        border: 3px solid black;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
 
-        # Subtotal for that item
-        with price_col:
-            st.write(f"NT${subtotal}")
+    button:hover {
+        background-color: green;
+        color: white;
+    }
 
-    st.sidebar.write(f"**Total: NT${total}**")
+    #cart {
+        margin-top: 30px;
+        background-color: white;
+        color: black;
+        display: inline-block;
+        padding: 20px;
+        border-radius: 15px;
+        width: 350px;
+        text-align: left;
+    }
 
-else:
-    st.sidebar.info("Your cart is empty.")
+    .remove-btn {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 5px 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        float: right;
+    }
+</style>
+</head>
+<body>
+
+<h1>Snack Store</h1>
+<div class="cash-only">CASH ONLY</div>
+
+<div class="store-container">
+
+    <!-- DR PEPPER -->
+    <div class="item">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
+        <h3>Dr Pepper</h3>
+        <p>$2</p>
+        <button onclick="addToCart('Dr Pepper', 2)">Add to Cart</button>
+    </div>
+
+    <!-- CHICKEN NOODLE SNACK -->
+    <div class="item">
+        <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
+        <h3>Chicken Noodle Snack</h3>
+        <p>$3</p>
+        <button onclick="addToCart('Chicken Noodle Snack', 3)">Add to Cart</button>
+    </div>
+
+    <!-- BUNDLE PACK -->
+    <div class="item">
+        <div class="bundle-images">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
+            <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
+        </div>
+        <h3>Bundle Pack</h3>
+        <p>$4</p>
+        <button onclick="addToCart('Bundle Pack', 4)">Add to Cart</button>
+    </div>
+
+</div>
+
+<div id="cart">
+    <h2>Cart</h2>
+    <div id="cart-items"></div>
+    <h3 id="total"></h3>
+</div>
+
+<script>
+let cart = {};
+
+function addToCart(name, price) {
+    if (!cart[name]) {
+        cart[name] = { price: price, quantity: 1 };
+    } else {
+        cart[name].quantity++;
+    }
+    updateCart();
+}
+
+function removeItem(name) {
+    delete cart[name];
+    updateCart();
+}
+
+function updateCart() {
+    let cartDiv = document.getElementById("cart-items");
+    cartDiv.innerHTML = "";
+
+    let total = 0;
+
+    for (let item in cart) {
+        let entry = cart[item];
+        total += entry.price * entry.quantity;
+
+        cartDiv.innerHTML += `
+            <p>
+                ${item} x${entry.quantity} - $${entry.price * entry.quantity}
+                <button class="remove-btn" onclick="removeItem('${item}')">X</button>
+            </p>
+        `;
+    }
+
+    document.getElementById("total").innerText = "Total: $" + total;
+}
+</script>
+
+</body>
+</html>
