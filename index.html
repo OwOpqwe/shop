@@ -40,7 +40,6 @@ header {
     padding: 20px;
     gap: 20px;
 }
-
 .store-container {
     flex: 1;
     display: flex;
@@ -49,7 +48,6 @@ header {
     gap: 25px;
     padding: 20px;
 }
-
 .item {
     width: 280px;
     background: white;
@@ -113,7 +111,6 @@ header {
 .qty-remove-btn {
     background: red;
 }
-
 .cart-panel {
     position: sticky;
     top: 20px;
@@ -123,13 +120,9 @@ header {
     background: white;
     color: black;
     border-radius: 15px;
-    z-index: 10;
     overflow-y: auto;
     padding: 20px;
     flex-shrink: 0;
-}
-.cart-panel.open {
-    right: 0;
 }
 .cart-header {
     font-size: 1.8em;
@@ -137,11 +130,8 @@ header {
     padding-bottom: 15px;
     border-bottom: 2px solid #ddd;
 }
-.close-cart {
-    display: none;
-}
 .cart-item {
-    background: #2a2a3e;
+    background: #f5f5f5;
     padding: 15px;
     margin: 10px 0;
     border-radius: 10px;
@@ -150,7 +140,7 @@ header {
     margin-left: 15px;
     margin-top: 10px;
     font-size: 0.9em;
-    color: #aaa;
+    color: #666;
 }
 .remove-btn {
     background: red;
@@ -165,9 +155,10 @@ header {
 .cart-total {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 2px solid #444;
+    border-top: 2px solid #ddd;
     font-size: 1.5em;
     font-weight: bold;
+    color: black;
 }
 .checkout-btn {
     background: #007bff;
@@ -184,18 +175,14 @@ header {
 .empty-cart {
     text-align: center;
     padding: 40px 20px;
-    color: #888;
+    color: #666;
 }
 </style>
 </head>
 <body>
 <header>Snack Store <span class="cash-only">CASH ONLY</span></header>
 
-<div class="cart-icon" onclick="toggleCart()">
-    🛒
-    <span class="cart-badge" id="cartBadge">0</span>
-</div>
-
+<div class="main-container">
 <div class="store-container">
     <div class="item">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
@@ -234,27 +221,21 @@ header {
     </div>
 </div>
 
-<div class="cart-panel" id="cartPanel">
-    <div class="cart-header">
-        Your Cart
-        <button class="close-cart" onclick="toggleCart()">X</button>
-    </div>
+<div class="cart-panel">
+    <div class="cart-header">Your Cart</div>
     <div id="cart-items"></div>
-    <div class="cart-total">
-        Total: NT$<span id="total">0.00</span>
-    </div>
+    <div class="cart-total">Total: NT$<span id="total">0</span></div>
     <button class="checkout-btn" onclick="checkout()">Checkout</button>
+</div>
 </div>
 
 <script>
 var cart = {};
-var bundles = {
-    "Bundle Pack": { "Dr Pepper": 1, "Chicken Noodle Snack": 1 }
-};
+var bundles = {"Bundle Pack": {"Dr Pepper": 1, "Chicken Noodle Snack": 1}};
 
 function addToCart(name, price) {
     if (!cart[name]) {
-        cart[name] = { price: price, quantity: 1 };
+        cart[name] = {price: price, quantity: 1};
     } else {
         cart[name].quantity++;
     }
@@ -278,373 +259,45 @@ function removeItem(name) {
 
 function updateCart() {
     var cartDiv = document.getElementById('cart-items');
-    var badge = document.getElementById('cartBadge');
     cartDiv.innerHTML = '';
     var total = 0;
-    var itemCount = 0;
 
     for (var item in cart) {
         var entry = cart[item];
         total += entry.price * entry.quantity;
-        itemCount += entry.quantity;
-
         var div = document.createElement('div');
         div.className = 'cart-item';
-
         var html = '<div><strong>' + item + ' x' + entry.quantity + '</strong></div>';
-        html += '<div style="color: #888; margin-top: 5px;">NT
-
+        html += '<div style="color:#666;margin-top:5px;">NT$' + entry.price + ' × ' + entry.quantity + '</div>';
         if (bundles[item]) {
             html += '<div class="bundle-sub">';
             for (var subItem in bundles[item]) {
-                var subQty = bundles[item][subItem] * entry.quantity;
-                html += '<div>' + subItem + ' x' + subQty + '</div>';
+                html += '<div>' + subItem + ' x' + (bundles[item][subItem] * entry.quantity) + '</div>';
             }
             html += '</div>';
         }
-
-        html += '<div style="font-weight: bold; color: green; margin-top: 8px;">NT
+        html += '<div style="font-weight:bold;color:green;margin-top:8px;">NT$' + (entry.price * entry.quantity) + '</div>';
         html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove</button>';
-
         div.innerHTML = html;
         cartDiv.appendChild(div);
     }
 
-    if (itemCount === 0) {
+    if (total === 0) {
         cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
     }
 
-    badge.textContent = itemCount;
-    document.getElementById('total').innerText = total.toFixed(0);
-    
+    document.getElementById('total').innerText = total;
     document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
     document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
     document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
 }
 
-function toggleCart() {
-    var panel = document.getElementById('cartPanel');
-    if (panel.classList.contains('open')) {
-        panel.classList.remove('open');
-    } else {
-        panel.classList.add('open');
-    }
-}
-
 function checkout() {
     var total = document.getElementById('total').textContent;
     if (parseFloat(total) > 0) {
-        alert('Thank you for your purchase!\nTotal: NT
-
-updateCart();
-</script>
-</body>
-</html> + entry.price.toFixed(0) + ' × ' + entry.quantity + '</div>';
-
-        if (bundles[item]) {
-            html += '<div class="bundle-sub">';
-            for (var subItem in bundles[item]) {
-                var subQty = bundles[item][subItem] * entry.quantity;
-                html += '<div>' + subItem + ' x' + subQty + '</div>';
-            }
-            html += '</div>';
-        }
-
-        html += '<div style="font-weight: bold; color: green; margin-top: 8px;">$' + (entry.price * entry.quantity).toFixed(2) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove</button>';
-
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
-    }
-
-    if (itemCount === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-    }
-
-    badge.textContent = itemCount;
-    document.getElementById('total').innerText = total.toFixed(2);
-    
-    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-}
-
-function toggleCart() {
-    var panel = document.getElementById('cartPanel');
-    if (panel.classList.contains('open')) {
-        panel.classList.remove('open');
-    } else {
-        panel.classList.add('open');
-    }
-}
-
-function checkout() {
-    var total = document.getElementById('total').textContent;
-    if (parseFloat(total) > 0) {
-        alert('Thank you for your purchase!\nTotal: $' + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
+        alert('Thank you for your purchase!\nTotal: NT$' + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
         cart = {};
         updateCart();
-        toggleCart();
-    } else {
-        alert('Your cart is empty!');
-    }
-}
-
-updateCart();
-</script>
-</body>
-</html> + (entry.price * entry.quantity).toFixed(0) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove</button>';
-
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
-    }
-
-    if (itemCount === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-    }
-
-    badge.textContent = itemCount;
-    document.getElementById('total').innerText = total.toFixed(2);
-    
-    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-}
-
-function toggleCart() {
-    var panel = document.getElementById('cartPanel');
-    if (panel.classList.contains('open')) {
-        panel.classList.remove('open');
-    } else {
-        panel.classList.add('open');
-    }
-}
-
-function checkout() {
-    var total = document.getElementById('total').textContent;
-    if (parseFloat(total) > 0) {
-        alert('Thank you for your purchase!\nTotal: $' + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
-        cart = {};
-        updateCart();
-        toggleCart();
-    } else {
-        alert('Your cart is empty!');
-    }
-}
-
-updateCart();
-</script>
-</body>
-</html> + entry.price.toFixed(0) + ' × ' + entry.quantity + '</div>';
-
-        if (bundles[item]) {
-            html += '<div class="bundle-sub">';
-            for (var subItem in bundles[item]) {
-                var subQty = bundles[item][subItem] * entry.quantity;
-                html += '<div>' + subItem + ' x' + subQty + '</div>';
-            }
-            html += '</div>';
-        }
-
-        html += '<div style="font-weight: bold; color: green; margin-top: 8px;">$' + (entry.price * entry.quantity).toFixed(2) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove</button>';
-
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
-    }
-
-    if (itemCount === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-    }
-
-    badge.textContent = itemCount;
-    document.getElementById('total').innerText = total.toFixed(2);
-    
-    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-}
-
-function toggleCart() {
-    var panel = document.getElementById('cartPanel');
-    if (panel.classList.contains('open')) {
-        panel.classList.remove('open');
-    } else {
-        panel.classList.add('open');
-    }
-}
-
-function checkout() {
-    var total = document.getElementById('total').textContent;
-    if (parseFloat(total) > 0) {
-        alert('Thank you for your purchase!\nTotal: $' + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
-        cart = {};
-        updateCart();
-        toggleCart();
-    } else {
-        alert('Your cart is empty!');
-    }
-}
-
-updateCart();
-</script>
-</body>
-</html> + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
-        cart = {};
-        updateCart();
-        toggleCart();
-    } else {
-        alert('Your cart is empty!');
-    }
-}
-
-updateCart();
-</script>
-</body>
-</html> + entry.price.toFixed(0) + ' × ' + entry.quantity + '</div>';
-
-        if (bundles[item]) {
-            html += '<div class="bundle-sub">';
-            for (var subItem in bundles[item]) {
-                var subQty = bundles[item][subItem] * entry.quantity;
-                html += '<div>' + subItem + ' x' + subQty + '</div>';
-            }
-            html += '</div>';
-        }
-
-        html += '<div style="font-weight: bold; color: green; margin-top: 8px;">$' + (entry.price * entry.quantity).toFixed(2) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove</button>';
-
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
-    }
-
-    if (itemCount === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-    }
-
-    badge.textContent = itemCount;
-    document.getElementById('total').innerText = total.toFixed(2);
-    
-    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-}
-
-function toggleCart() {
-    var panel = document.getElementById('cartPanel');
-    if (panel.classList.contains('open')) {
-        panel.classList.remove('open');
-    } else {
-        panel.classList.add('open');
-    }
-}
-
-function checkout() {
-    var total = document.getElementById('total').textContent;
-    if (parseFloat(total) > 0) {
-        alert('Thank you for your purchase!\nTotal: $' + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
-        cart = {};
-        updateCart();
-        toggleCart();
-    } else {
-        alert('Your cart is empty!');
-    }
-}
-
-updateCart();
-</script>
-</body>
-</html> + (entry.price * entry.quantity).toFixed(0) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove</button>';
-
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
-    }
-
-    if (itemCount === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-    }
-
-    badge.textContent = itemCount;
-    document.getElementById('total').innerText = total.toFixed(2);
-    
-    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-}
-
-function toggleCart() {
-    var panel = document.getElementById('cartPanel');
-    if (panel.classList.contains('open')) {
-        panel.classList.remove('open');
-    } else {
-        panel.classList.add('open');
-    }
-}
-
-function checkout() {
-    var total = document.getElementById('total').textContent;
-    if (parseFloat(total) > 0) {
-        alert('Thank you for your purchase!\nTotal: $' + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
-        cart = {};
-        updateCart();
-        toggleCart();
-    } else {
-        alert('Your cart is empty!');
-    }
-}
-
-updateCart();
-</script>
-</body>
-</html> + entry.price.toFixed(0) + ' × ' + entry.quantity + '</div>';
-
-        if (bundles[item]) {
-            html += '<div class="bundle-sub">';
-            for (var subItem in bundles[item]) {
-                var subQty = bundles[item][subItem] * entry.quantity;
-                html += '<div>' + subItem + ' x' + subQty + '</div>';
-            }
-            html += '</div>';
-        }
-
-        html += '<div style="font-weight: bold; color: green; margin-top: 8px;">$' + (entry.price * entry.quantity).toFixed(2) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove</button>';
-
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
-    }
-
-    if (itemCount === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-    }
-
-    badge.textContent = itemCount;
-    document.getElementById('total').innerText = total.toFixed(2);
-    
-    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-}
-
-function toggleCart() {
-    var panel = document.getElementById('cartPanel');
-    if (panel.classList.contains('open')) {
-        panel.classList.remove('open');
-    } else {
-        panel.classList.add('open');
-    }
-}
-
-function checkout() {
-    var total = document.getElementById('total').textContent;
-    if (parseFloat(total) > 0) {
-        alert('Thank you for your purchase!\nTotal: $' + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
-        cart = {};
-        updateCart();
-        toggleCart();
     } else {
         alert('Your cart is empty!');
     }
