@@ -256,8 +256,13 @@ function removeQuantity(name) {
 }
 
 function removeItem(name) {
-    delete cart[name];
-    updateCart();
+    if (cart[name] && cart[name].quantity > 0) {
+        cart[name].quantity--;
+        if (cart[name].quantity === 0) {
+            delete cart[name];
+        }
+        updateCart();
+    }
 }
 
 function updateCart() {
