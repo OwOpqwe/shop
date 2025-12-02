@@ -287,7 +287,7 @@ function removeQuantity(name) {
 }
 
 function removeItem(name) {
-    if (cart[name] && cart[name].quantity > 0) {
+    if (cart[name]) {
         cart[name].quantity--;
         if (cart[name].quantity === 0) {
             delete cart[name];
@@ -315,8 +315,36 @@ function updateCart() {
             }
             html += '</div>';
         }
-        html += '<div style="font-weight:bold;color:green;margin-top:8px;">NT$' + (entry.price * entry.quantity) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove</button>';
+        html += '<div style="font-weight:bold;color:green;margin-top:8px;">NT
+        cartDiv.appendChild(div);
+    }
+
+    if (total === 0) {
+        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+    }
+
+    document.getElementById('total').innerText = total;
+    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
+    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
+    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
+}
+
+function checkout() {
+    var total = document.getElementById('total').textContent;
+    if (parseFloat(total) > 0) {
+        alert('Thank you for your purchase!\nTotal: NT$' + total + '\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
+        cart = {};
+        updateCart();
+    } else {
+        alert('Your cart is empty!');
+    }
+}
+
+updateCart();
+</script>
+</body>
+</html> + (entry.price * entry.quantity) + '</div>';
+        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove 1</button>';
         div.innerHTML = html;
         cartDiv.appendChild(div);
     }
