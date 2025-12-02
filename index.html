@@ -93,7 +93,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
     margin: 15px 0;
 }
 .quantity span {
@@ -101,6 +101,15 @@ header {
     font-weight: bold;
     min-width: 35px;
     text-align: center;
+}
+.quantity input {
+    width: 60px;
+    padding: 8px;
+    font-size: 1.2em;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-weight: bold;
 }
 .add-btn, .qty-remove-btn {
     color: white;
@@ -195,9 +204,10 @@ header {
         <h3>Dr Pepper</h3>
         <p>NT$30</p>
         <div class="quantity">
-            <span id="qty-Dr Pepper">0</span>
-            <button class="add-btn" onclick="addToCart('Dr Pepper', 30)">+</button>
+            <input type="number" id="input-Dr Pepper" min="1" value="1">
+            <button class="add-btn" onclick="addToCartWithInput('Dr Pepper', 30)">Add</button>
         </div>
+        <div style="margin-top:10px;font-weight:bold;">In cart: <span id="qty-Dr Pepper">0</span></div>
     </div>
 
     <div class="item">
@@ -205,9 +215,10 @@ header {
         <h3>Chicken Noodle Snack</h3>
         <p>NT$25</p>
         <div class="quantity">
-            <span id="qty-Chicken Noodle Snack">0</span>
-            <button class="add-btn" onclick="addToCart('Chicken Noodle Snack', 25)">+</button>
+            <input type="number" id="input-Chicken Noodle Snack" min="1" value="1">
+            <button class="add-btn" onclick="addToCartWithInput('Chicken Noodle Snack', 25)">Add</button>
         </div>
+        <div style="margin-top:10px;font-weight:bold;">In cart: <span id="qty-Chicken Noodle Snack">0</span></div>
     </div>
 
     <div class="item">
@@ -218,9 +229,10 @@ header {
         <h3>Bundle Pack</h3>
         <p>NT$50</p>
         <div class="quantity">
-            <span id="qty-Bundle Pack">0</span>
-            <button class="add-btn" onclick="addToCart('Bundle Pack', 50)">+</button>
+            <input type="number" id="input-Bundle Pack" min="1" value="1">
+            <button class="add-btn" onclick="addToCartWithInput('Bundle Pack', 50)">Add</button>
         </div>
+        <div style="margin-top:10px;font-weight:bold;">In cart: <span id="qty-Bundle Pack">0</span></div>
     </div>
 </div>
 
@@ -235,6 +247,25 @@ header {
 <script>
 var cart = {};
 var bundles = {"Bundle Pack": {"Dr Pepper": 1, "Chicken Noodle Snack": 1}};
+
+function addToCartWithInput(name, price) {
+    var inputElement = document.getElementById('input-' + name);
+    var quantity = parseInt(inputElement.value);
+    
+    if (!quantity || quantity < 1) {
+        alert('Please enter a valid quantity!');
+        return;
+    }
+    
+    if (!cart[name]) {
+        cart[name] = {price: price, quantity: quantity};
+    } else {
+        cart[name].quantity += quantity;
+    }
+    
+    inputElement.value = 1;
+    updateCart();
+}
 
 function addToCart(name, price) {
     if (!cart[name]) {
