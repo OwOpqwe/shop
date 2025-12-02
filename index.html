@@ -125,7 +125,37 @@ document.getElementById('qty-Bundle Pack').textContent=cart['Bundle Pack']?cart[
 function checkout(){
 var total=document.getElementById('total').textContent;
 if(parseFloat(total)>0){
-alert('Thank you for your purchase!\nTotal: NT$'+total+'\n\nCASH ONLY - Please have exact change!\n\nYour order has been placed!');
+var orderDetails='ORDER DETAILS:\n\n';
+for(var item in cart){
+var entry=cart[item];
+orderDetails+=item+' x'+entry.quantity+' = NT
+updateCart()
+</script>
+</body>
+</html>+(entry.price*entry.quantity)+'\n';
+if(bundles[item]){
+for(var subItem in bundles[item]){
+orderDetails+='  - '+subItem+' x'+(bundles[item][subItem]*entry.quantity)+'\n'
+}
+}
+}
+orderDetails+='\nTOTAL: NT
+updateCart()
+</script>
+</body>
+</html>+total+'\n\nCASH ONLY - Please have exact change ready!';
+var subject='Snack Store Order - NT
+updateCart()
+</script>
+</body>
+</html>+total;
+var mailtoLink='mailto:charlie2011.ting@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(orderDetails);
+window.location.href=mailtoLink;
+alert('Your email client will open. Please send the email to complete your order!\n\nTotal: NT
+updateCart()
+</script>
+</body>
+</html>+total);
 cart={};
 updateCart()
 }else{alert('Your cart is empty!')}
