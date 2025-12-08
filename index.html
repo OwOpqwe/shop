@@ -6,10 +6,11 @@
 <title>Snack Store</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;color:#fff;font-family:Arial,sans-serif;min-height:100vh}
+body{background:#000;color:#fff;font-family:Arial,sans-serif;min-height:100vh;max-height:100vh;overflow:hidden}
+body>*:not(header):not(.main-container){display:none!important}
 header{background:#1e1e1e;padding:25px;text-align:center;font-size:2.5em;font-weight:bold}
 .cash-only{background:#fff;color:#000;font-size:.6em;font-weight:900;padding:12px 24px;display:inline-block;border-radius:10px;margin-left:15px}
-.main-container{display:flex;max-width:1400px;margin:0 auto;padding:20px;gap:20px}
+.main-container{display:flex;max-width:1400px;margin:0 auto;padding:20px;gap:20px;height:calc(100vh - 120px);overflow-y:auto}
 .store-container{flex:1;display:flex;flex-wrap:wrap;gap:25px;padding:20px}
 .item{width:280px;background:#fff;color:#000;padding:20px;border-radius:15px}
 .item h3{color:#007bff;margin-bottom:10px}
