@@ -240,7 +240,7 @@ header {
 </head>
 <body>
 
-<header>Snack Store <span class="cash-only">CASH ONLY</span></header>
+<header>Snack Store <span class="cash-only">CASH ONLY - CASH AFTER DELIVERY</span></header>
 
 <div class="main-container">
     <div class="store-container">
@@ -289,6 +289,17 @@ header {
                 <button class="add-btn" onclick="addToCartWithInput('Chocolate', 20)">Add</button>
             </div>
             <div class="in-cart-display">In cart: <span id="qty-Chocolate">0</span></div>
+        </div>
+
+        <div class="item">
+            <img src="https://m.media-amazon.com/images/I/81Wi7RLsg0L.jpg" alt="Mints">
+            <h3>Mints</h3>
+            <p>NT$15</p>
+            <div class="quantity">
+                <input type="number" id="input-Mints" min="1" value="1">
+                <button class="add-btn" onclick="addToCartWithInput('Mints', 15)">Add</button>
+            </div>
+            <div class="in-cart-display">In cart: <span id="qty-Mints">0</span></div>
         </div>
     </div>
 
@@ -382,6 +393,7 @@ function updateCart() {
     document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
     document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
     document.getElementById('qty-Chocolate').textContent = cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
+    document.getElementById('qty-Mints').textContent = cart['Mints'] ? cart['Mints'].quantity : 0;
 }
 
 function checkout() {
