@@ -1,13 +1,4 @@
-<div class="item">
-            <img src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg" alt="Chocolate">
-            <h3>Chocolate</h3>
-            <p>NT$20</p>
-            <div class="quantity">
-                <input type="number" id="input-Chocolate" min="1" value="1">
-                <button class="add-btn" onclick="addToCartWithInput('Chocolate', 20)">Add</button>
-            </div>
-            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Chocolate">0</span></div>
-        </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -85,6 +76,7 @@ header {
 .item h3 {
     color: #007bff;
     margin-bottom: 10px;
+    font-size: 1.4em;
 }
 
 .item p {
@@ -112,8 +104,9 @@ header {
 .bundle-images img {
     width: 48%;
     height: 180px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 12px;
+    background: white;
 }
 
 .quantity {
@@ -143,6 +136,11 @@ header {
     border-radius: 10px;
     font-size: 1.3em;
     font-weight: bold;
+    transition: background 0.3s;
+}
+
+.add-btn:hover {
+    background: #006400;
 }
 
 .cart-panel {
@@ -188,6 +186,11 @@ header {
     cursor: pointer;
     margin-top: 10px;
     font-weight: bold;
+    transition: background 0.3s;
+}
+
+.remove-btn:hover {
+    background: #cc0000;
 }
 
 .cart-total {
@@ -210,11 +213,27 @@ header {
     margin-top: 20px;
     font-size: 1.2em;
     font-weight: bold;
+    transition: background 0.3s;
+}
+
+.checkout-btn:hover {
+    background: #0056b3;
+}
+
+.checkout-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
 }
 
 .empty-cart {
     text-align: center;
     padding: 40px 20px;
+    color: #666;
+}
+
+.in-cart-display {
+    margin-top: 10px;
+    font-weight: bold;
     color: #666;
 }
 </style>
@@ -233,7 +252,7 @@ header {
                 <input type="number" id="input-Dr Pepper" min="1" value="1">
                 <button class="add-btn" onclick="addToCartWithInput('Dr Pepper', 30)">Add</button>
             </div>
-            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Dr Pepper">0</span></div>
+            <div class="in-cart-display">In cart: <span id="qty-Dr Pepper">0</span></div>
         </div>
 
         <div class="item">
@@ -244,7 +263,7 @@ header {
                 <input type="number" id="input-Chicken Noodle Snack" min="1" value="1">
                 <button class="add-btn" onclick="addToCartWithInput('Chicken Noodle Snack', 25)">Add</button>
             </div>
-            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Chicken Noodle Snack">0</span></div>
+            <div class="in-cart-display">In cart: <span id="qty-Chicken Noodle Snack">0</span></div>
         </div>
 
         <div class="item">
@@ -258,7 +277,7 @@ header {
                 <input type="number" id="input-Bundle Pack" min="1" value="1">
                 <button class="add-btn" onclick="addToCartWithInput('Bundle Pack', 50)">Add</button>
             </div>
-            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Bundle Pack">0</span></div>
+            <div class="in-cart-display">In cart: <span id="qty-Bundle Pack">0</span></div>
         </div>
 
         <div class="item">
@@ -269,7 +288,7 @@ header {
                 <input type="number" id="input-Chocolate" min="1" value="1">
                 <button class="add-btn" onclick="addToCartWithInput('Chocolate', 20)">Add</button>
             </div>
-            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Chocolate">0</span></div>
+            <div class="in-cart-display">In cart: <span id="qty-Chocolate">0</span></div>
         </div>
     </div>
 
@@ -340,7 +359,7 @@ function updateCart() {
         if (bundles[item]) {
             html += '<div class="bundle-sub">';
             for (var subItem in bundles[item]) {
-                html += '<div>' + subItem + ' x' + (bundles[item][subItem] * entry.quantity) + '</div>';
+                html += '<div>• ' + subItem + ' x' + (bundles[item][subItem] * entry.quantity) + '</div>';
             }
             html += '</div>';
         }
@@ -357,6 +376,8 @@ function updateCart() {
     }
 
     document.getElementById('total').innerText = total;
+    
+    // Update all quantity displays
     document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
     document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
     document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
@@ -368,7 +389,9 @@ function checkout() {
     
     if (parseFloat(total) > 0) {
         var audio = new Audio('https://cdn.freesound.org/previews/678/678271_3797507-lq.mp3');
-        audio.play();
+        audio.play().catch(function(error) {
+            console.log('Audio playback failed:', error);
+        });
         
         var orderDetails = 'ORDER DETAILS:\n\n';
         
@@ -409,6 +432,7 @@ function checkout() {
     }
 }
 
+// Initialize cart display on page load
 updateCart();
 </script>
 
