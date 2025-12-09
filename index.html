@@ -5,163 +5,387 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snack Store</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;color:#fff;font-family:Arial,sans-serif;min-height:100vh;max-height:100vh;overflow:hidden}
-body>*:not(header):not(.main-container){display:none!important}
-header{background:#1e1e1e;padding:25px;text-align:center;font-size:2.5em;font-weight:bold}
-.cash-only{background:#fff;color:#000;font-size:.6em;font-weight:900;padding:12px 24px;display:inline-block;border-radius:10px;margin-left:15px}
-.main-container{display:flex;max-width:1400px;margin:0 auto;padding:20px;gap:20px;height:calc(100vh - 120px);overflow-y:auto}
-.store-container{flex:1;display:flex;flex-wrap:wrap;gap:25px;padding:20px}
-.item{width:280px;background:#fff;color:#000;padding:20px;border-radius:15px}
-.item h3{color:#007bff;margin-bottom:10px}
-.item p{color:green;font-weight:bold;font-size:1.8em;margin:10px 0}
-.item img{width:100%;height:200px;object-fit:cover;border-radius:12px;margin-bottom:15px}
-.bundle-images{display:flex;gap:8px;margin-bottom:15px}
-.bundle-images img{width:48%;height:180px;object-fit:cover;border-radius:12px}
-.quantity{display:flex;align-items:center;justify-content:center;gap:10px;margin:15px 0}
-.quantity input{width:60px;padding:8px;font-size:1.2em;text-align:center;border:2px solid #ddd;border-radius:8px;font-weight:bold}
-.add-btn{background:green;color:#fff;border:none;padding:12px 18px;cursor:pointer;border-radius:10px;font-size:1.3em;font-weight:bold}
-.cart-panel{position:sticky;top:20px;width:350px;height:fit-content;max-height:calc(100vh - 40px);background:#fff;color:#000;border-radius:15px;overflow-y:auto;padding:20px;flex-shrink:0}
-.cart-header{font-size:1.8em;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #ddd}
-.cart-item{background:#f5f5f5;padding:15px;margin:10px 0;border-radius:10px}
-.bundle-sub{margin-left:15px;margin-top:10px;font-size:.9em;color:#666}
-.remove-btn{background:red;color:#fff;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;margin-top:10px;font-weight:bold}
-.cart-total{margin-top:20px;padding-top:20px;border-top:2px solid #ddd;font-size:1.5em;font-weight:bold;color:#000}
-.checkout-btn{background:#007bff;color:#fff;border:none;padding:15px;cursor:pointer;border-radius:10px;width:100%;margin-top:20px;font-size:1.2em;font-weight:bold}
-.empty-cart{text-align:center;padding:40px 20px;color:#666}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: #1e1e1e;
+    padding: 25px;
+    text-align: center;
+    font-size: 2.5em;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.cash-only {
+    background: #fff;
+    color: #000;
+    font-size: 0.6em;
+    font-weight: 900;
+    padding: 12px 24px;
+    display: inline-block;
+    border-radius: 10px;
+    margin-left: 15px;
+}
+
+.main-container {
+    display: flex;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 20px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.store-container {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    padding: 20px;
+    overflow-y: auto;
+    align-content: flex-start;
+}
+
+.item {
+    width: 280px;
+    background: #fff;
+    color: #000;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.item h3 {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.item p {
+    color: green;
+    font-weight: bold;
+    font-size: 1.8em;
+    margin: 10px 0;
+}
+
+.item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.bundle-images {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.bundle-images img {
+    width: 48%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.quantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.quantity input {
+    width: 60px;
+    padding: 8px;
+    font-size: 1.2em;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.add-btn {
+    background: green;
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    cursor: pointer;
+    border-radius: 10px;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.cart-panel {
+    position: sticky;
+    top: 0;
+    width: 350px;
+    height: 100%;
+    background: #fff;
+    color: #000;
+    border-radius: 15px;
+    overflow-y: auto;
+    padding: 20px;
+    flex-shrink: 0;
+}
+
+.cart-header {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+.cart-item {
+    background: #f5f5f5;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+
+.bundle-sub {
+    margin-left: 15px;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.remove-btn {
+    background: red;
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.cart-total {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #ddd;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #000;
+}
+
+.checkout-btn {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 15px;
+    cursor: pointer;
+    border-radius: 10px;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
 </style>
 </head>
 <body>
+
 <header>Snack Store <span class="cash-only">CASH ONLY</span></header>
+
 <div class="main-container">
-<div class="store-container">
-<div class="item">
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
-<h3>Dr Pepper</h3>
-<p>NT$30</p>
-<div class="quantity">
-<input type="number" id="input-Dr Pepper" min="1" value="1">
-<button class="add-btn" onclick="addToCartWithInput('Dr Pepper',30)">Add</button>
+    <div class="store-container">
+        <div class="item">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg" alt="Dr Pepper">
+            <h3>Dr Pepper</h3>
+            <p>NT$30</p>
+            <div class="quantity">
+                <input type="number" id="input-Dr Pepper" min="1" value="1">
+                <button class="add-btn" onclick="addToCartWithInput('Dr Pepper', 30)">Add</button>
+            </div>
+            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Dr Pepper">0</span></div>
+        </div>
+
+        <div class="item">
+            <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg" alt="Chicken Noodle Snack">
+            <h3>Chicken Noodle Snack</h3>
+            <p>NT$25</p>
+            <div class="quantity">
+                <input type="number" id="input-Chicken Noodle Snack" min="1" value="1">
+                <button class="add-btn" onclick="addToCartWithInput('Chicken Noodle Snack', 25)">Add</button>
+            </div>
+            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Chicken Noodle Snack">0</span></div>
+        </div>
+
+        <div class="item">
+            <div class="bundle-images">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg" alt="Dr Pepper">
+                <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg" alt="Chicken Noodle Snack">
+            </div>
+            <h3>Bundle Pack</h3>
+            <p>NT$50</p>
+            <div class="quantity">
+                <input type="number" id="input-Bundle Pack" min="1" value="1">
+                <button class="add-btn" onclick="addToCartWithInput('Bundle Pack', 50)">Add</button>
+            </div>
+            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Bundle Pack">0</span></div>
+        </div>
+    </div>
+
+    <div class="cart-panel">
+        <div class="cart-header">Your Cart</div>
+        <div id="cart-items"></div>
+        <div class="cart-total">Total: NT$<span id="total">0</span></div>
+        <button class="checkout-btn" onclick="checkout()">Checkout</button>
+    </div>
 </div>
-<div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Dr Pepper">0</span></div>
-</div>
-<div class="item">
-<img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
-<h3>Chicken Noodle Snack</h3>
-<p>NT$25</p>
-<div class="quantity">
-<input type="number" id="input-Chicken Noodle Snack" min="1" value="1">
-<button class="add-btn" onclick="addToCartWithInput('Chicken Noodle Snack',25)">Add</button>
-</div>
-<div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Chicken Noodle Snack">0</span></div>
-</div>
-<div class="item">
-<div class="bundle-images">
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
-<img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
-</div>
-<h3>Bundle Pack</h3>
-<p>NT$50</p>
-<div class="quantity">
-<input type="number" id="input-Bundle Pack" min="1" value="1">
-<button class="add-btn" onclick="addToCartWithInput('Bundle Pack',50)">Add</button>
-</div>
-<div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Bundle Pack">0</span></div>
-</div>
-</div>
-<div class="cart-panel">
-<div class="cart-header">Your Cart</div>
-<div id="cart-items"></div>
-<div class="cart-total">Total: NT$<span id="total">0</span></div>
-<button class="checkout-btn" onclick="checkout()">Checkout</button>
-</div>
-</div>
+
 <script>
-var cart={};
-var bundles={"Bundle Pack":{"Dr Pepper":1,"Chicken Noodle Snack":1}};
-function addToCartWithInput(name,price){
-var inputElement=document.getElementById('input-'+name);
-var quantity=parseInt(inputElement.value);
-if(!quantity||quantity<1){alert('Please enter a valid quantity!');return}
-if(!cart[name]){cart[name]={price:price,quantity:quantity}}else{cart[name].quantity+=quantity}
-inputElement.value=1;
-updateCart()
+var cart = {};
+var bundles = {
+    "Bundle Pack": {
+        "Dr Pepper": 1,
+        "Chicken Noodle Snack": 1
+    }
+};
+
+function addToCartWithInput(name, price) {
+    var inputElement = document.getElementById('input-' + name);
+    var quantity = parseInt(inputElement.value);
+    
+    if (!quantity || quantity < 1) {
+        alert('Please enter a valid quantity!');
+        return;
+    }
+    
+    if (!cart[name]) {
+        cart[name] = {
+            price: price,
+            quantity: quantity
+        };
+    } else {
+        cart[name].quantity += quantity;
+    }
+    
+    inputElement.value = 1;
+    updateCart();
 }
-function removeItem(name){
-if(cart[name]){
-cart[name].quantity--;
-if(cart[name].quantity===0){delete cart[name]}
-updateCart()
+
+function removeItem(name) {
+    if (cart[name]) {
+        cart[name].quantity--;
+        if (cart[name].quantity === 0) {
+            delete cart[name];
+        }
+        updateCart();
+    }
 }
+
+function updateCart() {
+    var cartDiv = document.getElementById('cart-items');
+    cartDiv.innerHTML = '';
+    var total = 0;
+
+    for (var item in cart) {
+        var entry = cart[item];
+        total += entry.price * entry.quantity;
+        
+        var div = document.createElement('div');
+        div.className = 'cart-item';
+        
+        var html = '<div><strong>' + item + ' x' + entry.quantity + '</strong></div>';
+        html += '<div style="color:#666;margin-top:5px">NT$' + entry.price + ' × ' + entry.quantity + '</div>';
+        
+        if (bundles[item]) {
+            html += '<div class="bundle-sub">';
+            for (var subItem in bundles[item]) {
+                html += '<div>' + subItem + ' x' + (bundles[item][subItem] * entry.quantity) + '</div>';
+            }
+            html += '</div>';
+        }
+        
+        html += '<div style="font-weight:bold;color:green;margin-top:8px">NT$' + (entry.price * entry.quantity) + '</div>';
+        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove 1</button>';
+        
+        div.innerHTML = html;
+        cartDiv.appendChild(div);
+    }
+
+    if (total === 0) {
+        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+    }
+
+    document.getElementById('total').innerText = total;
+    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
+    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
+    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
 }
-function updateCart(){
-var cartDiv=document.getElementById('cart-items');
-cartDiv.innerHTML='';
-var total=0;
-for(var item in cart){
-var entry=cart[item];
-total+=entry.price*entry.quantity;
-var div=document.createElement('div');
-div.className='cart-item';
-var html='<div><strong>'+item+' x'+entry.quantity+'</strong></div>';
-html+='<div style="color:#666;margin-top:5px">NT$'+entry.price+' × '+entry.quantity+'</div>';
-if(bundles[item]){
-html+='<div class="bundle-sub">';
-for(var subItem in bundles[item]){
-html+='<div>'+subItem+' x'+(bundles[item][subItem]*entry.quantity)+'</div>'
+
+function checkout() {
+    var total = document.getElementById('total').textContent;
+    
+    if (parseFloat(total) > 0) {
+        var orderDetails = 'ORDER DETAILS:\n\n';
+        
+        for (var item in cart) {
+            var entry = cart[item];
+            orderDetails += item + ' x' + entry.quantity + ' = NT$' + (entry.price * entry.quantity) + '\n';
+            
+            if (bundles[item]) {
+                for (var subItem in bundles[item]) {
+                    orderDetails += '  - ' + subItem + ' x' + (bundles[item][subItem] * entry.quantity) + '\n';
+                }
+            }
+        }
+        
+        orderDetails += '\nTOTAL: NT$' + total + '\n\nCASH ONLY - Please have exact change ready!';
+        
+        var subject = 'Snack Store Order - NT$' + total;
+        var mailtoLink = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(orderDetails);
+        
+        window.location.href = mailtoLink;
+        alert('Your email client will open. Please send the email to complete your order!\n\nTotal: NT$' + total);
+        
+        cart = {};
+        updateCart();
+        
+        setTimeout(function() {
+            var review = confirm('Thank you for your order!\n\nWould you like to leave us a review?\n\nClick OK to write a review via email.');
+            
+            if (review) {
+                var reviewSubject = 'Review for Snack Store';
+                var reviewBody = 'Hi,\n\nI would like to leave a review for my recent order:\n\n[Please write your review here]\n\nRating (1-5 stars): \n\nComments:\n\n\nThank you!';
+                var reviewMailto = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(reviewSubject) + '&body=' + encodeURIComponent(reviewBody);
+                window.location.href = reviewMailto;
+            }
+        }, 2000);
+    } else {
+        alert('Your cart is empty!');
+    }
 }
-html+='</div>'
-}
-html+='<div style="font-weight:bold;color:green;margin-top:8px">NT$'+(entry.price*entry.quantity)+'</div>';
-html+='<button class="remove-btn" onclick="removeItem(\''+item+'\')">Remove 1</button>';
-div.innerHTML=html;
-cartDiv.appendChild(div)
-}
-if(total===0){cartDiv.innerHTML='<div class="empty-cart">Your cart is empty</div>'}
-document.getElementById('total').innerText=total;
-document.getElementById('qty-Dr Pepper').textContent=cart['Dr Pepper']?cart['Dr Pepper'].quantity:0;
-document.getElementById('qty-Chicken Noodle Snack').textContent=cart['Chicken Noodle Snack']?cart['Chicken Noodle Snack'].quantity:0;
-document.getElementById('qty-Bundle Pack').textContent=cart['Bundle Pack']?cart['Bundle Pack'].quantity:0
-}
-function checkout(){
-var total=document.getElementById('total').textContent;
-if(parseFloat(total)>0){
-var orderDetails='ORDER DETAILS:\n\n';
-for(var item in cart){
-var entry=cart[item];
-orderDetails+=item+' x'+entry.quantity+' = NT
-updateCart()
+
+updateCart();
 </script>
-</body>
-</html>+(entry.price*entry.quantity)+'\n';
-if(bundles[item]){
-for(var subItem in bundles[item]){
-orderDetails+='  - '+subItem+' x'+(bundles[item][subItem]*entry.quantity)+'\n'
-}
-}
-}
-orderDetails+='\nTOTAL: NT
-updateCart()
-</script>
-</body>
-</html>+total+'\n\nCASH ONLY - Please have exact change ready!';
-var subject='Snack Store Order - NT
-updateCart()
-</script>
-</body>
-</html>+total;
-var mailtoLink='mailto:charlie2011.ting@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(orderDetails);
-window.location.href=mailtoLink;
-alert('Your email client will open. Please send the email to complete your order!\n\nTotal: NT
-updateCart()
-</script>
-</body>
-</html>+total);
-cart={};
-updateCart()
-}else{alert('Your cart is empty!')}
-}
-updateCart()
-</script>
+
 </body>
 </html>
