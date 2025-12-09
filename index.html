@@ -345,11 +345,21 @@ function checkout() {
     var total = document.getElementById('total').textContent;
     
     if (parseFloat(total) > 0) {
+        // Play card swipe sound
+        var audio = new Audio('https://cdn.freesound.org/previews/678/678271_3797507-lq.mp3');
+        audio.play();
+        
         var orderDetails = 'ORDER DETAILS:\n\n';
         
         for (var item in cart) {
             var entry = cart[item];
-            orderDetails += item + ' x' + entry.quantity + ' = NT$' + (entry.price * entry.quantity) + '\n';
+            orderDetails += item + ' x' + entry.quantity + ' = NT
+
+updateCart();
+</script>
+
+</body>
+</html> + (entry.price * entry.quantity) + '\n';
             
             if (bundles[item]) {
                 for (var subItem in bundles[item]) {
@@ -358,13 +368,31 @@ function checkout() {
             }
         }
         
-        orderDetails += '\nTOTAL: NT$' + total + '\n\nCASH ONLY - Please have exact change ready!';
+        orderDetails += '\nTOTAL: NT
+
+updateCart();
+</script>
+
+</body>
+</html> + total + '\n\nCASH ONLY - Please have exact change ready!';
         
-        var subject = 'Snack Store Order - NT$' + total;
+        var subject = 'Snack Store Order - NT
+
+updateCart();
+</script>
+
+</body>
+</html> + total;
         var mailtoLink = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(orderDetails);
         
         window.location.href = mailtoLink;
-        alert('Your email client will open. Please send the email to complete your order!\n\nTotal: NT$' + total);
+        alert('Your email client will open. Please send the email to complete your order!\n\nTotal: NT
+
+updateCart();
+</script>
+
+</body>
+</html> + total);
         
         cart = {};
         updateCart();
