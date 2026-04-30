@@ -1,147 +1,163 @@
+// ===========================
+//  SNACK STORE — script.js
+// ===========================
+
 var cart = {};
+
 var bundles = {
-    "Bundle Pack": {
-        "Dr Pepper": 1,
-        "Chicken Noodle Snack": 1
-    }
+  "Bundle Pack": {
+    "Dr Pepper": 1,
+    "Chicken Noodle Snack": 1
+  }
 };
 
-function addToCartWithInput(name, price) {
-    var inputElement = document.getElementById('input-' + name);
-    var quantity = parseInt(inputElement.value);
-    
-    if (!quantity || quantity < 1) {
-        alert('Please enter a valid quantity!');
-        return;
-    }
-    
-    if (!cart[name]) {
-        cart[name] = {
-            price: price,
-            quantity: quantity
-        };
-    } else {
-        cart[name].quantity += quantity;
-    }
-    
-    inputElement.value = 1;
-    updateCart();
+var products = ["Dr Pepper", "Chicken Noodle Snack", "Bundle Pack", "Chocolate"];
+
+// Add item to cart
+function addToCart(name, price) {
+  var input = document.getElementById("input-" + name);
+  var qty = parseInt(input.value);
+
+  if (!qty || qty < 1) {
+    alert("Please enter a valid quantity!");
+    return;
+  }
+
+  if (!cart[name]) {
+    cart[name] = { price: price, quantity: qty };
+  } else {
+    cart[name].quantity += qty;
+  }
+
+  input.value = 1;
+  updateCart();
 }
 
+// Remove one unit of an item
 function removeItem(name) {
-    if (cart[name]) {
-        cart[name].quantity--;
-        if (cart[name].quantity === 0) {
-            delete cart[name];
-        }
-        updateCart();
-    }
+  if (!cart[name]) return;
+
+  cart[name].quantity--;
+  if (cart[name].quantity === 0) {
+    delete cart[name];
+  }
+
+  updateCart();
 }
 
+// Rebuild cart UI
 function updateCart() {
-    var cartDiv = document.getElementById('cart-items');
-    cartDiv.innerHTML = '';
-    var total = 0;
+  var container = document.getElementById("cart-items");
+  container.innerHTML = "";
 
-    for (var item in cart) {
-        var entry = cart[item];
-        total += entry.price * entry.quantity;
-        
-        var div = document.createElement('div');
-        div.className = 'cart-item';
-        
-        var html = '<div><strong>' + item + ' x' + entry.quantity + '</strong></div>';
-        html += '<div style="color:#666;margin-top:5px">NT$' + entry.price + ' × ' + entry.quantity + '</div>';
-        
-        if (bundles[item]) {
-            html += '<div class="bundle-sub">';
-            for (var subItem in bundles[item]) {
-                html += '<div>' + subItem + ' x' + (bundles[item][subItem] * entry.quantity) + '</div>';
-            }
-            html += '</div>';
-        }
-        
-        html += '<div style="font-weight:bold;color:green;margin-top:8px">NT$' + (entry.price * entry.quantity) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove 1</button>';
-        
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
+  var total = 0;
+  var totalItems = 0;
+
+  for (var name in cart) {
+    var entry = cart[name];
+    total += entry.price * entry.quantity;
+    totalItems += entry.quantity;
+
+    var div = document.createElement("div");
+    div.className = "cart-item";
+
+    // Bundle sub-items text
+    var bundleHtml = "";
+    if (bundles[name]) {
+      var parts = [];
+      for (var sub in bundles[name]) {
+        parts.push(sub + " ×" + (bundles[name][sub] * entry.quantity));
+      }
+      bundleHtml = '<div class="ci-bundle">Includes: ' + parts.join(", ") + "</div>";
     }
 
-    if (total === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-    }
+    div.innerHTML =
+      '<div class="ci-left">' +
+        '<div class="ci-name">' + name + "</div>" +
+        '<div class="ci-meta">NT$' + entry.price + " × " + entry.quantity + "</div>" +
+        bundleHtml +
+      "</div>" +
+      '<div class="ci-right">' +
+        '<span class="ci-price">NT$' + (entry.price * entry.quantity) + "</span>" +
+        '<button class="rm-btn" onclick="removeItem(\'' + name + '\')" title="Remove one">−</button>' +
+      "</div>";
 
-    document.getElementById('total').innerText = total;
-    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-    document.getElementById('qty-Chocolate').textContent = cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
+    container.appendChild(div);
+  }
+
+  // Show empty state
+  if (totalItems === 0) {
+    container.innerHTML =
+      '<div class="cart-empty">Nothing here yet.<br>Add something delicious!</div>';
+  }
+
+  // Update totals and badge counts
+  document.getElementById("total").textContent = total;
+  document.getElementById("cart-count").textContent =
+    totalItems === 0 ? "0 items" : totalItems + (totalItems === 1 ? " item" : " items");
+
+  products.forEach(function (p) {
+    var el = document.getElementById("qty-" + p);
+    if (el) el.textContent = cart[p] ? cart[p].quantity : 0;
+  });
 }
 
+// Place order
 function checkout() {
-    var customerName = document.getElementById('customerName').value.trim();
-    var total = document.getElementById('total').textContent;
-    
-    // Check if name is entered
-    if (!customerName) {
-        alert('Please enter your name before checking out!');
-        document.getElementById('customerName').focus();
-        return;
+  var nameInput = document.getElementById("customerName");
+  var name = nameInput.value.trim();
+  var total = parseInt(document.getElementById("total").textContent);
+  var successMsg = document.getElementById("success-msg");
+
+  if (!name) {
+    alert("Please enter your name before checking out!");
+    nameInput.focus();
+    return;
+  }
+
+  if (total === 0) {
+    alert("Your cart is empty!");
+    return;
+  }
+
+  // Build order summary for email
+  var orderLines = "ORDER DETAILS:\n\n";
+  for (var item in cart) {
+    var e = cart[item];
+    orderLines += item + " ×" + e.quantity + " = NT$" + e.price * e.quantity + "\n";
+    if (bundles[item]) {
+      for (var sub in bundles[item]) {
+        orderLines += "  - " + sub + " ×" + bundles[item][sub] * e.quantity + "\n";
+      }
     }
-    
-    if (parseFloat(total) > 0) {
-        // Play card swipe sound
-        var audio = new Audio('https://cdn.freesound.org/previews/678/678271_3797507-lq.mp3');
-        audio.play();
-        
-        // Build order details
-        var orderDetails = 'ORDER DETAILS:\n\n';
-        
-        for (var item in cart) {
-            var entry = cart[item];
-            orderDetails += item + ' x' + entry.quantity + ' = NT$' + (entry.price * entry.quantity) + '\n';
-            
-            if (bundles[item]) {
-                for (var subItem in bundles[item]) {
-                    orderDetails += '  - ' + subItem + ' x' + (bundles[item][subItem] * entry.quantity) + '\n';
-                }
-            }
-        }
-        
-        orderDetails += '\n⚠️ CASH ONLY - Please have exact change ready!';
-        
-        // Fill hidden form
-        document.getElementById('emailSubject').value = 'New Order from ' + customerName + ' - NT$' + total;
-        document.getElementById('customerNameField').value = customerName;
-        document.getElementById('orderDetails').value = orderDetails;
-        document.getElementById('orderTotal').value = 'NT$' + total;
-        
-        // Submit form
-        document.getElementById('orderForm').submit();
-        
-        // Show success message
-        alert('Order sent successfully! 🎉\n\nThank you, ' + customerName + '!\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
-        
-        // Clear cart and name
-        cart = {};
-        document.getElementById('customerName').value = '';
-        updateCart();
-        
-        // Ask for review after 2 seconds
-        setTimeout(function() {
-            var review = confirm('Thank you for your order!\n\nWould you like to leave us a review?\n\nClick OK to write a review via email.');
-            
-            if (review) {
-                var reviewSubject = 'Review for Snack Store';
-                var reviewBody = 'Hi,\n\nI would like to leave a review for my recent order:\n\n[Please write your review here]\n\nRating (1-5 stars): \n\nComments:\n\n\nThank you!';
-                var reviewMailto = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(reviewSubject) + '&body=' + encodeURIComponent(reviewBody);
-                window.location.href = reviewMailto;
-            }
-        }, 2000);
-    } else {
-        alert('Your cart is empty!');
-    }
+  }
+  orderLines += "\nTotal: NT$" + total;
+  orderLines += "\n\n⚠️ CASH ONLY — Please have exact change ready!";
+
+  var subject = "New Order from " + name + " — NT$" + total;
+  var mailto =
+    "mailto:charlie2011.ting@gmail.com" +
+    "?subject=" + encodeURIComponent(subject) +
+    "&body=" + encodeURIComponent(orderLines);
+
+  // Show success message
+  successMsg.textContent = "Order ready for " + name + " · NT$" + total + " — opening email...";
+  successMsg.style.display = "block";
+
+  // Open email client
+  setTimeout(function () {
+    window.location.href = mailto;
+
+    // Clear everything
+    cart = {};
+    nameInput.value = "";
+    updateCart();
+
+    setTimeout(function () {
+      successMsg.style.display = "none";
+    }, 5000);
+  }, 600);
 }
 
+// Init
 updateCart();
