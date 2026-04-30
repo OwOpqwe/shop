@@ -80,7 +80,15 @@ function updateCart() {
 }
 
 function checkout() {
+    var customerName = document.getElementById('customerName').value.trim();
     var total = document.getElementById('total').textContent;
+    
+    // Check if name is entered
+    if (!customerName) {
+        alert('Please enter your name before checking out!');
+        document.getElementById('customerName').focus();
+        return;
+    }
     
     if (parseFloat(total) > 0) {
         // Play card swipe sound
@@ -104,7 +112,8 @@ function checkout() {
         orderDetails += '\n⚠️ CASH ONLY - Please have exact change ready!';
         
         // Fill hidden form
-        document.getElementById('emailSubject').value = 'New Snack Store Order - NT$' + total;
+        document.getElementById('emailSubject').value = 'New Order from ' + customerName + ' - NT$' + total;
+        document.getElementById('customerNameField').value = customerName;
         document.getElementById('orderDetails').value = orderDetails;
         document.getElementById('orderTotal').value = 'NT$' + total;
         
@@ -112,10 +121,11 @@ function checkout() {
         document.getElementById('orderForm').submit();
         
         // Show success message
-        alert('Order sent successfully! 🎉\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
+        alert('Order sent successfully! 🎉\n\nThank you, ' + customerName + '!\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
         
-        // Clear cart
+        // Clear cart and name
         cart = {};
+        document.getElementById('customerName').value = '';
         updateCart();
         
         // Ask for review after 2 seconds
