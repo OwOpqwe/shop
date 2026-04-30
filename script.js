@@ -83,9 +83,11 @@ function checkout() {
     var total = document.getElementById('total').textContent;
     
     if (parseFloat(total) > 0) {
+        // Play card swipe sound
         var audio = new Audio('https://cdn.freesound.org/previews/678/678271_3797507-lq.mp3');
         audio.play();
         
+        // Build order details
         var orderDetails = 'ORDER DETAILS:\n\n';
         
         for (var item in cart) {
@@ -99,17 +101,24 @@ function checkout() {
             }
         }
         
-        orderDetails += '\nTOTAL: NT$' + total + '\n\nCASH ONLY - Please have exact change ready!';
+        orderDetails += '\n⚠️ CASH ONLY - Please have exact change ready!';
         
-        var subject = 'Snack Store Order - NT$' + total;
-        var mailtoLink = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(orderDetails);
+        // Fill hidden form
+        document.getElementById('emailSubject').value = 'New Snack Store Order - NT$' + total;
+        document.getElementById('orderDetails').value = orderDetails;
+        document.getElementById('orderTotal').value = 'NT$' + total;
         
-        window.location.href = mailtoLink;
-        alert('Your email client will open. Please send the email to complete your order!\n\nTotal: NT$' + total);
+        // Submit form
+        document.getElementById('orderForm').submit();
         
+        // Show success message
+        alert('Order sent successfully! 🎉\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
+        
+        // Clear cart
         cart = {};
         updateCart();
         
+        // Ask for review after 2 seconds
         setTimeout(function() {
             var review = confirm('Thank you for your order!\n\nWould you like to leave us a review?\n\nClick OK to write a review via email.');
             
