@@ -56,27 +56,4 @@
                 <input type="number" id="input-Chocolate" min="1" value="1">
                 <button class="add-btn" onclick="addToCartWithInput('Chocolate', 20)">Add</button>
             </div>
-            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Chocolate">0</span></div>
-        </div>
-    </div>
-
-    <div class="cart-panel">
-        <div class="cart-header">Your Cart</div>
-        <div id="cart-items"></div>
-        <div class="cart-total">Total: NT$<span id="total">0</span></div>
-        <button class="checkout-btn" onclick="checkout()">Checkout</button>
-    </div>
-</div>
-
-<!-- Hidden form for FormSubmit -->
-<form id="orderForm" action="https://formsubmit.co/charlie2011.ting@gmail.com" method="POST" style="display:none;">
-    <input type="hidden" name="_subject" id="emailSubject">
-    <input type="hidden" name="_captcha" value="false">
-    <input type="hidden" name="_template" value="box">
-    <input type="text" name="Order Details" id="orderDetails">
-    <input type="text" name="Total" id="orderTotal">
-</form>
-
-<script src="script.js"></script>
-</body>
-</html>
+            <div style="margin-top:10px;font-weight:bold">In cart: <span id="qty-Chocolate"
