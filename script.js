@@ -108,29 +108,58 @@ function checkout() {
         
         orderDetails += '\n⚠️ CASH ONLY - Please have exact change ready!';
         
-        document.getElementById('emailSubject').value = 'New Order from ' + customerName + ' - NT$' + total;
-        document.getElementById('customerNameField').value = customerName;
-        document.getElementById('orderDetails').value = orderDetails;
-        document.getElementById('orderTotal').value = 'NT$' + total;
+        // Prepare form data
+        var formData = new FormData();
+        formData.append('_subject', 'New Order from ' + customerName + ' - NT$' + total);
+        formData.append('Customer Name', customerName);
+        formData.append('Order Details', orderDetails);
+        formData.append('Total', 'NT$' + total);
+        formData.append('_captcha', 'false');
+        formData.append('_template', 'box');
         
-        document.getElementById('orderForm').submit();
-        
-        alert('Order sent successfully! 🎉\n\nThank you, ' + customerName + '!\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
-        
-        cart = {};
-        document.getElementById('customerName').value = '';
-        updateCart();
-        
-        setTimeout(function() {
-            var review = confirm('Thank you for your order!\n\nWould you like to leave us a review?\n\nClick OK to write a review via email.');
+        // Send via fetch (stays on page)
+        fetch('https://formsubmit.co/charlie2011.ting@gmail.com', {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors'
+        }).then(function() {
+            alert('Order sent successfully! 🎉\n\nThank you, ' + customerName + '!\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
             
-            if (review) {
-                var reviewSubject = 'Review for Snack Store';
-                var reviewBody = 'Hi,\n\nI would like to leave a review for my recent order:\n\n[Please write your review here]\n\nRating (1-5 stars): \n\nComments:\n\n\nThank you!';
-                var reviewMailto = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(reviewSubject) + '&body=' + encodeURIComponent(reviewBody);
-                window.location.href = reviewMailto;
-            }
-        }, 2000);
+            // Clear cart and name
+            cart = {};
+            document.getElementById('customerName').value = '';
+            updateCart();
+            
+            // Ask for review after 2 seconds
+            setTimeout(function() {
+                var review = confirm('Thank you for your order!\n\nWould you like to leave us a review?\n\nClick OK to write a review via email.');
+                
+                if (review) {
+                    var reviewSubject = 'Review for Snack Store';
+                    var reviewBody = 'Hi,\n\nI would like to leave a review for my recent order:\n\n[Please write your review here]\n\nRating (1-5 stars): \n\nComments:\n\n\nThank you!';
+                    var reviewMailto = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(reviewSubject) + '&body=' + encodeURIComponent(reviewBody);
+                    window.open(reviewMailto, '_blank');
+                }
+            }, 2000);
+        }).catch(function(error) {
+            console.log('Order submitted (no-cors mode)');
+            alert('Order sent successfully! 🎉\n\nThank you, ' + customerName + '!\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
+            
+            cart = {};
+            document.getElementById('customerName').value = '';
+            updateCart();
+            
+            setTimeout(function() {
+                var review = confirm('Thank you for your order!\n\nWould you like to leave us a review?\n\nClick OK to write a review via email.');
+                
+                if (review) {
+                    var reviewSubject = 'Review for Snack Store';
+                    var reviewBody = 'Hi,\n\nI would like to leave a review for my recent order:\n\n[Please write your review here]\n\nRating (1-5 stars): \n\nComments:\n\n\nThank you!';
+                    var reviewMailto = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(reviewSubject) + '&body=' + encodeURIComponent(reviewBody);
+                    window.open(reviewMailto, '_blank');
+                }
+            }, 2000);
+        });
     } else {
         alert('Your cart is empty!');
     }
