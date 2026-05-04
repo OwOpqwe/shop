@@ -1,82 +1,243 @@
-@@ -62,67 +62,76 @@
-        }
-
-        html += '<div style="font-weight:bold;color:green;margin-top:8px">NT$' + (entry.price * entry.quantity) + '</div>';
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">Remove 1</button>';
-
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
-    }
-
-    if (total === 0) {
-        cartDiv.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
-    }
-
-    document.getElementById('total').innerText = total;
-    document.getElementById('qty-Dr Pepper').textContent = cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-    document.getElementById('qty-Chicken Noodle Snack').textContent = cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-    document.getElementById('qty-Bundle Pack').textContent = cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-    document.getElementById('qty-Chocolate').textContent = cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-function checkout() {
-    var total = document.getElementById('total').textContent;
-
-    if (parseFloat(total) > 0) {
-        // Play card swipe sound
-        var audio = new Audio('https://cdn.freesound.org/previews/678/678271_3797507-lq.mp3');
-        audio.play();
-
-        // Build order details
-        var orderDetails = 'ORDER DETAILS:\n\n';
-
-        for (var item in cart) {
-            var entry = cart[item];
-            orderDetails += item + ' x' + entry.quantity + ' = NT$' + (entry.price * entry.quantity) + '\n';
-
-            if (bundles[item]) {
-                for (var subItem in bundles[item]) {
-                    orderDetails += '  - ' + subItem + ' x' + (bundles[item][subItem] * entry.quantity) + '\n';
-                }
-            }
-        }
-
-        orderDetails += '\nTOTAL: NT$' + total + '\n\nCASH ONLY - Please have exact change ready!';
-        orderDetails += '\n⚠️ CASH ONLY - Please have exact change ready!';
-
-        var subject = 'Snack Store Order - NT$' + total;
-        var mailtoLink = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(orderDetails);
-        // Fill hidden form
-        document.getElementById('emailSubject').value = 'New Snack Store Order - NT$' + total;
-        document.getElementById('orderDetails').value = orderDetails;
-        document.getElementById('orderTotal').value = 'NT$' + total;
-
-        window.location.href = mailtoLink;
-        alert('Your email client will open. Please send the email to complete your order!\n\nTotal: NT$' + total);
-        // Submit form
-        document.getElementById('orderForm').submit();
-
-        // Show success message
-        alert('Order sent successfully! 🎉\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
-        
-        // Clear cart
-        cart = {};
-        updateCart();
-
-        // Ask for review after 2 seconds
-        setTimeout(function() {
-            var review = confirm('Thank you for your order!\n\nWould you like to leave us a review?\n\nClick OK to write a review via email.');
-
-            if (review) {
-                var reviewSubject = 'Review for Snack Store';
-                var reviewBody = 'Hi,\n\nI would like to leave a review for my recent order:\n\n[Please write your review here]\n\nRating (1-5 stars): \n\nComments:\n\n\nThank you!';
-                var reviewMailto = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(reviewSubject) + '&body=' + encodeURIComponent(reviewBody);
-                window.location.href = reviewMailto;
-            }
-        }, 2000);
-    } else {
-        alert('Your cart is empty!');
-    }
+html, body {
+    height: 100%;
+    overflow: hidden;
 }
 
-updateCart();
+body {
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: #1e1e1e;
+    padding: 25px;
+    text-align: center;
+    font-size: 2.5em;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.cash-only {
+    background: #fff;
+    color: #000;
+    font-size: 0.6em;
+    font-weight: 900;
+    padding: 12px 24px;
+    display: inline-block;
+    border-radius: 10px;
+    margin-left: 15px;
+}
+
+.main-container {
+    display: flex;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 20px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.store-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    padding: 20px;
+    overflow-y: auto;
+    align-content: flex-start;
+}
+
+.item {
+    width: 100%;
+    background: #fff;
+    color: #000;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.item h3 {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.item p {
+    color: green;
+    font-weight: bold;
+    font-size: 1.8em;
+    margin: 10px 0;
+}
+
+.item img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    background: white;
+}
+
+.bundle-images {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.bundle-images img {
+    width: 48%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.quantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.quantity input {
+    width: 60px;
+    padding: 8px;
+    font-size: 1.2em;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.add-btn {
+    background: green;
+    color: #fff;
+    border: none;
+    padding: 12px 18px;
+    cursor: pointer;
+    border-radius: 10px;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.add-btn:hover {
+    background: #006600;
+}
+
+.cart-panel {
+    position: sticky;
+    top: 0;
+    width: 350px;
+    height: 100%;
+    background: #fff;
+    color: #000;
+    border-radius: 15px;
+    overflow-y: auto;
+    padding: 20px;
+    flex-shrink: 0;
+}
+
+.cart-header {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+.customer-info {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+.customer-info label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.customer-info input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1em;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.customer-info input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.cart-item {
+    background: #f5f5f5;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+
+.bundle-sub {
+    margin-left: 15px;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.remove-btn {
+    background: red;
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.remove-btn:hover {
+    background: #cc0000;
+}
+
+.cart-total {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #ddd;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #000;
+}
+
+.checkout-btn {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 15px;
+    cursor: pointer;
+    border-radius: 10px;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.checkout-btn:hover {
+    background: #0056b3;
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
