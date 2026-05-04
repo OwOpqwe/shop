@@ -74,13 +74,18 @@
     </div>
 </div>
 
-<form id="orderForm" action="https://formsubmit.co/charlie2011.ting@gmail.com" method="POST" style="display:none;">
+<!-- Hidden iframe for form submission -->
+<iframe name="hiddenFrame" style="display:none;"></iframe>
+
+<!-- Hidden form for FormSubmit -->
+<form id="orderForm" action="https://formsubmit.co/charlie2011.ting@gmail.com" method="POST" target="hiddenFrame">
     <input type="hidden" name="_subject" id="emailSubject">
     <input type="hidden" name="_captcha" value="false">
     <input type="hidden" name="_template" value="box">
-    <input type="text" name="Customer Name" id="customerNameField">
-    <input type="text" name="Order Details" id="orderDetails">
-    <input type="text" name="Total" id="orderTotal">
+    <input type="hidden" name="_next" value="https://yourusername.github.io/your-repo-name/">
+    <input type="text" name="Customer Name" id="customerNameField" style="display:none;">
+    <input type="text" name="Order Details" id="orderDetails" style="display:none;">
+    <input type="text" name="Total" id="orderTotal" style="display:none;">
 </form>
 
 <script src="script.js"></script>
