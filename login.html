@@ -1,87 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login - Snack Store</title>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-<link rel="stylesheet" href="login.css">
-</head>
+body{
+    font-family:Arial,sans-serif;
+    background:linear-gradient(135deg,#0a0a0a,#1a1a2e);
+    min-height:100vh;
+}
 
-<body>
+.login-container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
 
-<div class="login-container">
+.login-box{
+    width:400px;
+    max-width:100%;
+    background:white;
+    padding:40px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
 
-    <div class="login-box">
+.login-box h2{
+    text-align:center;
+    margin-bottom:30px;
+    color:#222;
+}
 
-        <h2 id="formTitle">🏪 Login to Snack Store</h2>
+.form-group{
+    margin-bottom:20px;
+}
 
-        <!-- LOGIN FORM -->
-        <div id="loginForm">
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+    color:#333;
+}
 
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="Enter your email">
-            </div>
+.form-group input{
+    width:100%;
+    padding:12px;
+    border:2px solid #ddd;
+    border-radius:8px;
+    font-size:1em;
+}
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="loginPassword" placeholder="Enter your password">
-            </div>
+.form-group input:focus{
+    outline:none;
+    border-color:#007bff;
+}
 
-            <button class="btn" onclick="login()">
-                Login
-            </button>
+.btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:8px;
+    background:#007bff;
+    color:white;
+    font-size:1em;
+    font-weight:bold;
+    cursor:pointer;
+}
 
-            <div class="toggle-text">
-                Don't have an account?
-                <a onclick="showRegister()">Register here</a>
-            </div>
+.btn:hover{
+    background:#0056b3;
+}
 
-        </div>
+.btn-register{
+    background:#28a745;
+}
 
-        <!-- REGISTER FORM -->
-        <div id="registerForm" style="display:none;">
+.btn-register:hover{
+    background:#1e7e34;
+}
 
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="registerName" placeholder="Enter your full name">
-            </div>
+.toggle-text{
+    text-align:center;
+    margin-top:20px;
+    color:#666;
+}
 
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="registerEmail" placeholder="Enter your email">
-            </div>
+.toggle-text a{
+    color:#007bff;
+    cursor:pointer;
+    text-decoration:underline;
+}
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="registerPassword" placeholder="Create password">
-            </div>
+.message{
+    margin-top:15px;
+    text-align:center;
+    font-weight:bold;
+    display:none;
+}
 
-            <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="confirmPassword" placeholder="Confirm password">
-            </div>
+.error{
+    color:red;
+}
 
-            <button class="btn btn-register" onclick="register()">
-                Register
-            </button>
-
-            <div class="toggle-text">
-                Already have an account?
-                <a onclick="showLogin()">Login here</a>
-            </div>
-
-        </div>
-
-        <div class="message error" id="errorMsg"></div>
-        <div class="message success" id="successMsg"></div>
-
-    </div>
-
-</div>
-
-<script src="login.js"></script>
-
-</body>
-</html>
+.success{
+    color:green;
+}
