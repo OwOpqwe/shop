@@ -1,0 +1,40 @@
+body{
+    font-family:Arial;
+    background:linear-gradient(135deg,#111,#222);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-box{
+    background:white;
+    padding:40px;
+    border-radius:15px;
+    width:350px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+}
+
+.btn{
+    width:100%;
+    padding:10px;
+    background:#007bff;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+
+a{
+    color:blue;
+    cursor:pointer;
+}
+
+#msg{
+    margin-top:10px;
+    color:red;
+}
