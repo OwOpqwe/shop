@@ -1,109 +1,57 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Snack Store</title>
+<link rel="stylesheet" href="login.css">
+</head>
 
-body{
-    font-family:Arial,sans-serif;
-    background:linear-gradient(135deg,#0a0a0a,#1a1a2e);
-    min-height:100vh;
-}
+<body>
 
-.login-container{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-    padding:20px;
-}
+<div class="login-container">
+    <div class="login-box">
 
-.login-box{
-    width:400px;
-    max-width:100%;
-    background:white;
-    padding:40px;
-    border-radius:18px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.4);
-}
+        <h2 id="formTitle">🏪 Login</h2>
 
-.login-box h2{
-    text-align:center;
-    margin-bottom:30px;
-    color:#222;
-}
+        <!-- LOGIN -->
+        <div id="loginForm">
 
-.form-group{
-    margin-bottom:20px;
-}
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Password">
 
-.form-group label{
-    display:block;
-    margin-bottom:8px;
-    font-weight:bold;
-    color:#333;
-}
+            <button class="btn" onclick="login()">Login</button>
 
-.form-group input{
-    width:100%;
-    padding:12px;
-    border:2px solid #ddd;
-    border-radius:8px;
-    font-size:1em;
-}
+            <p>
+                No account?
+                <a onclick="showRegister()">Register</a>
+            </p>
 
-.form-group input:focus{
-    outline:none;
-    border-color:#007bff;
-}
+        </div>
 
-.btn{
-    width:100%;
-    padding:14px;
-    border:none;
-    border-radius:8px;
-    background:#007bff;
-    color:white;
-    font-size:1em;
-    font-weight:bold;
-    cursor:pointer;
-}
+        <!-- REGISTER -->
+        <div id="registerForm" style="display:none;">
 
-.btn:hover{
-    background:#0056b3;
-}
+            <input type="text" id="registerName" placeholder="Name">
+            <input type="email" id="registerEmail" placeholder="Email">
+            <input type="password" id="registerPassword" placeholder="Password">
+            <input type="password" id="confirmPassword" placeholder="Confirm Password">
 
-.btn-register{
-    background:#28a745;
-}
+            <button class="btn" onclick="register()">Register</button>
 
-.btn-register:hover{
-    background:#1e7e34;
-}
+            <p>
+                Already have account?
+                <a onclick="showLogin()">Login</a>
+            </p>
 
-.toggle-text{
-    text-align:center;
-    margin-top:20px;
-    color:#666;
-}
+        </div>
 
-.toggle-text a{
-    color:#007bff;
-    cursor:pointer;
-    text-decoration:underline;
-}
+        <div id="msg"></div>
 
-.message{
-    margin-top:15px;
-    text-align:center;
-    font-weight:bold;
-    display:none;
-}
+    </div>
+</div>
 
-.error{
-    color:red;
-}
+<script src="login.js"></script>
 
-.success{
-    color:green;
-}
+</body>
+</html>
