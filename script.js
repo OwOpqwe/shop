@@ -1,3 +1,26 @@
+// CHECK IF USER IS LOGGED IN - FIRST THING!
+(function() {
+    var currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    var user = JSON.parse(currentUser);
+    document.getElementById('userName').textContent = user.name;
+    document.getElementById('userInfo').style.display = 'block';
+    document.getElementById('customerName').value = user.name;
+})();
+
+// LOGOUT FUNCTION
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+    }
+}
+
+// CART CODE
 var cart = {};
 var bundles = {
     "Bundle Pack": {
@@ -113,14 +136,11 @@ function checkout() {
         document.getElementById('orderDetails').value = orderDetails;
         document.getElementById('orderTotal').value = 'NT$' + total;
         
-        // Submit form to hidden iframe
         document.getElementById('orderForm').submit();
         
-        // Show success immediately
         alert('Order sent successfully! 🎉\n\nThank you, ' + customerName + '!\n\nTotal: NT$' + total + '\n\nWe will prepare your order. Remember: CASH ONLY!');
         
         cart = {};
-        document.getElementById('customerName').value = '';
         updateCart();
         
         setTimeout(function() {
@@ -128,7 +148,7 @@ function checkout() {
             
             if (review) {
                 var reviewSubject = 'Review for Snack Store';
-                var reviewBody = 'Hi,\n\nI would like to leave a review for my recent order:\n\n[Please write your review here]\n\nRating (1-5 stars): \n\nComments:\n\n\n\nThank you!';
+                var reviewBody = 'Hi,\n\nI would like to leave a review for my recent order:\n\n[Please write your review here]\n\nRating (1-5 stars): \n\nComments:\n\n\nThank you!';
                 var reviewMailto = 'mailto:charlie2011.ting@gmail.com?subject=' + encodeURIComponent(reviewSubject) + '&body=' + encodeURIComponent(reviewBody);
                 window.open(reviewMailto, '_blank');
             }
