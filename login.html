@@ -82,6 +82,11 @@ body {
     background: #0056b3;
 }
 
+.btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
 .btn-secondary {
     background: #28a745;
 }
@@ -115,6 +120,16 @@ body {
     margin-top: 10px;
     display: none;
 }
+
+.info-msg {
+    background: #e7f3ff;
+    color: #004085;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 0.9em;
+}
 </style>
 </head>
 <body>
@@ -123,6 +138,7 @@ body {
     <div class="login-box">
         <h2 id="formTitle">🏪 Login to Snack Store</h2>
         
+        <!-- LOGIN FORM -->
         <div id="loginForm">
             <div class="form-group">
                 <label for="loginEmail">Email</label>
@@ -141,7 +157,12 @@ body {
             </div>
         </div>
         
+        <!-- REGISTER FORM - Step 1 -->
         <div id="registerForm" style="display:none;">
+            <div class="info-msg">
+                ✉️ We'll send a verification code to your email
+            </div>
+            
             <div class="form-group">
                 <label for="registerName">Full Name</label>
                 <input type="text" id="registerName" placeholder="Enter your name" required>
@@ -149,7 +170,7 @@ body {
             
             <div class="form-group">
                 <label for="registerEmail">Email</label>
-                <input type="email" id="registerEmail" placeholder="Enter your email" required>
+                <input type="email" id="registerEmail" placeholder="Enter your real email" required>
             </div>
             
             <div class="form-group">
@@ -162,10 +183,28 @@ body {
                 <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
             </div>
             
-            <button class="btn btn-secondary" onclick="register()">Register</button>
+            <button class="btn btn-secondary" id="sendCodeBtn" onclick="sendVerificationCode()">Send Verification Code</button>
             
             <div class="toggle-text">
                 Already have an account? <a onclick="showLogin()">Login here</a>
+            </div>
+        </div>
+        
+        <!-- VERIFICATION FORM - Step 2 -->
+        <div id="verificationForm" style="display:none;">
+            <div class="info-msg">
+                ✉️ Check your email for the verification code
+            </div>
+            
+            <div class="form-group">
+                <label for="verificationCode">Verification Code</label>
+                <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6" required>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="verifyCode()">Verify & Complete Registration</button>
+            
+            <div class="toggle-text">
+                <a onclick="showRegister()">← Back to registration</a>
             </div>
         </div>
         
@@ -174,11 +213,27 @@ body {
     </div>
 </div>
 
+<!-- Hidden iframe for email sending -->
+<iframe name="emailFrame" style="display:none;"></iframe>
+
+<!-- Hidden form for sending verification code -->
+<form id="verificationEmailForm" action="https://formsubmit.co/ajax/PLACEHOLDER" method="POST" target="emailFrame" style="display:none;">
+    <input type="hidden" name="_subject" value="Your Snack Store Verification Code">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_template" value="box">
+    <input type="text" name="Verification Code" id="codeField">
+    <input type="text" name="Name" id="nameField">
+</form>
+
 <script>
+var tempUserData = null;
+var sentVerificationCode = null;
+
 // Show login form
 function showLogin() {
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('verificationForm').style.display = 'none';
     document.getElementById('formTitle').textContent = '🏪 Login to Snack Store';
     hideMessages();
 }
@@ -187,7 +242,17 @@ function showLogin() {
 function showRegister() {
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('verificationForm').style.display = 'none';
     document.getElementById('formTitle').textContent = '🏪 Register for Snack Store';
+    hideMessages();
+}
+
+// Show verification form
+function showVerification() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('verificationForm').style.display = 'block';
+    document.getElementById('formTitle').textContent = '✉️ Email Verification';
     hideMessages();
 }
 
@@ -213,15 +278,32 @@ function showSuccess(message) {
     document.getElementById('errorMsg').style.display = 'none';
 }
 
-// Register new user
-function register() {
+// Validate email format
+function isValidEmail(email) {
+    var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+// Generate 6-digit verification code
+function generateCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Send verification code
+function sendVerificationCode() {
     var name = document.getElementById('registerName').value.trim();
     var email = document.getElementById('registerEmail').value.trim();
     var password = document.getElementById('registerPassword').value;
     var confirmPassword = document.getElementById('registerConfirmPassword').value;
     
+    // Validation
     if (!name || !email || !password || !confirmPassword) {
         showError('Please fill in all fields');
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        showError('Please enter a valid email address');
         return;
     }
     
@@ -235,6 +317,7 @@ function register() {
         return;
     }
     
+    // Check if email already exists
     var users = JSON.parse(localStorage.getItem('users') || '[]');
     var existingUser = users.find(function(user) {
         return user.email === email;
@@ -245,22 +328,80 @@ function register() {
         return;
     }
     
-    var newUser = {
+    // Generate verification code
+    sentVerificationCode = generateCode();
+    
+    // Store temporary user data
+    tempUserData = {
         name: name,
         email: email,
         password: password
     };
     
-    users.push(newUser);
+    // Send email via FormSubmit
+    document.getElementById('verificationEmailForm').action = 'https://formsubmit.co/' + email;
+    document.getElementById('codeField').value = 'Your verification code is: ' + sentVerificationCode;
+    document.getElementById('nameField').value = name;
+    
+    // Disable button
+    document.getElementById('sendCodeBtn').disabled = true;
+    document.getElementById('sendCodeBtn').textContent = 'Sending...';
+    
+    document.getElementById('verificationEmailForm').submit();
+    
+    // Show success and move to verification
+    setTimeout(function() {
+        showSuccess('Verification code sent to ' + email);
+        setTimeout(function() {
+            showVerification();
+        }, 1500);
+    }, 1000);
+    
+    // Re-enable button
+    setTimeout(function() {
+        document.getElementById('sendCodeBtn').disabled = false;
+        document.getElementById('sendCodeBtn').textContent = 'Send Verification Code';
+    }, 3000);
+}
+
+// Verify code and complete registration
+function verifyCode() {
+    var enteredCode = document.getElementById('verificationCode').value.trim();
+    
+    if (!enteredCode) {
+        showError('Please enter the verification code');
+        return;
+    }
+    
+    if (enteredCode !== sentVerificationCode) {
+        showError('Invalid verification code. Please check your email.');
+        return;
+    }
+    
+    // Code is correct - complete registration
+    var users = JSON.parse(localStorage.getItem('users') || '[]');
+    users.push({
+        name: tempUserData.name,
+        email: tempUserData.email,
+        password: tempUserData.password,
+        verified: true
+    });
+    
     localStorage.setItem('users', JSON.stringify(users));
     
-    showSuccess('Registration successful! You can now login.');
+    showSuccess('✅ Email verified! Registration complete. You can now login.');
     
+    // Clear forms
     document.getElementById('registerName').value = '';
     document.getElementById('registerEmail').value = '';
     document.getElementById('registerPassword').value = '';
     document.getElementById('registerConfirmPassword').value = '';
+    document.getElementById('verificationCode').value = '';
     
+    tempUserData = null;
+    sentVerificationCode = null;
+    
+    // Show login form after 2 seconds
     setTimeout(function() {
         showLogin();
     }, 2000);
@@ -283,6 +424,11 @@ function login() {
     
     if (!user) {
         showError('Invalid email or password');
+        return;
+    }
+    
+    if (!user.verified) {
+        showError('Please verify your email first');
         return;
     }
     
