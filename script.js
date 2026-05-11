@@ -1,34 +1,23 @@
-// CHECK IF USER IS LOGGED IN - FIRST THING!
-(function() {
-    var currentUser = localStorage.getItem('currentUser');
-    
-    if (!currentUser) {
-        window.location.href = 'login.html';
-        return;
-    }
+import { auth, db } from './firebase.js';
 
-    var user = JSON.parse(currentUser);
+import {
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-    document.getElementById('userName').textContent = user.name;
-    document.getElementById('userInfo').style.display = 'block';
-    document.getElementById('customerName').value = user.name;
-})();
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    getDocs,
+    orderBy
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-// LOGOUT FUNCTION
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('currentUser');
-        window.location.href = 'login.html';
-    }
-}
-
-// CART + ORDER HISTORY
+// CART
 var cart = {};
 
-var orderHistory = JSON.parse(
-    localStorage.getItem('orderHistory') || '[]'
-);
-
+// BUNDLES
 var bundles = {
     "Bundle Pack": {
         "Dr Pepper": 1,
@@ -36,15 +25,71 @@ var bundles = {
     }
 };
 
+// CURRENT USER
+var currentUser = null;
+
+// CHECK LOGIN
+onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+
+        window.location.href = 'login.html';
+
+        return;
+    }
+
+    currentUser = user;
+
+    // SHOW USER INFO
+    document.getElementById('userName').textContent =
+        user.displayName || user.email;
+
+    document.getElementById('userInfo').style.display =
+        'block';
+
+    document.getElementById('customerName').value =
+        user.displayName || user.email;
+
+    // LOAD HISTORY
+    await renderOrderHistory();
+});
+
+// LOGOUT
+window.logout = async function() {
+
+    const confirmLogout = confirm(
+        'Are you sure you want to logout?'
+    );
+
+    if (!confirmLogout) {
+        return;
+    }
+
+    try {
+
+        await signOut(auth);
+
+        window.location.href = 'login.html';
+
+    } catch(error) {
+
+        alert(error.message);
+    }
+};
+
 // ADD TO CART
-function addToCartWithInput(name, price) {
+window.addToCartWithInput = function(name, price) {
 
-    var inputElement = document.getElementById('input-' + name);
+    const inputElement =
+        document.getElementById('input-' + name);
 
-    var quantity = parseInt(inputElement.value);
+    const quantity =
+        parseInt(inputElement.value);
 
     if (!quantity || quantity < 1) {
+
         alert('Please enter a valid quantity!');
+
         return;
     }
 
@@ -63,72 +108,93 @@ function addToCartWithInput(name, price) {
     inputElement.value = 1;
 
     updateCart();
-}
+};
 
 // REMOVE ITEM
-function removeItem(name) {
+window.removeItem = function(name) {
 
     if (cart[name]) {
 
         cart[name].quantity--;
 
-        if (cart[name].quantity === 0) {
+        if (cart[name].quantity <= 0) {
+
             delete cart[name];
         }
 
         updateCart();
     }
-}
+};
 
-// UPDATE CART DISPLAY
+// UPDATE CART
 function updateCart() {
 
-    var cartDiv = document.getElementById('cart-items');
+    const cartDiv =
+        document.getElementById('cart-items');
 
     cartDiv.innerHTML = '';
 
-    var total = 0;
+    let total = 0;
 
-    for (var item in cart) {
+    for (let item in cart) {
 
-        var entry = cart[item];
+        const entry = cart[item];
 
         total += entry.price * entry.quantity;
 
-        var div = document.createElement('div');
+        const div = document.createElement('div');
 
         div.className = 'cart-item';
 
-        var html = '';
+        let html = '';
 
-        html += '<div><strong>' + item + ' x' + entry.quantity + '</strong></div>';
+        html += `
+            <div>
+                <strong>${item} x${entry.quantity}</strong>
+            </div>
+        `;
 
-        html += '<div style="color:#666;margin-top:5px">';
-        html += 'NT$' + entry.price + ' × ' + entry.quantity;
-        html += '</div>';
+        html += `
+            <div style="color:#666;margin-top:5px">
+                NT$${entry.price} × ${entry.quantity}
+            </div>
+        `;
 
-        // BUNDLE ITEMS
+        // BUNDLE DETAILS
         if (bundles[item]) {
 
-            html += '<div class="bundle-sub">';
+            html += `<div class="bundle-sub">`;
 
-            for (var subItem in bundles[item]) {
+            for (let subItem in bundles[item]) {
 
-                html += '<div>';
-                html += subItem + ' x' + (bundles[item][subItem] * entry.quantity);
-                html += '</div>';
+                html += `
+                    <div>
+                        ${subItem} x
+                        ${bundles[item][subItem] * entry.quantity}
+                    </div>
+                `;
             }
 
-            html += '</div>';
+            html += `</div>`;
         }
 
-        html += '<div style="font-weight:bold;color:green;margin-top:8px">';
-        html += 'NT$' + (entry.price * entry.quantity);
-        html += '</div>';
+        html += `
+            <div style="
+            font-weight:bold;
+            color:green;
+            margin-top:8px;
+            ">
+                NT$${entry.price * entry.quantity}
+            </div>
+        `;
 
-        html += '<button class="remove-btn" onclick="removeItem(\'' + item + '\')">';
-        html += 'Remove 1';
-        html += '</button>';
+        html += `
+            <button
+            class="remove-btn"
+            onclick="removeItem('${item}')">
+                Remove 1
+            </button>
+        `;
 
         div.innerHTML = html;
 
@@ -145,12 +211,15 @@ function updateCart() {
         `;
     }
 
-    // UPDATE TOTAL
-    document.getElementById('total').innerText = total;
+    // TOTAL
+    document.getElementById('total').innerText =
+        total;
 
-    // UPDATE ITEM COUNTS
+    // ITEM COUNTS
     document.getElementById('qty-Dr Pepper').textContent =
-        cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
+        cart['Dr Pepper']
+            ? cart['Dr Pepper'].quantity
+            : 0;
 
     document.getElementById('qty-Chicken Noodle Snack').textContent =
         cart['Chicken Noodle Snack']
@@ -169,19 +238,20 @@ function updateCart() {
 }
 
 // CHECKOUT
-function checkout() {
+window.checkout = async function() {
 
-    var customerName =
-        document.getElementById('customerName').value.trim();
+    const customerName =
+        document.getElementById('customerName')
+        .value
+        .trim();
 
-    var total =
-        document.getElementById('total').textContent;
+    const total =
+        document.getElementById('total')
+        .textContent;
 
     if (!customerName) {
 
-        alert('Please enter your name before checking out!');
-
-        document.getElementById('customerName').focus();
+        alert('Please enter your name');
 
         return;
     }
@@ -193,232 +263,207 @@ function checkout() {
         return;
     }
 
-    // PLAY SOUND
-    var audio = new Audio(
-        'https://cdn.freesound.org/previews/678/678271_3797507-lq.mp3'
-    );
+    try {
 
-    audio.play();
-
-    // BUILD ORDER DETAILS
-    var orderDetails = 'ORDER DETAILS:\n\n';
-
-    for (var item in cart) {
-
-        var entry = cart[item];
-
-        orderDetails +=
-            item +
-            ' x' +
-            entry.quantity +
-            ' = NT$' +
-            (entry.price * entry.quantity) +
-            '\n';
-
-        // BUNDLE DETAILS
-        if (bundles[item]) {
-
-            for (var subItem in bundles[item]) {
-
-                orderDetails +=
-                    '  - ' +
-                    subItem +
-                    ' x' +
-                    (bundles[item][subItem] * entry.quantity) +
-                    '\n';
-            }
-        }
-    }
-
-    orderDetails +=
-        '\n⚠️ CASH ONLY - Please have exact change ready!';
-
-    // SAVE ORDER HISTORY
-    var orderRecord = {
-        customer: customerName,
-        items: JSON.parse(JSON.stringify(cart)),
-        total: total,
-        date: new Date().toLocaleString()
-    };
-
-    orderHistory.unshift(orderRecord);
-
-    localStorage.setItem(
-        'orderHistory',
-        JSON.stringify(orderHistory)
-    );
-
-    // EMAIL FORM
-    document.getElementById('emailSubject').value =
-        'New Order from ' +
-        customerName +
-        ' - NT$' +
-        total;
-
-    document.getElementById('customerNameField').value =
-        customerName;
-
-    document.getElementById('orderDetails').value =
-        orderDetails;
-
-    document.getElementById('orderTotal').value =
-        'NT$' + total;
-
-    // SEND FORM
-    document.getElementById('orderForm').submit();
-
-    // SUCCESS MESSAGE
-    alert(
-        'Order sent successfully! 🎉\n\n' +
-        'Thank you, ' +
-        customerName +
-        '!\n\n' +
-        'Total: NT$' +
-        total +
-        '\n\nWe will prepare your order.\n\n' +
-        'Remember: CASH ONLY!'
-    );
-
-    // CLEAR CART
-    cart = {};
-
-    updateCart();
-
-    // REFRESH HISTORY
-    renderOrderHistory();
-
-    // REVIEW POPUP
-    setTimeout(function() {
-
-        var review = confirm(
-            'Thank you for your order!\n\n' +
-            'Would you like to leave us a review?\n\n' +
-            'Click OK to write a review via email.'
+        // PLAY SOUND
+        const audio = new Audio(
+            'https://cdn.freesound.org/previews/678/678271_3797507-lq.mp3'
         );
 
-        if (review) {
+        audio.play();
 
-            var reviewSubject =
-                'Review for Snack Store';
+        // SAVE TO FIRESTORE
+        await addDoc(
+            collection(db, "orders"),
+            {
+                customer: customerName,
+                userEmail: currentUser.email,
+                items: cart,
+                total: total,
+                createdAt: new Date().toISOString()
+            }
+        );
 
-            var reviewBody =
-                'Hi,\n\n' +
-                'I would like to leave a review ' +
-                'for my recent order:\n\n' +
-                '[Please write your review here]\n\n' +
-                'Rating (1-5 stars): \n\n' +
-                'Comments:\n\n\n' +
-                'Thank you!';
+        // EMAIL DETAILS
+        let orderDetails =
+            'ORDER DETAILS:\n\n';
 
-            var reviewMailto =
-                'mailto:charlie2011.ting@gmail.com' +
-                '?subject=' +
-                encodeURIComponent(reviewSubject) +
-                '&body=' +
-                encodeURIComponent(reviewBody);
+        for (let item in cart) {
 
-            window.open(reviewMailto, '_blank');
+            const entry = cart[item];
+
+            orderDetails +=
+                `${item} x${entry.quantity} = NT$${entry.price * entry.quantity}\n`;
+
+            if (bundles[item]) {
+
+                for (let subItem in bundles[item]) {
+
+                    orderDetails +=
+                        `  - ${subItem} x${bundles[item][subItem] * entry.quantity}\n`;
+                }
+            }
         }
 
-    }, 2000);
-}
+        orderDetails +=
+            '\n⚠️ CASH ONLY';
 
-// TOGGLE ORDER HISTORY
-function toggleOrderHistory() {
+        // SEND EMAIL FORM
+        document.getElementById('emailSubject').value =
+            `New Order from ${customerName} - NT$${total}`;
 
-    var historyDiv =
+        document.getElementById('customerNameField').value =
+            customerName;
+
+        document.getElementById('orderDetails').value =
+            orderDetails;
+
+        document.getElementById('orderTotal').value =
+            `NT$${total}`;
+
+        document.getElementById('orderForm').submit();
+
+        // SUCCESS
+        alert(
+            `Order sent successfully! 🎉\n\n` +
+            `Thank you, ${customerName}!\n\n` +
+            `Total: NT$${total}`
+        );
+
+        // CLEAR CART
+        cart = {};
+
+        updateCart();
+
+        // REFRESH HISTORY
+        await renderOrderHistory();
+
+    } catch(error) {
+
+        alert(error.message);
+    }
+};
+
+// TOGGLE HISTORY
+window.toggleOrderHistory = function() {
+
+    const historyDiv =
         document.getElementById('order-history');
 
     if (historyDiv.style.display === 'none') {
 
         historyDiv.style.display = 'block';
 
-        renderOrderHistory();
-
     } else {
 
         historyDiv.style.display = 'none';
     }
-}
+};
 
-// RENDER ORDER HISTORY
-function renderOrderHistory() {
+// LOAD HISTORY FROM FIREBASE
+async function renderOrderHistory() {
 
-    var historyList =
+    const historyList =
         document.getElementById('history-list');
 
-    // NO HISTORY
-    if (orderHistory.length === 0) {
+    historyList.innerHTML =
+        'Loading orders...';
 
-        historyList.innerHTML =
-            '<div>No previous orders</div>';
+    try {
 
-        return;
-    }
+        const q = query(
+            collection(db, "orders"),
+            where("userEmail", "==", currentUser.email),
+            orderBy("createdAt", "desc")
+        );
 
-    historyList.innerHTML = '';
+        const querySnapshot =
+            await getDocs(q);
 
-    orderHistory.forEach(function(order, index) {
+        if (querySnapshot.empty) {
 
-        var div = document.createElement('div');
+            historyList.innerHTML =
+                'No previous orders';
 
-        div.style.background = '#f5f5f5';
-        div.style.padding = '15px';
-        div.style.borderRadius = '10px';
-        div.style.marginBottom = '15px';
-
-        var html = '';
-
-        html += '<div style="font-weight:bold;font-size:1.1em;">';
-        html += 'Order #' + (orderHistory.length - index);
-        html += '</div>';
-
-        html += '<div style="color:#666;margin-top:5px;">';
-        html += order.date;
-        html += '</div>';
-
-        html += '<div style="margin-top:10px;">';
-
-        for (var item in order.items) {
-
-            html += '<div>';
-            html += item + ' x' + order.items[item].quantity;
-            html += '</div>';
+            return;
         }
 
-        html += '</div>';
+        historyList.innerHTML = '';
 
-        html += '<div style="margin-top:10px;font-weight:bold;color:green;">';
-        html += 'Total: NT$' + order.total;
-        html += '</div>';
+        let orderNumber = 1;
 
-        div.innerHTML = html;
+        querySnapshot.forEach((doc) => {
 
-        historyList.appendChild(div);
-    });
-}
+            const order = doc.data();
 
-// CLEAR ORDER HISTORY
-function clearOrderHistory() {
+            const div =
+                document.createElement('div');
 
-    var confirmClear = confirm(
-        'Are you sure you want to clear all order history?'
-    );
+            div.style.background = '#f5f5f5';
+            div.style.padding = '15px';
+            div.style.borderRadius = '10px';
+            div.style.marginBottom = '15px';
 
-    if (!confirmClear) {
-        return;
+            let html = '';
+
+            html += `
+                <div style="
+                font-weight:bold;
+                font-size:1.1em;
+                ">
+                    Order #${orderNumber}
+                </div>
+            `;
+
+            html += `
+                <div style="
+                color:#666;
+                margin-top:5px;
+                ">
+                    ${new Date(order.createdAt).toLocaleString()}
+                </div>
+            `;
+
+            html += `
+                <div style="margin-top:10px;">
+            `;
+
+            for (let item in order.items) {
+
+                html += `
+                    <div>
+                        ${item} x${order.items[item].quantity}
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+
+            html += `
+                <div style="
+                margin-top:10px;
+                font-weight:bold;
+                color:green;
+                ">
+                    Total: NT$${order.total}
+                </div>
+            `;
+
+            div.innerHTML = html;
+
+            historyList.appendChild(div);
+
+            orderNumber++;
+        });
+
+    } catch(error) {
+
+        historyList.innerHTML =
+            'Failed to load orders';
+
+        console.error(error);
     }
-
-    orderHistory = [];
-
-    localStorage.setItem(
-        'orderHistory',
-        JSON.stringify(orderHistory)
-    );
-
-    renderOrderHistory();
 }
 
 // INITIALIZE
 updateCart();
-renderOrderHistory();
