@@ -10,7 +10,9 @@ import {
     addDoc,
     query,
     where,
-    getDocs
+    getDocs,
+    deleteDoc,
+    doc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 // CART
@@ -276,7 +278,7 @@ window.checkout = async function() {
 
     try {
 
-        // SAVE ORDER TO FIREBASE
+        // SAVE ORDER
         await addDoc(
             collection(db, "orders"),
             {
@@ -313,7 +315,7 @@ window.checkout = async function() {
         orderDetails +=
             '\n⚠️ CASH ONLY';
 
-        // FORM VALUES
+        // EMAIL FORM VALUES
         document.getElementById('emailSubject').value =
             `New Order from ${customerName}`;
 
@@ -365,6 +367,35 @@ window.toggleOrderHistory = function() {
     }
 };
 
+// DELETE ORDER
+window.deleteOrder = async function(orderId) {
+
+    const confirmDelete = confirm(
+        'Delete this order?'
+    );
+
+    if (!confirmDelete) {
+        return;
+    }
+
+    try {
+
+        await deleteDoc(
+            doc(db, "orders", orderId)
+        );
+
+        alert('Order deleted');
+
+        await renderOrderHistory();
+
+    } catch(error) {
+
+        console.error(error);
+
+        alert(error.message);
+    }
+};
+
 // ORDER HISTORY
 async function renderOrderHistory() {
 
@@ -400,9 +431,12 @@ async function renderOrderHistory() {
         // STORE ORDERS
         let orders = [];
 
-        querySnapshot.forEach((doc) => {
+        querySnapshot.forEach((docSnap) => {
 
-            orders.push(doc.data());
+            orders.push({
+                id: docSnap.id,
+                ...docSnap.data()
+            });
         });
 
         // SORT NEWEST FIRST
@@ -480,6 +514,24 @@ async function renderOrderHistory() {
                     Total:
                     NT$${order.total}
                 </div>
+            `;
+
+            // DELETE BUTTON
+            html += `
+                <button
+                onclick="deleteOrder('${order.id}')"
+                style="
+                margin-top:12px;
+                background:#dc3545;
+                color:white;
+                border:none;
+                padding:10px 15px;
+                border-radius:8px;
+                cursor:pointer;
+                font-weight:bold;
+                ">
+                    Delete Order
+                </button>
             `;
 
             div.innerHTML = html;
