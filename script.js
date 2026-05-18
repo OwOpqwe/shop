@@ -1,340 +1,277 @@
-For changing from `localStorage` to a real database, the easiest and best option for your snack store is:
-
-# ✅ Use Firebase
-
-Firebase by [Google Firebase](https://firebase.google.com?utm_source=chatgpt.com) gives you:
-
-* Real user accounts
-* Cloud database
-* Order history saved online
-* Works on GitHub Pages
-* Free tier
-* No backend server needed
-
----
-
-# ✅ What You’ll Replace
-
-| Current                  | Replace With            |
-| ------------------------ | ----------------------- |
-| localStorage users       | Firebase Authentication |
-| localStorage orders      | Firestore Database      |
-| localStorage currentUser | Firebase Auth session   |
-
----
-
-# ✅ STEP 1 — Create Firebase Project
-
-Go to:
-
-[Firebase Console](https://console.firebase.google.com?utm_source=chatgpt.com)
-
-Then:
-
-1. Click **Create Project**
-2. Name it:
-   `Snack Store`
-3. Continue
-4. Create project
-
----
-
-# ✅ STEP 2 — Enable Authentication
-
-Inside Firebase:
-
-1. Click **Authentication**
-2. Click **Get Started**
-3. Go to **Sign-in Method**
-4. Enable:
-
-   * Email/Password
-
----
-
-# ✅ STEP 3 — Create Database
-
-1. Click **Firestore Database**
-2. Click **Create Database**
-3. Start in:
-
-   * Test Mode
-4. Choose nearest region
-
----
-
-# ✅ STEP 4 — Register Web App
-
-1. Click gear ⚙️ → Project Settings
-2. Scroll to:
-   **Your Apps**
-3. Click:
-   `</>`
-4. App nickname:
-   `Snack Store`
-5. Register app
-
-Firebase gives you code like this:
-
-```javascript id="k12bgw"
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "123456",
-  appId: "APP_ID"
-};
-```
-
-You will paste this into your code.
-
----
-
-# ✅ STEP 5 — Add Firebase to `login.html`
-
-Inside `<head>` add:
-
-```html id="jryqf6"
-<script type="module" src="login.js"></script>
-```
-
-Then REMOVE the old `<script>` at the bottom.
-
----
-
-# ✅ STEP 6 — Create `login.js`
-
-Create a NEW file:
-
-# `login.js`
-
-```javascript id="j2h9tz"
-import { initializeApp } from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { auth, db } from './firebase.js';
 
 import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    updateProfile
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-// YOUR FIREBASE CONFIG
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "123456",
-    appId: "APP_ID"
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    getDocs,
+    deleteDoc,
+    doc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+let cart = {};
+let currentUser = null;
+
+const bundles = {
+    "Bundle Pack": {
+        "Dr Pepper": 1,
+        "Chicken Noodle Snack": 1
+    }
 };
+
+// ---------------- AUTH ----------------
+onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    currentUser = user;
+
+    document.getElementById('userName').textContent =
+        user.displayName || user.email;
+
+    document.getElementById('userInfo').style.display = 'block';
+
+    document.getElementById('customerName').value =
+        user.displayName || user.email;
+
+    await renderOrderHistory();
+});
+
+// ---------------- LOGOUT ----------------
+window.logout = async function () {
+
+    if (!confirm('Logout?')) return;
+
+    await signOut(auth);
+    window.location.href = 'login.html';
+};
+
+// ---------------- CART ----------------
+window.addToCartWithInput = function (name, price) {
+
+    const input = document.getElementById('input-' + name);
+    const qty = parseInt(input.value);
+
+    if (!qty || qty < 1) {
+        alert('Invalid quantity');
+        return;
+    }
+
+    if (!cart[name]) {
+        cart[name] = { price, quantity: qty };
+    } else {
+        cart[name].quantity += qty;
+    }
+
+    input.value = 1;
+    updateCart();
+};
+
+window.removeItem = function (name) {
+
+    if (!cart[name]) return;
+
+    cart[name].quantity--;
+
+    if (cart[name].quantity <= 0) {
+        delete cart[name];
+    }
+
+    updateCart();
+};
+
+function updateCart() {
+
+    const cartDiv = document.getElementById('cart-items');
+    cartDiv.innerHTML = '';
+
+    let total = 0;
+
+    for (let item in cart) {
+
+        const entry = cart[item];
+        total += entry.price * entry.quantity;
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+
+        let html = `
+            <div><strong>${item} x${entry.quantity}</strong></div>
+            <div style="color:#666;margin-top:5px;">
+                NT$${entry.price} × ${entry.quantity}
+            </div>
+        `;
+
+        if (bundles[item]) {
+
+            html += `<div class="bundle-sub">`;
+
+            for (let sub in bundles[item]) {
+
+                html += `
+                    <div>${sub} x${bundles[item][sub] * entry.quantity}</div>
+                `;
+            }
+
+            html += `</div>`;
+        }
+
+        html += `
+            <div style="margin-top:8px;font-weight:bold;color:green;">
+                NT$${entry.price * entry.quantity}
+            </div>
+
+            <button class="remove-btn" onclick="removeItem('${item}')">
+                Remove 1
+            </button>
+        `;
+
+        div.innerHTML = html;
+        cartDiv.appendChild(div);
+    }
+
+    if (total === 0) {
+        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
+    }
+
+    document.getElementById('total').textContent = total;
+
+    document.getElementById('qty-Dr Pepper').textContent =
+        cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
+
+    document.getElementById('qty-Chicken Noodle Snack').textContent =
+        cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
+
+    document.getElementById('qty-Bundle Pack').textContent =
+        cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
+
+    document.getElementById('qty-Chocolate').textContent =
+        cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
+}
+
+// ---------------- CHECKOUT ----------------
+window.checkout = async function () {
+
+    const name = document.getElementById('customerName').value.trim();
+    const total = document.getElementById('total').textContent;
+
+    if (!name || total <= 0) {
+        alert('Invalid order');
+        return;
+    }
+
+    await addDoc(collection(db, "orders"), {
+        customer: name,
+        userEmail: currentUser.email,
+        items: cart,
+        total,
+        createdAt: new Date().toISOString()
+    });
+
+    alert("Order placed!");
+
+    cart = {};
+    updateCart();
+
+    await renderOrderHistory();
+};
+
+// ---------------- TOGGLE HISTORY ----------------
+window.toggleOrderHistory = function () {
+
+    const box = document.getElementById('order-history');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+};
+
+// ---------------- DELETE ORDER ----------------
+window.deleteOrder = async function (id) {
+
+    if (!confirm('Delete this order?')) return;
+
+    await deleteDoc(doc(db, "orders", id));
+
+    await renderOrderHistory();
+};
+
+// ---------------- ORDER HISTORY ----------------
+async function renderOrderHistory() {
+
+    const box = document.getElementById('history-list');
+    box.innerHTML = 'Loading...';
+
+    const q = query(
+        collection(db, "orders"),
+        where("userEmail", "==", currentUser.email)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+        box.innerHTML = 'No orders yet';
+        return;
+    }
+
+    let orders = [];
+
+    snap.forEach(d => {
+        orders.push({ id: d.id, ...d.data() });
+    });
+
+    orders.sort((a, b) =>
+        new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    box.innerHTML = '';
+
+    orders.forEach(order => {
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+
+        let html = `
+            <div style="font-weight:bold;color:#007bff;">
+                📦 Order
+            </div>
+
+            <div style="color:#666;">
+                ${new Date(order.createdAt).toLocaleString()}
+            </div>
+
+            <div style="margin-top:10px;">
+        `;
+
+        for (let item in order.items) {
+
+            html += `<div>${item} x${order.items[item].quantity}</div>`;
+        }
+
+        html += `
+            </div>
+
+            <div style="margin-top:10px;font-weight:bold;color:green;">
+                Total: NT$${order.total}
+            </div>
+
+            <button class="remove-btn"
+                style="margin-top:10px;"
+                onclick="deleteOrder('${order.id}')">
+                Delete Order
+            </button>
+        `;
+
+        div.innerHTML = html;
+        box.appendChild(div);
+    });
+}
 
 // INIT
-const app = initializeApp(firebaseConfig);
-
-const auth = getAuth(app);
-
-// REGISTER
-window.register = async function() {
-
-    const name =
-        document.getElementById('registerName').value;
-
-    const email =
-        document.getElementById('registerEmail').value;
-
-    const password =
-        document.getElementById('registerPassword').value;
-
-    try {
-
-        const userCredential =
-            await createUserWithEmailAndPassword(
-                auth,
-                email,
-                password
-            );
-
-        await updateProfile(
-            userCredential.user,
-            {
-                displayName: name
-            }
-        );
-
-        alert('Registration successful!');
-
-        showLogin();
-
-    } catch(error) {
-
-        alert(error.message);
-    }
-};
-
-// LOGIN
-window.login = async function() {
-
-    const email =
-        document.getElementById('loginEmail').value;
-
-    const password =
-        document.getElementById('loginPassword').value;
-
-    try {
-
-        await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
-
-        window.location.href = 'index.html';
-
-    } catch(error) {
-
-        alert(error.message);
-    }
-};
-```
-
----
-
-# ✅ STEP 7 — Create `firebase.js`
-
-Create another new file:
-
-# `firebase.js`
-
-```javascript id="0cq30w"
-import { initializeApp } from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import { getAuth } from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import { getFirestore } from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "123456",
-    appId: "APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-
-export const db = getFirestore(app);
-```
-
----
-
-# ✅ STEP 8 — Replace `script.js`
-
-At the TOP:
-
-```javascript id="z1t2cq"
-import { auth, db } from './firebase.js';
-```
-
-Then use Firebase auth instead of localStorage.
-
----
-
-# ✅ STEP 9 — Save Orders to Firestore
-
-Replace localStorage order saving with:
-
-```javascript id="vmd9jw"
-import {
-    collection,
-    addDoc
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-await addDoc(
-    collection(db, "orders"),
-    {
-        customer: customerName,
-        items: cart,
-        total: total,
-        date: new Date().toISOString(),
-        user: auth.currentUser.email
-    }
-);
-```
-
----
-
-# ✅ STEP 10 — Load Order History
-
-```javascript id="nv43yj"
-import {
-    collection,
-    getDocs
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const querySnapshot =
-    await getDocs(collection(db, "orders"));
-
-querySnapshot.forEach((doc) => {
-
-    console.log(doc.data());
-
-});
-```
-
----
-
-# ✅ FINAL FILES
-
-Your project becomes:
-
-```text id="jry1gm"
-index.html
-login.html
-styles.css
-script.js
-login.js
-firebase.js
-```
-
----
-
-# ✅ Benefits
-
-You now get:
-
-* ☁️ Real cloud database
-* 🔐 Secure authentication
-* 📱 Works across devices
-* 👥 Multiple users
-* 📦 Real order history
-* 🚫 No data loss
-* 🌍 Live website backend
-
----
-
-# ✅ Important for GitHub Pages
-
-In BOTH html files, change:
-
-```html id="lm3hbm"
-<script src="script.js"></script>
-```
-
-to:
-
-```html id="hlmbjx"
-<script type="module" src="script.js"></script>
-```
-
-because Firebase uses ES modules.
+updateCart();
