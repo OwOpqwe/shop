@@ -1,277 +1,138 @@
-import { auth, db } from './firebase.js';
-
-import {
-    signOut,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-
-import {
-    collection,
-    addDoc,
-    query,
-    where,
-    getDocs,
-    deleteDoc,
-    doc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-let cart = {};
-let currentUser = null;
-
-const bundles = {
-    "Bundle Pack": {
-        "Dr Pepper": 1,
-        "Chicken Noodle Snack": 1
-    }
-};
-
-// ---------------- AUTH ----------------
-onAuthStateChanged(auth, async (user) => {
-
-    if (!user) {
-        window.location.href = 'login.html';
-        return;
-    }
-
-    currentUser = user;
-
-    document.getElementById('userName').textContent =
-        user.displayName || user.email;
-
-    document.getElementById('userInfo').style.display = 'block';
-
-    document.getElementById('customerName').value =
-        user.displayName || user.email;
-
-    await renderOrderHistory();
-});
-
-// ---------------- LOGOUT ----------------
-window.logout = async function () {
-
-    if (!confirm('Logout?')) return;
-
-    await signOut(auth);
-    window.location.href = 'login.html';
-};
-
-// ---------------- CART ----------------
-window.addToCartWithInput = function (name, price) {
-
-    const input = document.getElementById('input-' + name);
-    const qty = parseInt(input.value);
-
-    if (!qty || qty < 1) {
-        alert('Invalid quantity');
-        return;
-    }
-
-    if (!cart[name]) {
-        cart[name] = { price, quantity: qty };
-    } else {
-        cart[name].quantity += qty;
-    }
-
-    input.value = 1;
-    updateCart();
-};
-
-window.removeItem = function (name) {
-
-    if (!cart[name]) return;
-
-    cart[name].quantity--;
-
-    if (cart[name].quantity <= 0) {
-        delete cart[name];
-    }
-
-    updateCart();
-};
-
-function updateCart() {
-
-    const cartDiv = document.getElementById('cart-items');
-    cartDiv.innerHTML = '';
-
-    let total = 0;
-
-    for (let item in cart) {
-
-        const entry = cart[item];
-        total += entry.price * entry.quantity;
-
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-
-        let html = `
-            <div><strong>${item} x${entry.quantity}</strong></div>
-            <div style="color:#666;margin-top:5px;">
-                NT$${entry.price} × ${entry.quantity}
-            </div>
-        `;
-
-        if (bundles[item]) {
-
-            html += `<div class="bundle-sub">`;
-
-            for (let sub in bundles[item]) {
-
-                html += `
-                    <div>${sub} x${bundles[item][sub] * entry.quantity}</div>
-                `;
-            }
-
-            html += `</div>`;
-        }
-
-        html += `
-            <div style="margin-top:8px;font-weight:bold;color:green;">
-                NT$${entry.price * entry.quantity}
-            </div>
-
-            <button class="remove-btn" onclick="removeItem('${item}')">
-                Remove 1
-            </button>
-        `;
-
-        div.innerHTML = html;
-        cartDiv.appendChild(div);
-    }
-
-    if (total === 0) {
-        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
-    }
-
-    document.getElementById('total').textContent = total;
-
-    document.getElementById('qty-Dr Pepper').textContent =
-        cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
-
-    document.getElementById('qty-Chicken Noodle Snack').textContent =
-        cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-
-    document.getElementById('qty-Bundle Pack').textContent =
-        cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-
-    document.getElementById('qty-Chocolate').textContent =
-        cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
-}
-
 // ---------------- CHECKOUT ----------------
 window.checkout = async function () {
 
-    const name = document.getElementById('customerName').value.trim();
-    const total = document.getElementById('total').textContent;
+    const name =
+        document.getElementById('customerName')
+        .value
+        .trim();
 
-    if (!name || total <= 0) {
-        alert('Invalid order');
+    const total =
+        document.getElementById('total')
+        .textContent;
+
+    // VALIDATION
+    if (!name) {
+
+        alert('Please enter your name');
+
         return;
     }
 
-    await addDoc(collection(db, "orders"), {
-        customer: name,
-        userEmail: currentUser.email,
-        items: cart,
-        total,
-        createdAt: new Date().toISOString()
-    });
+    if (parseFloat(total) <= 0) {
 
-    alert("Order placed!");
+        alert('Your cart is empty');
 
-    cart = {};
-    updateCart();
-
-    await renderOrderHistory();
-};
-
-// ---------------- TOGGLE HISTORY ----------------
-window.toggleOrderHistory = function () {
-
-    const box = document.getElementById('order-history');
-    box.style.display = box.style.display === 'block' ? 'none' : 'block';
-};
-
-// ---------------- DELETE ORDER ----------------
-window.deleteOrder = async function (id) {
-
-    if (!confirm('Delete this order?')) return;
-
-    await deleteDoc(doc(db, "orders", id));
-
-    await renderOrderHistory();
-};
-
-// ---------------- ORDER HISTORY ----------------
-async function renderOrderHistory() {
-
-    const box = document.getElementById('history-list');
-    box.innerHTML = 'Loading...';
-
-    const q = query(
-        collection(db, "orders"),
-        where("userEmail", "==", currentUser.email)
-    );
-
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-        box.innerHTML = 'No orders yet';
         return;
     }
 
-    let orders = [];
+    try {
 
-    snap.forEach(d => {
-        orders.push({ id: d.id, ...d.data() });
-    });
+        // ---------------- SAVE TO FIREBASE ----------------
+        await addDoc(
+            collection(db, "orders"),
+            {
+                customer: name,
 
-    orders.sort((a, b) =>
-        new Date(b.createdAt) - new Date(a.createdAt)
-    );
+                userEmail: currentUser.email,
 
-    box.innerHTML = '';
+                items: cart,
 
-    orders.forEach(order => {
+                total: total,
 
-        const div = document.createElement('div');
-        div.className = 'cart-item';
+                createdAt: new Date().toISOString()
+            }
+        );
 
-        let html = `
-            <div style="font-weight:bold;color:#007bff;">
-                📦 Order
-            </div>
+        // ---------------- CREATE ORDER DETAILS ----------------
+        let orderDetails =
+            'ORDER DETAILS:\n\n';
 
-            <div style="color:#666;">
-                ${new Date(order.createdAt).toLocaleString()}
-            </div>
+        for (let item in cart) {
 
-            <div style="margin-top:10px;">
-        `;
+            const entry = cart[item];
 
-        for (let item in order.items) {
+            orderDetails +=
+                `${item} x${entry.quantity} = NT$${entry.price * entry.quantity}\n`;
 
-            html += `<div>${item} x${order.items[item].quantity}</div>`;
+            // BUNDLE ITEMS
+            if (bundles[item]) {
+
+                for (let subItem in bundles[item]) {
+
+                    orderDetails +=
+                        `  - ${subItem} x${bundles[item][subItem] * entry.quantity}\n`;
+                }
+            }
         }
 
-        html += `
-            </div>
+        orderDetails +=
+            '\n⚠️ CASH ONLY';
 
-            <div style="margin-top:10px;font-weight:bold;color:green;">
-                Total: NT$${order.total}
-            </div>
+        // ---------------- SEND EMAIL USING FORMSUBMIT ----------------
+        const response = await fetch(
+            "https://formsubmit.co/ajax/charlie2011.ting@gmail.com",
+            {
+                method: "POST",
 
-            <button class="remove-btn"
-                style="margin-top:10px;"
-                onclick="deleteOrder('${order.id}')">
-                Delete Order
-            </button>
-        `;
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
 
-        div.innerHTML = html;
-        box.appendChild(div);
-    });
-}
+                body: JSON.stringify({
 
-// INIT
-updateCart();
+                    subject:
+                        `New Order from ${name}`,
+
+                    Customer:
+                        name,
+
+                    Email:
+                        currentUser.email,
+
+                    Order:
+                        orderDetails,
+
+                    Total:
+                        `NT$${total}`
+                })
+            }
+        );
+
+        // CHECK RESPONSE
+        if (!response.ok) {
+
+            throw new Error(
+                'Failed to send email'
+            );
+        }
+
+        // ---------------- SUCCESS ----------------
+        alert(
+            `Order sent successfully! 🎉\n\nTotal: NT$${total}`
+        );
+
+        // PLAY SOUND
+        const audio = new Audio(
+            'https://cdn.freesound.org/previews/678/678271_3797507-lq.mp3'
+        );
+
+        audio.play();
+
+        // RESET CART
+        cart = {};
+
+        updateCart();
+
+        // REFRESH HISTORY
+        await renderOrderHistory();
+
+    } catch(error) {
+
+        console.error(error);
+
+        alert(
+            'Checkout failed. Please try again.'
+        );
+    }
+};
