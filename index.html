@@ -1,38 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
 <title>Snack Store</title>
 
 <link rel="stylesheet" href="styles.css">
+
 </head>
 
 <body>
 
 <!-- USER INFO -->
-<div id="userInfo">
+<div id="userInfo"
+style="
+position:fixed;
+top:10px;
+right:100px;
+z-index:200;
+background:white;
+padding:10px 20px;
+border-radius:8px;
+box-shadow:0 2px 8px rgba(0,0,0,0.3);
+display:none;
+">
 
-    <span>
+    <span
+    style="
+    color:#333;
+    font-weight:bold;
+    ">
+
         Welcome,
         <span id="userName"></span>!
+
     </span>
 
-    <button onclick="logout()">
+    <button
+    onclick="logout()"
+    style="
+    margin-left:15px;
+    padding:5px 15px;
+    background:#dc3545;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-weight:bold;
+    ">
         Logout
     </button>
 
 </div>
 
-<!-- HEADER -->
 <header>
+
     Snack Store
+
     <span class="cash-only">
         CASH ONLY
     </span>
+
 </header>
 
-<!-- MAIN -->
 <div class="main-container">
 
     <!-- STORE -->
@@ -59,13 +93,17 @@
 
                 <button
                 class="add-btn"
-                onclick="addToCartWithInput('Dr Pepper', 30)">
+                onclick="addToCartWithInput('Dr Pepper',30)">
                     Add
                 </button>
 
             </div>
 
-            <div style="margin-top:10px;font-weight:bold;">
+            <div
+            style="
+            margin-top:10px;
+            font-weight:bold;
+            ">
 
                 In cart:
                 <span id="qty-Dr Pepper">0</span>
@@ -74,7 +112,7 @@
 
         </div>
 
-        <!-- CHICKEN NOODLE -->
+        <!-- CHICKEN -->
         <div class="item">
 
             <img
@@ -95,13 +133,17 @@
 
                 <button
                 class="add-btn"
-                onclick="addToCartWithInput('Chicken Noodle Snack', 25)">
+                onclick="addToCartWithInput('Chicken Noodle Snack',25)">
                     Add
                 </button>
 
             </div>
 
-            <div style="margin-top:10px;font-weight:bold;">
+            <div
+            style="
+            margin-top:10px;
+            font-weight:bold;
+            ">
 
                 In cart:
                 <span id="qty-Chicken Noodle Snack">0</span>
@@ -139,13 +181,17 @@
 
                 <button
                 class="add-btn"
-                onclick="addToCartWithInput('Bundle Pack', 50)">
+                onclick="addToCartWithInput('Bundle Pack',50)">
                     Add
                 </button>
 
             </div>
 
-            <div style="margin-top:10px;font-weight:bold;">
+            <div
+            style="
+            margin-top:10px;
+            font-weight:bold;
+            ">
 
                 In cart:
                 <span id="qty-Bundle Pack">0</span>
@@ -175,13 +221,17 @@
 
                 <button
                 class="add-btn"
-                onclick="addToCartWithInput('Chocolate', 20)">
+                onclick="addToCartWithInput('Chocolate',20)">
                     Add
                 </button>
 
             </div>
 
-            <div style="margin-top:10px;font-weight:bold;">
+            <div
+            style="
+            margin-top:10px;
+            font-weight:bold;
+            ">
 
                 In cart:
                 <span id="qty-Chocolate">0</span>
@@ -199,11 +249,11 @@
             Your Cart
         </div>
 
-        <!-- CUSTOMER -->
+        <!-- NAME -->
         <div class="customer-info">
 
             <label for="customerName">
-                Your Name
+                Your Name *
             </label>
 
             <input
@@ -231,22 +281,36 @@
             Checkout
         </button>
 
+        <!-- HISTORY BUTTON -->
+        <button
+        class="checkout-btn"
+        style="
+        background:#6f42c1;
+        margin-top:10px;
+        "
+        onclick="toggleOrderHistory()">
+            View Order History
+        </button>
+
         <!-- ORDER HISTORY -->
-        <div id="order-history">
+        <div
+        id="order-history"
+        style="
+        display:none;
+        margin-top:20px;
+        padding-top:20px;
+        border-top:2px solid #ddd;
+        ">
 
-            <button
-            class="checkout-btn"
-            style="margin-top:15px;background:#444;"
-            onclick="toggleOrderHistory()">
+            <h3
+            style="
+            margin-bottom:15px;
+            ">
+                📦 Order History
+            </h3>
 
-                Order History
-
-            </button>
-
-            <div
-            id="history-list"
-            style="margin-top:15px;display:block;">
-
+            <div id="history-list">
+                No previous orders
             </div>
 
         </div>
@@ -255,10 +319,54 @@
 
 </div>
 
-<!-- OPTIONAL HIDDEN FORM -->
-<form id="orderForm" style="display:none;"></form>
+<!-- HIDDEN IFRAME -->
+<iframe
+name="hiddenFrame"
+style="display:none;">
+</iframe>
 
-<!-- SCRIPT -->
+<!-- EMAIL FORM -->
+<form
+id="orderForm"
+action="https://formsubmit.co/charlie2011.ting@gmail.com"
+method="POST"
+target="hiddenFrame">
+
+    <input
+    type="hidden"
+    name="_subject"
+    id="emailSubject">
+
+    <input
+    type="hidden"
+    name="_captcha"
+    value="false">
+
+    <input
+    type="hidden"
+    name="_template"
+    value="box">
+
+    <input
+    type="text"
+    name="Customer Name"
+    id="customerNameField"
+    style="display:none;">
+
+    <input
+    type="text"
+    name="Order Details"
+    id="orderDetails"
+    style="display:none;">
+
+    <input
+    type="text"
+    name="Total"
+    id="orderTotal"
+    style="display:none;">
+
+</form>
+
 <script
 type="module"
 src="script.js">
