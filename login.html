@@ -30,10 +30,6 @@ body{
     max-width:90%;
 }
 
-h2{
-    margin-bottom:20px;
-}
-
 input{
     width:100%;
     padding:12px;
@@ -49,20 +45,6 @@ button{
     color:white;
     border:none;
     border-radius:8px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#0056b3;
-}
-
-p{
-    margin-top:15px;
-}
-
-a{
-    color:blue;
     cursor:pointer;
 }
 
@@ -81,69 +63,78 @@ a{
 <h2>Snack Store Login</h2>
 
 <input type="email" id="email" placeholder="Email">
+
 <input type="password" id="password" placeholder="Password">
 
 <button onclick="login()">Login</button>
 
-<p>
-No account?
-<a onclick="register()">Register</a>
-</p>
+<button onclick="register()" style="margin-top:10px;">
+Register
+</button>
 
 <div id="error"></div>
 
 </div>
 
 <script type="module">
+
 import { auth } from "./firebase.js";
 
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
-function getInputs() {
-    return {
-        email: document.getElementById("email").value.trim(),
-        password: document.getElementById("password").value.trim()
-    };
-}
+window.login = async function(){
 
-window.login = async function () {
-    const { email, password } = getInputs();
+    const email =
+        document.getElementById("email").value.trim();
 
-    if (!email || !password) {
+    const password =
+        document.getElementById("password").value.trim();
+
+    try{
+
+        await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
+
+        location.href = "index.html";
+
+    }catch(error){
+
         document.getElementById("error").textContent =
-            "Please fill in all fields.";
-        return;
+            error.message;
     }
+};
 
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "index.html";
-    } catch (error) {
+window.register = async function(){
+
+    const email =
+        document.getElementById("email").value.trim();
+
+    const password =
+        document.getElementById("password").value.trim();
+
+    try{
+
+        await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
+
+        alert("Account created!");
+
+    }catch(error){
+
         document.getElementById("error").textContent =
             error.message;
     }
 };
 
-window.register = async function () {
-    const { email, password } = getInputs();
-
-    if (!email || !password) {
-        document.getElementById("error").textContent =
-            "Please fill in all fields.";
-        return;
-    }
-
-    try {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("Account created successfully!");
-    } catch (error) {
-        document.getElementById("error").textContent =
-            error.message;
-    }
-};
 </script>
 
 </body>
