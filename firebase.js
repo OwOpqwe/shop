@@ -20,5 +20,4 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// 🔥 stabilizes login session
 setPersistence(auth, browserLocalPersistence).catch(console.error);
