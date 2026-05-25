@@ -1,12 +1,8 @@
-// 🚨 BLOCK file:// (THIS IS REQUIRED)
 if (window.location.protocol === "file:") {
     document.body.innerHTML = `
-        <div style="font-family:Arial;padding:20px;">
-            <h1>❌ Firebase cannot run on file://</h1>
-            <p>Please use Live Server or localhost.</p>
-        </div>
+        <h2>❌ Use Live Server (Firebase won't work on file://)</h2>
     `;
-    throw new Error("file:// blocked");
+    throw new Error("file protocol blocked");
 }
 
 import { auth, db } from "./firebase.js";
@@ -23,13 +19,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 let cart = {};
-let authReady = false;
 
-// =========================
 // AUTH
-// =========================
 onAuthStateChanged(auth, (user) => {
-    authReady = true;
 
     const userInfo = document.getElementById("userInfo");
     const userName = document.getElementById("userName");
@@ -42,9 +34,7 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// =========================
 // ADD TO CART
-// =========================
 window.addToCartWithInput = function (id, price) {
 
     const input = document.getElementById("input-" + id);
@@ -63,99 +53,62 @@ window.addToCartWithInput = function (id, price) {
     updateCart();
 };
 
-// =========================
-// CART UPDATE
-// =========================
 function updateCart() {
 
     const cartDiv = document.getElementById("cart-items");
     const totalEl = document.getElementById("total");
-
-    if (!cartDiv || !totalEl) return;
 
     let total = 0;
     cartDiv.innerHTML = "";
 
     for (let id in cart) {
         const item = cart[id];
-        const itemTotal = item.price * item.qty;
-
-        total += itemTotal;
+        total += item.price * item.qty;
 
         cartDiv.innerHTML += `
-            <div>${id} x ${item.qty} = NT$${itemTotal}</div>
+            <div>${id} x ${item.qty} = NT$${item.price * item.qty}</div>
         `;
     }
 
     totalEl.textContent = total;
 }
 
-// =========================
 // CHECKOUT
-// =========================
 window.checkout = async function () {
 
-    if (!authReady || !auth.currentUser) {
-        alert("Auth not ready. Please wait.");
+    if (!auth.currentUser) {
+        alert("Login not ready");
         return;
     }
 
     if (Object.keys(cart).length === 0) {
-        alert("Cart is empty!");
+        alert("Cart empty");
         return;
     }
 
-    try {
-        let total = 0;
-        let orderText = "";
+    let total = 0;
+    let orderText = "";
 
-        for (let id in cart) {
-            const item = cart[id];
-            total += item.price * item.qty;
-            orderText += `${id} x ${item.qty}\n`;
-        }
-
-        const safeCart = JSON.parse(JSON.stringify(cart));
-
-        const docRef = await addDoc(collection(db, "orders"), {
-            user: auth.currentUser.email,
-            items: safeCart,
-            total,
-            createdAt: serverTimestamp()
-        });
-
-        if (!docRef.id) throw new Error("Firestore write failed");
-
-        const form = document.getElementById("orderForm");
-
-        if (form) {
-            const subject = document.getElementById("emailSubject");
-            const name = document.getElementById("customerNameField");
-            const details = document.getElementById("orderDetails");
-            const totalField = document.getElementById("orderTotal");
-
-            if (subject) subject.value = "New Order";
-            if (name) name.value = auth.currentUser.email;
-            if (details) details.value = orderText;
-            if (totalField) totalField.value = total;
-
-            form.submit();
-        }
-
-        alert("Order placed!");
-
-        cart = {};
-        updateCart();
-
-    } catch (err) {
-        console.error(err);
-        alert("Checkout failed.");
+    for (let id in cart) {
+        const item = cart[id];
+        total += item.price * item.qty;
+        orderText += `${id} x ${item.qty}\n`;
     }
+
+    await addDoc(collection(db, "orders"), {
+        user: auth.currentUser.email,
+        items: JSON.parse(JSON.stringify(cart)),
+        total,
+        createdAt: serverTimestamp()
+    });
+
+    alert("Order placed!");
+
+    cart = {};
+    updateCart();
 };
 
-// =========================
 // LOGOUT
-// =========================
 window.logout = async function () {
     await signOut(auth);
     window.location.href = "login.html";
