@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
     getAuth,
     setPersistence,
@@ -16,10 +16,10 @@ const firebaseConfig = {
     measurementId: "G-P0EERKE117"
 };
 
-const app = initializeApp(firebaseConfig);
+// ✅ PREVENT DOUBLE INITIALIZATION (IMPORTANT FIX)
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// keep user logged in
 setPersistence(auth, browserLocalPersistence).catch(console.error);
