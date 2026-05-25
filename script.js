@@ -3,27 +3,33 @@ import { auth, db } from "./firebase.js";
 import {
     signOut,
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 import {
     collection,
-    addDoc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 let cart = {};
 let currentUser = null;
 
 // =========================
-// AUTH STATE
+// AUTH CHECK
 // =========================
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
 
-        document.getElementById("userInfo").style.display = "block";
-        document.getElementById("userName").textContent = user.email;
+        const userInfo = document.getElementById("userInfo");
+        const userName = document.getElementById("userName");
 
-        document.getElementById("customerName").value = user.email;
+        if (userInfo) userInfo.style.display = "block";
+        if (userName) userName.textContent = user.email;
+
+        const nameField = document.getElementById("customerNameField");
+        if (nameField) nameField.value = user.email;
+
     } else {
         window.location.href = "login.html";
     }
@@ -35,8 +41,9 @@ onAuthStateChanged(auth, (user) => {
 window.addToCartWithInput = function (name, price) {
 
     const input = document.getElementById("input-" + name);
-    let qty = parseInt(input.value);
+    if (!input) return;
 
+    let qty = parseInt(input.value);
     if (!qty || qty < 1) qty = 1;
 
     if (!cart[name]) {
@@ -45,31 +52,33 @@ window.addToCartWithInput = function (name, price) {
 
     cart[name].qty += qty;
 
-    document.getElementById("qty-" + name).textContent = cart[name].qty;
+    const qtyEl = document.getElementById("qty-" + name);
+    if (qtyEl) qtyEl.textContent = cart[name].qty;
 
     updateCart();
 };
 
 // =========================
-// UPDATE CART UI
+// CART UI
 // =========================
 function updateCart() {
 
     const cartDiv = document.getElementById("cart-items");
     const totalEl = document.getElementById("total");
 
+    if (!cartDiv || !totalEl) return;
+
     cartDiv.innerHTML = "";
 
     let total = 0;
 
     for (let item in cart) {
-
         const { price, qty } = cart[item];
 
         total += price * qty;
 
         cartDiv.innerHTML += `
-            <div style="margin-bottom:10px;">
+            <div>
                 ${item} x ${qty} = NT$${price * qty}
             </div>
         `;
@@ -83,7 +92,11 @@ function updateCart() {
 // =========================
 window.checkout = async function () {
 
-    if (!currentUser) return;
+    if (!currentUser) return alert("Not logged in");
+
+    if (Object.keys(cart).length === 0) {
+        return alert("Cart is empty!");
+    }
 
     let orderText = "";
     let total = 0;
@@ -95,20 +108,15 @@ window.checkout = async function () {
         total += price * qty;
     }
 
-    if (Object.keys(cart).length === 0) {
-        alert("Cart is empty!");
-        return;
-    }
-
     // Save to Firestore
     await addDoc(collection(db, "orders"), {
         user: currentUser.email,
         items: cart,
         total: total,
-        date: new Date()
+        date: serverTimestamp()
     });
 
-    // Email form
+    // Email form fields (MAKE SURE THESE IDS MATCH YOUR HTML)
     document.getElementById("emailSubject").value = "New Order";
     document.getElementById("customerNameField").value = currentUser.email;
     document.getElementById("orderDetails").value = orderText;
@@ -131,14 +139,11 @@ window.logout = async function () {
 };
 
 // =========================
-// ORDER HISTORY
+// ORDER HISTORY TOGGLE
 // =========================
 window.toggleOrderHistory = function () {
     const el = document.getElementById("order-history");
+    if (!el) return;
 
-    if (el.style.display === "none") {
-        el.style.display = "block";
-    } else {
-        el.style.display = "none";
-    }
+    el.style.display = (el.style.display === "none") ? "block" : "none";
 };
