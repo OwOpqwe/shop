@@ -33,14 +33,16 @@ button {
     padding: 10px;
 }
 
-#error { color: red; }
+#error {
+    color: red;
+}
 </style>
 </head>
 
 <body>
 
 <div class="box">
-    <h2>Login</h2>
+    <h2>Snack Store Login</h2>
 
     <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
@@ -60,9 +62,8 @@ import {
     createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-// ================= LOGIN =================
+// LOGIN
 window.login = async function () {
-
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
@@ -74,9 +75,8 @@ window.login = async function () {
     }
 };
 
-// ================= REGISTER =================
+// REGISTER
 window.register = async function () {
-
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
