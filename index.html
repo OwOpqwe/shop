@@ -1,174 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Snack Store</title>
-
-<style>
-body{
-    font-family:Arial;
-    background:#111;
-    color:white;
-}
-
-header{
-    padding:20px;
-    text-align:center;
-    background:#1e1e1e;
-}
-
-.main{
-    display:flex;
-    gap:20px;
-    padding:20px;
-}
-
-.item{
-    background:white;
-    color:black;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:10px;
-}
-
-button{
-    background:#007bff;
-    color:white;
-    border:none;
-    padding:10px;
-    border-radius:6px;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#0056b3;
-}
-
-.cart{
-    background:white;
-    color:black;
-    padding:15px;
-    border-radius:10px;
-    width:300px;
-}
-
-#userBox{
-    position:fixed;
-    top:10px;
-    right:10px;
-    background:white;
-    color:black;
-    padding:10px;
-    border-radius:8px;
-}
-</style>
-
+    <title>Snack Store</title>
 </head>
-
 <body>
 
-<header>
-Snack Store
-</header>
-
-<div id="userBox">
-<button onclick="logout()">Logout</button>
+<!-- USER INFO -->
+<div id="userInfo" style="display:none;">
+    Logged in as: <span id="userName"></span>
+    <button onclick="logout()">Logout</button>
 </div>
 
-<div class="main">
-
-<!-- STORE -->
-<div style="flex:1">
-
-<div class="item">
-<h3>Coke</h3>
-<input id="qty-Coke" type="number" value="1">
-<button onclick="addToCart('Coke', 2)">Add</button>
-</div>
-
-<div class="item">
-<h3>Chips</h3>
-<input id="qty-Chips" type="number" value="1">
-<button onclick="addToCart('Chips', 3)">Add</button>
-</div>
-
+<!-- PRODUCTS EXAMPLE -->
+<div>
+    <input id="input-DrPepper" type="number" value="1">
+    <button onclick="addToCartWithInput('DrPepper', 3)">Add Dr Pepper</button>
+    <span id="qty-DrPepper">0</span>
 </div>
 
 <!-- CART -->
-<div class="cart">
 <h3>Cart</h3>
-<div id="cart-list"></div>
-<h3 id="total">Total: $0</h3>
-</div>
+<div id="cart-items"></div>
+<p>Total: NT$<span id="total">0</span></p>
 
-</div>
+<button onclick="checkout()">Checkout</button>
 
-<script type="module">
+<!-- ORDER FORM (IMPORTANT) -->
+<form id="orderForm" action="YOUR_EMAIL_SERVICE" method="POST">
+    <input type="hidden" id="emailSubject" name="subject">
+    <input type="hidden" id="customerNameField" name="name">
+    <textarea id="orderDetails" name="message"></textarea>
+    <input type="hidden" id="orderTotal" name="total">
+</form>
 
-import { auth } from "./firebase.js";
-
-import {
-    signOut
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
-let cart = {};
-
-/* ✅ FIX: ensure functions are always available globally */
-window.addToCart = function (name, price) {
-
-    const input = document.getElementById("qty-" + name);
-    let qty = parseInt(input.value);
-
-    if (isNaN(qty) || qty < 1) qty = 1;
-
-    if (!cart[name]) {
-        cart[name] = { price: price, qty: 0 };
-    }
-
-    cart[name].qty += qty;
-
-    updateCart();
-};
-
-/* ✅ FIX: always defined safely */
-function updateCart() {
-
-    const list = document.getElementById("cart-list");
-    const totalEl = document.getElementById("total");
-
-    list.innerHTML = "";
-
-    let total = 0;
-
-    for (let item in cart) {
-
-        const { price, qty } = cart[item];
-
-        total += price * qty;
-
-        list.innerHTML += `
-            <div>
-                ${item} x ${qty} = $${price * qty}
-            </div>
-        `;
-    }
-
-    totalEl.textContent = "Total: $${total}";
-}
-
-/* ✅ FIX: proper logout handling */
-window.logout = async function () {
-    try {
-        await signOut(auth);
-        window.location.href = "login.html";
-    } catch (err) {
-        console.error("Logout error:", err);
-    }
-};
-
-</script>
+<!-- SCRIPTS -->
+<script type="module" src="./script.js"></script>
 
 </body>
 </html>
