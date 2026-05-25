@@ -11,7 +11,6 @@ const firebaseConfig = {
   storageBucket: "snack-store-ecc61.firebasestorage.app",
   messagingSenderId: "373410660807",
   appId: "1:373410660807:web:9e16901f9602f05713d9e2",
-  measurementId: "G-P0EERKE117"
 };
 
 const app = initializeApp(firebaseConfig);
