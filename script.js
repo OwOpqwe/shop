@@ -1,10 +1,3 @@
-if (window.location.protocol === "file:") {
-    document.body.innerHTML = `
-        <h2>❌ Use Live Server or GitHub Pages</h2>
-    `;
-    throw new Error("file:// blocked");
-}
-
 import { auth, db } from "./firebase.js";
 
 import {
@@ -18,11 +11,16 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+// 🚨 BLOCK file://
+if (window.location.protocol === "file:") {
+    document.body.innerHTML = "<h2>Use Live Server or GitHub Pages</h2>";
+    throw new Error("file:// blocked");
+}
+
 let cart = {};
 
 // ================= AUTH =================
 onAuthStateChanged(auth, (user) => {
-
     const userInfo = document.getElementById("userInfo");
     const userName = document.getElementById("userName");
 
@@ -82,7 +80,7 @@ function updateCart() {
 window.checkout = async function () {
 
     if (!auth.currentUser) {
-        alert("Auth not ready.");
+        alert("Auth still loading or failed.");
         return;
     }
 
@@ -115,7 +113,7 @@ window.checkout = async function () {
 
     } catch (err) {
         console.error(err);
-        alert("Checkout failed.");
+        alert("Checkout failed");
     }
 };
 
