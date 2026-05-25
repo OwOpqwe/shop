@@ -12,51 +12,47 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 let cart = {};
-let currentUser = null;
+let authReady = false;
 
 // =========================
-// AUTH
+// AUTH (FIXED RACE CONDITION)
 // =========================
 onAuthStateChanged(auth, (user) => {
+
+    authReady = true;
+
     const userInfo = document.getElementById("userInfo");
     const userName = document.getElementById("userName");
 
     if (user) {
-        currentUser = user;
-
         if (userInfo) userInfo.style.display = "block";
         if (userName) userName.textContent = user.email;
-
-        const nameField = document.getElementById("customerNameField");
-        if (nameField) nameField.value = user.email;
-
     } else {
-        window.location.href = "login.html";
+        if (!window.location.href.includes("login.html")) {
+            window.location.href = "login.html";
+        }
     }
 });
 
 // =========================
-// ADD TO CART (SAFE VERSION)
+// ADD TO CART
 // =========================
-window.addToCartWithInput = function (productId, price) {
+window.addToCartWithInput = function (id, price) {
 
-    const input = document.getElementById("input-" + productId);
+    const input = document.getElementById("input-" + id);
     if (!input) return;
 
     let qty = parseInt(input.value);
     if (isNaN(qty) || qty < 1) qty = 1;
 
-    if (!cart[productId]) {
-        cart[productId] = {
-            price: price,
-            qty: 0
-        };
+    if (!cart[id]) {
+        cart[id] = { price, qty: 0 };
     }
 
-    cart[productId].qty += qty;
+    cart[id].qty += qty;
 
-    const qtyEl = document.getElementById("qty-" + productId);
-    if (qtyEl) qtyEl.textContent = cart[productId].qty;
+    const qtyEl = document.getElementById("qty-" + id);
+    if (qtyEl) qtyEl.textContent = cart[id].qty;
 
     updateCart();
 };
@@ -71,9 +67,8 @@ function updateCart() {
 
     if (!cartDiv || !totalEl) return;
 
-    cartDiv.innerHTML = "";
-
     let total = 0;
+    cartDiv.innerHTML = "";
 
     for (let id in cart) {
         const item = cart[id];
@@ -82,9 +77,7 @@ function updateCart() {
         total += itemTotal;
 
         cartDiv.innerHTML += `
-            <div>
-                ${id} x ${item.qty} = NT$${itemTotal}
-            </div>
+            <div>${id} x ${item.qty} = NT$${itemTotal}</div>
         `;
     }
 
@@ -92,12 +85,13 @@ function updateCart() {
 }
 
 // =========================
-// CHECKOUT (SAFE + ERROR HANDLED)
+// CHECKOUT (FULL FIXED)
 // =========================
 window.checkout = async function () {
 
-    if (!currentUser) {
-        alert("You are not logged in.");
+    // 🔥 FIX 1: prevent auth race crash
+    if (!authReady || !auth.currentUser) {
+        alert("Auth not ready yet. Please wait a second and try again.");
         return;
     }
 
@@ -107,36 +101,46 @@ window.checkout = async function () {
     }
 
     try {
-        let orderText = "";
         let total = 0;
+        let orderText = "";
 
         for (let id in cart) {
             const item = cart[id];
-
-            orderText += `${id} x ${item.qty}\n`;
             total += item.price * item.qty;
+            orderText += `${id} x ${item.qty}\n`;
         }
 
-        await addDoc(collection(db, "orders"), {
-            user: currentUser.email,
-            items: cart,
-            total: total,
+        // 🔥 FIX 2: snapshot cart safely
+        const safeCart = JSON.parse(JSON.stringify(cart));
+
+        // 🔥 FIX 3: wait for Firestore confirmation
+        const docRef = await addDoc(collection(db, "orders"), {
+            user: auth.currentUser.email,
+            items: safeCart,
+            total,
             createdAt: serverTimestamp()
         });
 
-        // SAFE FORM FILL
-        const subject = document.getElementById("emailSubject");
-        const name = document.getElementById("customerNameField");
-        const details = document.getElementById("orderDetails");
-        const totalField = document.getElementById("orderTotal");
+        if (!docRef?.id) {
+            throw new Error("Firestore write failed");
+        }
+
+        // email form (safe DOM access)
         const form = document.getElementById("orderForm");
 
-        if (subject) subject.value = "New Order";
-        if (name) name.value = currentUser.email;
-        if (details) details.value = orderText;
-        if (totalField) totalField.value = total;
+        if (form) {
+            const subject = document.getElementById("emailSubject");
+            const name = document.getElementById("customerNameField");
+            const details = document.getElementById("orderDetails");
+            const totalField = document.getElementById("orderTotal");
 
-        if (form) form.submit();
+            if (subject) subject.value = "New Order";
+            if (name) name.value = auth.currentUser.email;
+            if (details) details.value = orderText;
+            if (totalField) totalField.value = total;
+
+            form.submit();
+        }
 
         alert("Order placed successfully!");
 
@@ -144,7 +148,7 @@ window.checkout = async function () {
         updateCart();
 
     } catch (err) {
-        console.error(err);
+        console.error("Checkout error:", err);
         alert("Checkout failed. Check console.");
     }
 };
@@ -153,16 +157,10 @@ window.checkout = async function () {
 // LOGOUT
 // =========================
 window.logout = async function () {
-    await signOut(auth);
-    window.location.href = "login.html";
-};
-
-// =========================
-// TOGGLE HISTORY
-// =========================
-window.toggleOrderHistory = function () {
-    const el = document.getElementById("order-history");
-    if (!el) return;
-
-    el.style.display = (el.style.display === "none") ? "block" : "none";
+    try {
+        await signOut(auth);
+        window.location.href = "login.html";
+    } catch (err) {
+        console.error(err);
+    }
 };
