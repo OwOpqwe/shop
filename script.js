@@ -1,8 +1,8 @@
 import { auth, db } from "./firebase.js";
 
 import {
-    signOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 import {
@@ -11,15 +11,15 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// 🚨 BLOCK file://
+// Prevent file:// usage
 if (window.location.protocol === "file:") {
     document.body.innerHTML = "<h2>Use Live Server or GitHub Pages</h2>";
-    throw new Error("file:// blocked");
+    throw new Error("file protocol blocked");
 }
 
 let cart = {};
 
-// ================= AUTH =================
+// ================= AUTH CHECK =================
 onAuthStateChanged(auth, (user) => {
     const userInfo = document.getElementById("userInfo");
     const userName = document.getElementById("userName");
@@ -33,54 +33,57 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // ================= ADD TO CART =================
-window.addToCartWithInput = function (id, price) {
+window.addToCartWithInput = function (productId, price) {
 
-    const input = document.getElementById("input-" + id);
+    const input = document.getElementById("input-" + productId);
     if (!input) return;
 
     let qty = parseInt(input.value);
     if (!qty || qty < 1) qty = 1;
 
-    if (!cart[id]) {
-        cart[id] = { price, qty: 0 };
+    if (!cart[productId]) {
+        cart[productId] = { price, qty: 0 };
     }
 
-    cart[id].qty += qty;
+    cart[productId].qty += qty;
 
-    const qtyEl = document.getElementById("qty-" + id);
-    if (qtyEl) qtyEl.textContent = cart[id].qty;
+    const qtyDisplay = document.getElementById("qty-" + productId);
+    if (qtyDisplay) {
+        qtyDisplay.textContent = cart[productId].qty;
+    }
 
-    updateCart();
+    renderCart();
 };
 
-// ================= CART =================
-function updateCart() {
+// ================= CART RENDER =================
+function renderCart() {
 
-    const cartDiv = document.getElementById("cart-items");
-    const totalEl = document.getElementById("total");
+    const cartBox = document.getElementById("cart-items");
+    const totalBox = document.getElementById("total");
 
-    if (!cartDiv || !totalEl) return;
+    if (!cartBox || !totalBox) return;
 
     let total = 0;
-    cartDiv.innerHTML = "";
+    cartBox.innerHTML = "";
 
     for (let id in cart) {
         const item = cart[id];
-        total += item.price * item.qty;
+        const subtotal = item.price * item.qty;
+        total += subtotal;
 
-        cartDiv.innerHTML += `
-            <div>${id} x ${item.qty} = NT$${item.price * item.qty}</div>
+        cartBox.innerHTML += `
+            <div>${id} x ${item.qty} = NT$${subtotal}</div>
         `;
     }
 
-    totalEl.textContent = total;
+    totalBox.textContent = total;
 }
 
 // ================= CHECKOUT =================
 window.checkout = async function () {
 
     if (!auth.currentUser) {
-        alert("Auth still loading or failed.");
+        alert("Please wait for login to load.");
         return;
     }
 
@@ -91,12 +94,12 @@ window.checkout = async function () {
 
     try {
         let total = 0;
-        let orderText = "";
+        let summary = "";
 
         for (let id in cart) {
             const item = cart[id];
             total += item.price * item.qty;
-            orderText += `${id} x ${item.qty}\n`;
+            summary += `${id} x ${item.qty}\n`;
         }
 
         await addDoc(collection(db, "orders"), {
@@ -106,14 +109,14 @@ window.checkout = async function () {
             createdAt: serverTimestamp()
         });
 
-        alert("Order placed!");
+        alert("Order placed successfully!");
 
         cart = {};
-        updateCart();
+        renderCart();
 
     } catch (err) {
         console.error(err);
-        alert("Checkout failed");
+        alert("Checkout failed.");
     }
 };
 
