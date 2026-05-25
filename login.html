@@ -1,17 +1,173 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+<!DOCTYPE html>
 
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_ID",
-  appId: "YOUR_APP_ID"
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#111;
+    font-family:Arial;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.box{
+    background:white;
+    padding:40px;
+    border-radius:15px;
+    width:400px;
+    max-width:90%;
+}
+
+h2{
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    border:2px solid #ddd;
+    border-radius:8px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#007bff;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0056b3;
+}
+
+p{
+    margin-top:15px;
+}
+
+a{
+    color:blue;
+    cursor:pointer;
+}
+
+#error{
+    color:red;
+    margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Snack Store Login</h2>
+
+<input type="email" id="email" placeholder="Email">
+
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="login()">
+Login
+</button>
+
+<p>
+No account?
+<a onclick="register()">
+Register
+</a>
+</p>
+
+<div id="error"></div>
+
+</div>
+
+<script type="module">
+
+import { auth } from './firebase.js';
+
+import {
+
+    signInWithEmailAndPassword,
+
+    createUserWithEmailAndPassword
+
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
+window.login = async function(){
+
+    const email =
+        document.getElementById('email').value;
+
+    const password =
+        document.getElementById('password').value;
+
+    try{
+
+        await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
+
+        location.href='index.html';
+
+    }catch(error){
+
+        document.getElementById('error').textContent =
+            error.message;
+    }
 };
 
-const app = initializeApp(firebaseConfig);
+window.register = async function(){
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+    const email =
+        document.getElementById('email').value;
+
+    const password =
+        document.getElementById('password').value;
+
+    try{
+
+        await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
+
+        alert('Account created');
+
+    }catch(error){
+
+        document.getElementById('error').textContent =
+            error.message;
+    }
+};
+
+</script>
+
+</body>
+</html>
