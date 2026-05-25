@@ -1,12 +1,10 @@
-// BLOCK file:// usage (required for Firebase)
+// 🚨 BLOCK file:// (required for Firebase)
 if (window.location.protocol === "file:") {
     document.body.innerHTML = `
-        <div style="font-family:Arial;padding:20px;">
-            <h2>❌ Firebase cannot run on file://</h2>
-            <p>Use Live Server or Firebase Hosting.</p>
-        </div>
+        <h2>❌ Firebase does not work on file://</h2>
+        <p>Use Live Server or GitHub Pages.</p>
     `;
-    throw new Error("file:// blocked");
+    throw new Error("file protocol blocked");
 }
 
 import { auth, db } from "./firebase.js";
@@ -58,7 +56,7 @@ window.addToCartWithInput = function (id, price) {
     updateCart();
 };
 
-// ================= CART UPDATE =================
+// ================= CART =================
 function updateCart() {
 
     const cartDiv = document.getElementById("cart-items");
@@ -85,7 +83,7 @@ function updateCart() {
 window.checkout = async function () {
 
     if (!auth.currentUser) {
-        alert("Please wait for authentication to load.");
+        alert("Auth not ready.");
         return;
     }
 
