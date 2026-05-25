@@ -1,35 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Snack Store</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Snack Store</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            font-family: Arial;
-            padding: 20px;
-        }
-
-        .product {
-            margin-bottom: 15px;
-        }
-
-        button {
-            margin-left: 10px;
-        }
-
-        #cart-items {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
-    </style>
+<style>
+body { font-family: Arial; padding: 20px; }
+.product { margin-bottom: 10px; }
+#cart-items { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+</style>
 </head>
 
 <body>
 
-<!-- ================= USER INFO ================= -->
 <div id="userInfo" style="display:none;">
     Logged in as: <span id="userName"></span>
     <button onclick="logout()">Logout</button>
@@ -37,70 +21,39 @@
 
 <hr>
 
-<!-- ================= PRODUCTS ================= -->
-
 <h2>Products</h2>
 
 <div class="product">
-    <input id="input-DrPepper" type="number" value="1" min="1">
     Dr Pepper ($3)
+    <input id="input-DrPepper" type="number" value="1" min="1">
     <button onclick="addToCartWithInput('DrPepper', 3)">Add</button>
-    <span>Qty: <span id="qty-DrPepper">0</span></span>
+    Qty: <span id="qty-DrPepper">0</span>
 </div>
 
 <div class="product">
-    <input id="input-ChickenNoodles" type="number" value="1" min="1">
     Chicken Noodles ($5)
+    <input id="input-ChickenNoodles" type="number" value="1" min="1">
     <button onclick="addToCartWithInput('ChickenNoodles', 5)">Add</button>
-    <span>Qty: <span id="qty-ChickenNoodles">0</span></span>
+    Qty: <span id="qty-ChickenNoodles">0</span>
 </div>
 
 <div class="product">
-    <input id="input-CokeZero" type="number" value="1" min="1">
     Coke Zero ($2)
+    <input id="input-CokeZero" type="number" value="1" min="1">
     <button onclick="addToCartWithInput('CokeZero', 2)">Add</button>
-    <span>Qty: <span id="qty-CokeZero">0</span></span>
+    Qty: <span id="qty-CokeZero">0</span>
 </div>
 
 <hr>
-
-<!-- ================= CART ================= -->
 
 <h2>Cart</h2>
+<div id="cart-items"></div>
 
-<div id="cart-items">
-    <!-- cart renders here -->
-</div>
+Total: NT$<span id="total">0</span>
 
-<h3>Total: NT$<span id="total">0</span></h3>
-
+<br><br>
 <button onclick="checkout()">Checkout</button>
 
-<hr>
-
-<!-- ================= ORDER HISTORY TOGGLE ================= -->
-
-<button onclick="toggleOrderHistory()">Toggle Order History</button>
-
-<div id="order-history" style="display:none;">
-    (You can later connect Firestore order history here)
-</div>
-
-<hr>
-
-<!-- ================= CHECKOUT FORM ================= -->
-<form id="orderForm" action="YOUR_EMAIL_SERVICE" method="POST">
-
-    <input type="hidden" id="emailSubject" name="subject">
-    <input type="hidden" id="customerNameField" name="name">
-
-    <textarea id="orderDetails" name="message" style="display:none;"></textarea>
-
-    <input type="hidden" id="orderTotal" name="total">
-
-</form>
-
-<!-- ================= SCRIPT ================= -->
 <script type="module" src="./script.js"></script>
 
 </body>
