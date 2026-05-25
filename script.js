@@ -1,10 +1,8 @@
-// 🚨 BLOCK file:// (required for Firebase)
 if (window.location.protocol === "file:") {
     document.body.innerHTML = `
-        <h2>❌ Firebase does not work on file://</h2>
-        <p>Use Live Server or GitHub Pages.</p>
+        <h2>❌ Use Live Server or GitHub Pages</h2>
     `;
-    throw new Error("file protocol blocked");
+    throw new Error("file:// blocked");
 }
 
 import { auth, db } from "./firebase.js";
@@ -24,6 +22,7 @@ let cart = {};
 
 // ================= AUTH =================
 onAuthStateChanged(auth, (user) => {
+
     const userInfo = document.getElementById("userInfo");
     const userName = document.getElementById("userName");
 
@@ -104,7 +103,7 @@ window.checkout = async function () {
 
         await addDoc(collection(db, "orders"), {
             user: auth.currentUser.email,
-            items: JSON.parse(JSON.stringify(cart)),
+            items: structuredClone(cart),
             total,
             createdAt: serverTimestamp()
         });
