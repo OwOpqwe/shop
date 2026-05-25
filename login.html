@@ -1,56 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login</title>
+<title>Login - Snack Store</title>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial;
 }
 
-body{
-    background:#111;
-    font-family:Arial;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+body {
+    background: #111;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.box{
-    background:white;
-    padding:40px;
-    border-radius:15px;
-    width:400px;
-    max-width:90%;
+.box {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    width: 350px;
+    max-width: 90%;
 }
 
-input{
-    width:100%;
-    padding:12px;
-    margin-bottom:15px;
-    border:2px solid #ddd;
-    border-radius:8px;
+h2 {
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-button{
-    width:100%;
-    padding:12px;
-    background:#007bff;
-    color:white;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
 }
 
-#error{
-    color:red;
-    margin-top:10px;
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.login-btn {
+    background: #007bff;
+    color: white;
+}
+
+.register-btn {
+    background: #28a745;
+    color: white;
+    margin-top: 10px;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+#error {
+    color: red;
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
 }
 </style>
 
@@ -63,19 +83,16 @@ button{
 <h2>Snack Store Login</h2>
 
 <input type="email" id="email" placeholder="Email">
-
 <input type="password" id="password" placeholder="Password">
 
-<button onclick="login()">Login</button>
-
-<button onclick="register()" style="margin-top:10px;">
-Register
-</button>
+<button class="login-btn" onclick="login()">Login</button>
+<button class="register-btn" onclick="register()">Register</button>
 
 <div id="error"></div>
 
 </div>
 
+<!-- ================= FIREBASE LOGIN SCRIPT ================= -->
 <script type="module">
 
 import { auth } from "./firebase.js";
@@ -83,55 +100,56 @@ import { auth } from "./firebase.js";
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-window.login = async function(){
+// ================= LOGIN =================
+window.login = async function () {
 
-    const email =
-        document.getElementById("email").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const error = document.getElementById("error");
 
-    const password =
-        document.getElementById("password").value.trim();
+    error.textContent = "";
 
-    try{
+    if (!email || !password) {
+        error.textContent = "Please enter email and password";
+        return;
+    }
 
-        await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "index.html";
 
-        location.href = "index.html";
-
-    }catch(error){
-
-        document.getElementById("error").textContent =
-            error.message;
+    } catch (err) {
+        error.textContent = err.message;
     }
 };
 
-window.register = async function(){
+// ================= REGISTER =================
+window.register = async function () {
 
-    const email =
-        document.getElementById("email").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const error = document.getElementById("error");
 
-    const password =
-        document.getElementById("password").value.trim();
+    error.textContent = "";
 
-    try{
+    if (!email || !password) {
+        error.textContent = "Please fill all fields";
+        return;
+    }
 
-        await createUserWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
+    if (password.length < 6) {
+        error.textContent = "Password must be at least 6 characters";
+        return;
+    }
 
-        alert("Account created!");
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("Account created! You can now login.");
 
-    }catch(error){
-
-        document.getElementById("error").textContent =
-            error.message;
+    } catch (err) {
+        error.textContent = err.message;
     }
 };
 
