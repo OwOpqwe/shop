@@ -1,8 +1,12 @@
+// BLOCK file:// usage (required for Firebase)
 if (window.location.protocol === "file:") {
     document.body.innerHTML = `
-        <h2>❌ Use Live Server (Firebase won't work on file://)</h2>
+        <div style="font-family:Arial;padding:20px;">
+            <h2>❌ Firebase cannot run on file://</h2>
+            <p>Use Live Server or Firebase Hosting.</p>
+        </div>
     `;
-    throw new Error("file protocol blocked");
+    throw new Error("file:// blocked");
 }
 
 import { auth, db } from "./firebase.js";
@@ -20,9 +24,8 @@ import {
 
 let cart = {};
 
-// AUTH
+// ================= AUTH =================
 onAuthStateChanged(auth, (user) => {
-
     const userInfo = document.getElementById("userInfo");
     const userName = document.getElementById("userName");
 
@@ -34,7 +37,7 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// ADD TO CART
+// ================= ADD TO CART =================
 window.addToCartWithInput = function (id, price) {
 
     const input = document.getElementById("input-" + id);
@@ -43,7 +46,9 @@ window.addToCartWithInput = function (id, price) {
     let qty = parseInt(input.value);
     if (!qty || qty < 1) qty = 1;
 
-    if (!cart[id]) cart[id] = { price, qty: 0 };
+    if (!cart[id]) {
+        cart[id] = { price, qty: 0 };
+    }
 
     cart[id].qty += qty;
 
@@ -53,10 +58,13 @@ window.addToCartWithInput = function (id, price) {
     updateCart();
 };
 
+// ================= CART UPDATE =================
 function updateCart() {
 
     const cartDiv = document.getElementById("cart-items");
     const totalEl = document.getElementById("total");
+
+    if (!cartDiv || !totalEl) return;
 
     let total = 0;
     cartDiv.innerHTML = "";
@@ -73,42 +81,48 @@ function updateCart() {
     totalEl.textContent = total;
 }
 
-// CHECKOUT
+// ================= CHECKOUT =================
 window.checkout = async function () {
 
     if (!auth.currentUser) {
-        alert("Login not ready");
+        alert("Please wait for authentication to load.");
         return;
     }
 
     if (Object.keys(cart).length === 0) {
-        alert("Cart empty");
+        alert("Cart is empty!");
         return;
     }
 
-    let total = 0;
-    let orderText = "";
+    try {
+        let total = 0;
+        let orderText = "";
 
-    for (let id in cart) {
-        const item = cart[id];
-        total += item.price * item.qty;
-        orderText += `${id} x ${item.qty}\n`;
+        for (let id in cart) {
+            const item = cart[id];
+            total += item.price * item.qty;
+            orderText += `${id} x ${item.qty}\n`;
+        }
+
+        await addDoc(collection(db, "orders"), {
+            user: auth.currentUser.email,
+            items: JSON.parse(JSON.stringify(cart)),
+            total,
+            createdAt: serverTimestamp()
+        });
+
+        alert("Order placed!");
+
+        cart = {};
+        updateCart();
+
+    } catch (err) {
+        console.error(err);
+        alert("Checkout failed.");
     }
-
-    await addDoc(collection(db, "orders"), {
-        user: auth.currentUser.email,
-        items: JSON.parse(JSON.stringify(cart)),
-        total,
-        createdAt: serverTimestamp()
-    });
-
-    alert("Order placed!");
-
-    cart = {};
-    updateCart();
 };
 
-// LOGOUT
+// ================= LOGOUT =================
 window.logout = async function () {
     await signOut(auth);
     window.location.href = "login.html";
