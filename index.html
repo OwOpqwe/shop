@@ -6,27 +6,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { font-family: Arial; padding: 20px; }
-
-.product {
-    margin-bottom: 12px;
+body {
+    font-family: Arial;
+    padding: 20px;
 }
 
-#cart-items {
-    border: 1px solid #ccc;
+/* USER INFO */
+#userInfo {
+    display: none;
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #fff;
+    color: #000;
     padding: 10px;
-    margin-top: 10px;
+    border-radius: 8px;
+    z-index: 999;
 }
 
+/* PRODUCTS */
+.product {
+    margin-bottom: 15px;
+}
+
+/* BUTTONS */
 button {
     margin-left: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+/* CART BOX */
+#cart-items {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+/* TOTAL */
+h3 {
+    margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="userInfo" style="display:none;">
+<!-- USER INFO -->
+<div id="userInfo">
     Logged in as: <span id="userName"></span>
     <button onclick="logout()">Logout</button>
 </div>
@@ -35,30 +62,34 @@ button {
 
 <h2>Products</h2>
 
+<!-- PRODUCT 1 -->
 <div class="product">
-    Dr Pepper ($3)
     <input id="input-DrPepper" type="number" value="1" min="1">
+    Dr Pepper ($3)
     <button onclick="addToCartWithInput('DrPepper', 3)">Add</button>
-    <span id="qty-DrPepper">0</span>
+    <span>Qty: <span id="qty-DrPepper">0</span></span>
 </div>
 
+<!-- PRODUCT 2 -->
 <div class="product">
-    Chicken Noodles ($5)
     <input id="input-ChickenNoodles" type="number" value="1" min="1">
+    Chicken Noodles ($5)
     <button onclick="addToCartWithInput('ChickenNoodles', 5)">Add</button>
-    <span id="qty-ChickenNoodles">0</span>
+    <span>Qty: <span id="qty-ChickenNoodles">0</span></span>
 </div>
 
+<!-- PRODUCT 3 -->
 <div class="product">
-    Coke Zero ($2)
     <input id="input-CokeZero" type="number" value="1" min="1">
+    Coke Zero ($2)
     <button onclick="addToCartWithInput('CokeZero', 2)">Add</button>
-    <span id="qty-CokeZero">0</span>
+    <span>Qty: <span id="qty-CokeZero">0</span></span>
 </div>
 
 <hr>
 
 <h2>Cart</h2>
+
 <div id="cart-items"></div>
 
 <h3>Total: NT$<span id="total">0</span></h3>
