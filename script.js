@@ -1,3 +1,14 @@
+// 🚨 BLOCK file:// (THIS IS REQUIRED)
+if (window.location.protocol === "file:") {
+    document.body.innerHTML = `
+        <div style="font-family:Arial;padding:20px;">
+            <h1>❌ Firebase cannot run on file://</h1>
+            <p>Please use Live Server or localhost.</p>
+        </div>
+    `;
+    throw new Error("file:// blocked");
+}
+
 import { auth, db } from "./firebase.js";
 
 import {
@@ -15,10 +26,9 @@ let cart = {};
 let authReady = false;
 
 // =========================
-// AUTH (FIXED RACE CONDITION)
+// AUTH
 // =========================
 onAuthStateChanged(auth, (user) => {
-
     authReady = true;
 
     const userInfo = document.getElementById("userInfo");
@@ -28,9 +38,7 @@ onAuthStateChanged(auth, (user) => {
         if (userInfo) userInfo.style.display = "block";
         if (userName) userName.textContent = user.email;
     } else {
-        if (!window.location.href.includes("login.html")) {
-            window.location.href = "login.html";
-        }
+        window.location.href = "login.html";
     }
 });
 
@@ -43,11 +51,9 @@ window.addToCartWithInput = function (id, price) {
     if (!input) return;
 
     let qty = parseInt(input.value);
-    if (isNaN(qty) || qty < 1) qty = 1;
+    if (!qty || qty < 1) qty = 1;
 
-    if (!cart[id]) {
-        cart[id] = { price, qty: 0 };
-    }
+    if (!cart[id]) cart[id] = { price, qty: 0 };
 
     cart[id].qty += qty;
 
@@ -85,13 +91,12 @@ function updateCart() {
 }
 
 // =========================
-// CHECKOUT (FULL FIXED)
+// CHECKOUT
 // =========================
 window.checkout = async function () {
 
-    // 🔥 FIX 1: prevent auth race crash
     if (!authReady || !auth.currentUser) {
-        alert("Auth not ready yet. Please wait a second and try again.");
+        alert("Auth not ready. Please wait.");
         return;
     }
 
@@ -110,10 +115,8 @@ window.checkout = async function () {
             orderText += `${id} x ${item.qty}\n`;
         }
 
-        // 🔥 FIX 2: snapshot cart safely
         const safeCart = JSON.parse(JSON.stringify(cart));
 
-        // 🔥 FIX 3: wait for Firestore confirmation
         const docRef = await addDoc(collection(db, "orders"), {
             user: auth.currentUser.email,
             items: safeCart,
@@ -121,11 +124,8 @@ window.checkout = async function () {
             createdAt: serverTimestamp()
         });
 
-        if (!docRef?.id) {
-            throw new Error("Firestore write failed");
-        }
+        if (!docRef.id) throw new Error("Firestore write failed");
 
-        // email form (safe DOM access)
         const form = document.getElementById("orderForm");
 
         if (form) {
@@ -142,14 +142,14 @@ window.checkout = async function () {
             form.submit();
         }
 
-        alert("Order placed successfully!");
+        alert("Order placed!");
 
         cart = {};
         updateCart();
 
     } catch (err) {
-        console.error("Checkout error:", err);
-        alert("Checkout failed. Check console.");
+        console.error(err);
+        alert("Checkout failed.");
     }
 };
 
@@ -157,10 +157,6 @@ window.checkout = async function () {
 // LOGOUT
 // =========================
 window.logout = async function () {
-    try {
-        await signOut(auth);
-        window.location.href = "login.html";
-    } catch (err) {
-        console.error(err);
-    }
+    await signOut(auth);
+    window.location.href = "login.html";
 };
