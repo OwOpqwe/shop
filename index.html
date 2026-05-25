@@ -7,8 +7,20 @@
 
 <style>
 body { font-family: Arial; padding: 20px; }
-.product { margin-bottom: 10px; }
-#cart-items { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+
+.product {
+    margin-bottom: 12px;
+}
+
+#cart-items {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+button {
+    margin-left: 10px;
+}
 </style>
 </head>
 
@@ -49,9 +61,8 @@ body { font-family: Arial; padding: 20px; }
 <h2>Cart</h2>
 <div id="cart-items"></div>
 
-Total: NT$<span id="total">0</span>
+<h3>Total: NT$<span id="total">0</span></h3>
 
-<br><br>
 <button onclick="checkout()">Checkout</button>
 
 <script type="module" src="./script.js"></script>
