@@ -15,14 +15,14 @@ let cart = {};
 let currentUser = null;
 
 // =========================
-// AUTH CHECK
+// AUTH
 // =========================
 onAuthStateChanged(auth, (user) => {
+    const userInfo = document.getElementById("userInfo");
+    const userName = document.getElementById("userName");
+
     if (user) {
         currentUser = user;
-
-        const userInfo = document.getElementById("userInfo");
-        const userName = document.getElementById("userName");
 
         if (userInfo) userInfo.style.display = "block";
         if (userName) userName.textContent = user.email;
@@ -36,30 +36,33 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // =========================
-// ADD TO CART
+// ADD TO CART (SAFE VERSION)
 // =========================
-window.addToCartWithInput = function (name, price) {
+window.addToCartWithInput = function (productId, price) {
 
-    const input = document.getElementById("input-" + name);
+    const input = document.getElementById("input-" + productId);
     if (!input) return;
 
     let qty = parseInt(input.value);
-    if (!qty || qty < 1) qty = 1;
+    if (isNaN(qty) || qty < 1) qty = 1;
 
-    if (!cart[name]) {
-        cart[name] = { price, qty: 0 };
+    if (!cart[productId]) {
+        cart[productId] = {
+            price: price,
+            qty: 0
+        };
     }
 
-    cart[name].qty += qty;
+    cart[productId].qty += qty;
 
-    const qtyEl = document.getElementById("qty-" + name);
-    if (qtyEl) qtyEl.textContent = cart[name].qty;
+    const qtyEl = document.getElementById("qty-" + productId);
+    if (qtyEl) qtyEl.textContent = cart[productId].qty;
 
     updateCart();
 };
 
 // =========================
-// CART UI
+// CART UPDATE
 // =========================
 function updateCart() {
 
@@ -72,14 +75,15 @@ function updateCart() {
 
     let total = 0;
 
-    for (let item in cart) {
-        const { price, qty } = cart[item];
+    for (let id in cart) {
+        const item = cart[id];
+        const itemTotal = item.price * item.qty;
 
-        total += price * qty;
+        total += itemTotal;
 
         cartDiv.innerHTML += `
             <div>
-                ${item} x ${qty} = NT$${price * qty}
+                ${id} x ${item.qty} = NT$${itemTotal}
             </div>
         `;
     }
@@ -88,46 +92,61 @@ function updateCart() {
 }
 
 // =========================
-// CHECKOUT
+// CHECKOUT (SAFE + ERROR HANDLED)
 // =========================
 window.checkout = async function () {
 
-    if (!currentUser) return alert("Not logged in");
+    if (!currentUser) {
+        alert("You are not logged in.");
+        return;
+    }
 
     if (Object.keys(cart).length === 0) {
-        return alert("Cart is empty!");
+        alert("Cart is empty!");
+        return;
     }
 
-    let orderText = "";
-    let total = 0;
+    try {
+        let orderText = "";
+        let total = 0;
 
-    for (let item in cart) {
-        const { price, qty } = cart[item];
+        for (let id in cart) {
+            const item = cart[id];
 
-        orderText += `${item} x ${qty}\n`;
-        total += price * qty;
+            orderText += `${id} x ${item.qty}\n`;
+            total += item.price * item.qty;
+        }
+
+        await addDoc(collection(db, "orders"), {
+            user: currentUser.email,
+            items: cart,
+            total: total,
+            createdAt: serverTimestamp()
+        });
+
+        // SAFE FORM FILL
+        const subject = document.getElementById("emailSubject");
+        const name = document.getElementById("customerNameField");
+        const details = document.getElementById("orderDetails");
+        const totalField = document.getElementById("orderTotal");
+        const form = document.getElementById("orderForm");
+
+        if (subject) subject.value = "New Order";
+        if (name) name.value = currentUser.email;
+        if (details) details.value = orderText;
+        if (totalField) totalField.value = total;
+
+        if (form) form.submit();
+
+        alert("Order placed successfully!");
+
+        cart = {};
+        updateCart();
+
+    } catch (err) {
+        console.error(err);
+        alert("Checkout failed. Check console.");
     }
-
-    // Save to Firestore
-    await addDoc(collection(db, "orders"), {
-        user: currentUser.email,
-        items: cart,
-        total: total,
-        date: serverTimestamp()
-    });
-
-    // Email form fields (MAKE SURE THESE IDS MATCH YOUR HTML)
-    document.getElementById("emailSubject").value = "New Order";
-    document.getElementById("customerNameField").value = currentUser.email;
-    document.getElementById("orderDetails").value = orderText;
-    document.getElementById("orderTotal").value = total;
-
-    document.getElementById("orderForm").submit();
-
-    alert("Order placed!");
-
-    cart = {};
-    updateCart();
 };
 
 // =========================
@@ -139,7 +158,7 @@ window.logout = async function () {
 };
 
 // =========================
-// ORDER HISTORY TOGGLE
+// TOGGLE HISTORY
 // =========================
 window.toggleOrderHistory = function () {
     const el = document.getElementById("order-history");
