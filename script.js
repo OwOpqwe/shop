@@ -48,9 +48,7 @@ onAuthStateChanged(auth, async (user) => {
 
 // ---------------- LOGOUT ----------------
 window.logout = async function () {
-
     if (!confirm('Logout?')) return;
-
     await signOut(auth);
     window.location.href = 'login.html';
 };
@@ -112,14 +110,10 @@ function updateCart() {
         `;
 
         if (bundles[item]) {
-
             html += `<div class="bundle-sub">`;
 
             for (let sub in bundles[item]) {
-
-                html += `
-                    <div>${sub} x${bundles[item][sub] * entry.quantity}</div>
-                `;
+                html += `<div>${sub} x${bundles[item][sub] * entry.quantity}</div>`;
             }
 
             html += `</div>`;
@@ -158,7 +152,7 @@ function updateCart() {
         cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
 }
 
-// ---------------- CHECKOUT ----------------
+// ---------------- CHECKOUT (FIREBASE + FORMSUBMIT FIX) ----------------
 window.checkout = async function () {
 
     const name = document.getElementById('customerName').value.trim();
@@ -169,6 +163,7 @@ window.checkout = async function () {
         return;
     }
 
+    // ---------------- FIREBASE SAVE ----------------
     await addDoc(collection(db, "orders"), {
         customer: name,
         userEmail: currentUser.email,
@@ -177,6 +172,15 @@ window.checkout = async function () {
         createdAt: new Date().toISOString()
     });
 
+    // ---------------- FORMSUBMIT (EMAIL BACKUP) ----------------
+    document.getElementById("customerNameField").value = name;
+    document.getElementById("orderTotal").value = "NT$" + total;
+    document.getElementById("orderDetails").value = JSON.stringify(cart);
+    document.getElementById("emailSubject").value = "New Order from Snack Store";
+
+    document.getElementById("orderForm").submit();
+
+    // ---------------- RESET ----------------
     alert("Order placed!");
 
     cart = {};
@@ -185,7 +189,7 @@ window.checkout = async function () {
     await renderOrderHistory();
 };
 
-// ---------------- TOGGLE HISTORY ----------------
+// ---------------- HISTORY ----------------
 window.toggleOrderHistory = function () {
 
     const box = document.getElementById('order-history');
@@ -250,7 +254,6 @@ async function renderOrderHistory() {
         `;
 
         for (let item in order.items) {
-
             html += `<div>${item} x${order.items[item].quantity}</div>`;
         }
 
