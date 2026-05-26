@@ -1,11 +1,24 @@
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+// =========================
+// FILE: firebase.js
+// =========================
+
+import {
+    initializeApp,
+    getApps,
+    getApp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+
 import {
     getAuth,
     setPersistence,
     browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+import {
+    getFirestore
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyDhzfNAuJWW09uiXm2sj3apnG48Y7MFLs4",
     authDomain: "snack-store-ecc61.firebaseapp.com",
@@ -16,9 +29,17 @@ const firebaseConfig = {
     measurementId: "G-P0EERKE117"
 };
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+// PREVENT DUPLICATE APP
+const app =
+    getApps().length > 0
+        ? getApp()
+        : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-setPersistence(auth, browserLocalPersistence).catch(console.error);
+// KEEP LOGIN
+setPersistence(
+    auth,
+    browserLocalPersistence
+).catch(console.error);
