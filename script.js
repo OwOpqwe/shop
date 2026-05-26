@@ -1,147 +1,135 @@
 import { auth, db } from './firebase.js';
-
 import {
-    signOut,
-    onAuthStateChanged
+  signOut,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 import {
-    collection,
-    addDoc,
-    query,
-    where,
-    getDocs,
-    deleteDoc,
-    doc
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 let cart = {};
 let currentUser = null;
 
-// ---------------- AUTH ----------------
-onAuthStateChanged(auth, async (user) => {
+// ---------------- AUTH SAFE ----------------
+onAuthStateChanged(auth, (user) => {
 
     if (!user) {
-        window.location.href = 'login.html';
+        window.location.href = "login.html";
         return;
     }
 
     currentUser = user;
 
-    document.getElementById('userName').textContent =
+    document.getElementById("userInfo").style.display = "block";
+    document.getElementById("userName").textContent =
         user.displayName || user.email;
 
-    document.getElementById('userInfo').style.display = 'block';
-
-    document.getElementById('customerName').value =
+    document.getElementById("customerName").value =
         user.displayName || user.email;
 
-    if (currentUser) {
-        await renderOrderHistory();
-    }
+    renderHistory();
 });
 
-// ---------------- LOGOUT ----------------
-window.logout = async function () {
-    await signOut(auth);
-    window.location.href = 'login.html';
-};
+// ---------------- CART CORE ----------------
+window.addToCart = function (id, price, label) {
 
-// ---------------- CART ----------------
-window.addToCartWithInput = function (name, price) {
-
-    const safeId = name.replace(/ /g, '-');
-    const input = document.getElementById('input-' + safeId);
-    const qty = parseInt(input.value);
+    const qty = parseInt(document.getElementById("input-" + id).value);
 
     if (!qty || qty < 1) return;
 
-    if (!cart[name]) {
-        cart[name] = { price, quantity: qty };
-    } else {
-        cart[name].quantity += qty;
+    if (!cart[id]) {
+        cart[id] = { price, qty: 0, label };
     }
 
-    input.value = 1;
-    updateCart();
-};
-
-window.removeItem = function (name) {
-
-    if (!cart[name]) return;
-
-    cart[name].quantity--;
-
-    if (cart[name].quantity <= 0) {
-        delete cart[name];
-    }
+    cart[id].qty += qty;
 
     updateCart();
 };
 
-// ---------------- CART UPDATE ----------------
+window.addBundle = function () {
+
+    const qty = parseInt(document.getElementById("input-bundle").value);
+
+    if (!qty || qty < 1) return;
+
+    const items = ["dr-pepper", "chicken"];
+
+    items.forEach(id => {
+        if (!cart[id]) cart[id] = { price: 0, qty: 0, label: id };
+        cart[id].qty += qty;
+    });
+
+    updateCart();
+};
+
+window.removeItem = function (id) {
+    if (!cart[id]) return;
+
+    cart[id].qty--;
+
+    if (cart[id].qty <= 0) delete cart[id];
+
+    updateCart();
+};
+
+// ---------------- SAFE UI UPDATE ----------------
 function updateCart() {
 
-    const cartDiv = document.getElementById('cart-items');
-    cartDiv.innerHTML = '';
+    const box = document.getElementById("cart-items");
+    box.innerHTML = "";
 
     let total = 0;
 
-    for (let item in cart) {
+    Object.keys(cart).forEach(id => {
 
-        const entry = cart[item];
-        total += entry.price * entry.quantity;
+        const item = cart[id];
 
-        const div = document.createElement('div');
-        div.className = 'cart-item';
+        total += item.price * item.qty;
 
+        const div = document.createElement("div");
         div.innerHTML = `
-            <div><strong>${item} x${entry.quantity}</strong></div>
-            <div>NT$${entry.price * entry.quantity}</div>
-            <button onclick="removeItem('${item}')">Remove</button>
+            <strong>${item.label} x${item.qty}</strong>
+            <button onclick="removeItem('${id}')">-</button>
         `;
 
-        cartDiv.appendChild(div);
-    }
+        box.appendChild(div);
+    });
 
-    document.getElementById('total').textContent = total;
+    document.getElementById("total").textContent = total;
 
-    const setQty = (id, item) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = cart[item] ? cart[item].quantity : 0;
-    };
-
-    setQty('qty-Dr-Pepper', 'Dr Pepper');
-    setQty('qty-Chicken-Noodle-Snack', 'Chicken Noodle Snack');
-    setQty('qty-Bundle-Pack', 'Bundle Pack');
-    setQty('qty-Chocolate', 'Chocolate');
+    ["dr-pepper", "chicken", "bundle", "chocolate"].forEach(id => {
+        const el = document.getElementById("qty-" + id);
+        if (el) el.textContent = cart[id]?.qty || 0;
+    });
 }
 
-// ---------------- CHECKOUT (NO REDIRECT) ----------------
+// ---------------- CHECKOUT (FIXED CLEAN FLOW) ----------------
 window.checkout = async function () {
 
-    const name = document.getElementById('customerName').value.trim();
-    const total = document.getElementById('total').textContent;
+    const name = document.getElementById("customerName").value;
+    const total = document.getElementById("total").textContent;
 
-    if (!name || total <= 0) {
-        alert('Invalid order');
-        return;
-    }
+    if (!name || total <= 0) return;
 
     await addDoc(collection(db, "orders"), {
         customer: name,
         userEmail: currentUser.email,
-        items: structuredClone(cart),
+        items: cart,
         total,
         createdAt: new Date().toISOString()
     });
 
-    // FORMSUBMIT (NO REDIRECT)
+    // FormSubmit (NO redirect)
     const form = document.getElementById("orderForm");
 
-    document.getElementById("customerNameField").value = name;
-    document.getElementById("orderTotal").value = "NT$" + total;
-    document.getElementById("orderDetails").value = JSON.stringify(cart);
+    document.getElementById("customerField").value = name;
+    document.getElementById("orderField").value = JSON.stringify(cart);
+    document.getElementById("totalField").value = total;
     document.getElementById("emailSubject").value = "New Order";
 
     fetch(form.action, {
@@ -151,25 +139,18 @@ window.checkout = async function () {
 
     cart = {};
     updateCart();
-    await renderOrderHistory();
+
+    renderHistory();
 
     alert("Order placed!");
 };
 
-// ---------------- HISTORY ----------------
-window.toggleOrderHistory = function () {
-
-    const box = document.getElementById('order-history');
-    box.style.display = box.style.display === 'block' ? 'none' : 'block';
-};
-
-// ---------------- ORDER HISTORY ----------------
-async function renderOrderHistory() {
+// ---------------- HISTORY SAFE ----------------
+async function renderHistory() {
 
     if (!currentUser) return;
 
-    const box = document.getElementById('history-list');
-    box.innerHTML = 'Loading...';
+    const box = document.getElementById("history-list");
 
     const q = query(
         collection(db, "orders"),
@@ -178,35 +159,33 @@ async function renderOrderHistory() {
 
     const snap = await getDocs(q);
 
-    if (snap.empty) {
-        box.innerHTML = 'No orders yet';
-        return;
-    }
+    box.innerHTML = "";
 
-    box.innerHTML = '';
+    snap.forEach(doc => {
 
-    snap.forEach(d => {
+        const d = doc.data();
 
-        const order = d.data();
-
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-
-        let html = `
-            <div>📦 Order</div>
-            <div>${new Date(order.createdAt).toLocaleString()}</div>
+        const div = document.createElement("div");
+        div.innerHTML = `
+            <div>Order</div>
+            <div>${d.total}</div>
         `;
 
-        for (let item in order.items) {
-            html += `<div>${item} x${order.items[item].quantity}</div>`;
-        }
-
-        html += `<div>Total: NT$${order.total}</div>`;
-
-        div.innerHTML = html;
         box.appendChild(div);
     });
 }
+
+// ---------------- TOGGLE ----------------
+window.toggleOrderHistory = function () {
+    const box = document.getElementById("order-history");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+};
+
+// ---------------- LOGOUT ----------------
+window.logout = async function () {
+    await signOut(auth);
+    window.location.href = "login.html";
+};
 
 // INIT
 updateCart();
