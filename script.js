@@ -1,255 +1,277 @@
-// =========================
-// FILE: script.js
-// =========================
-
-import { auth, db } from "./firebase.js";
+import { auth, db } from './firebase.js';
 
 import {
-    onAuthStateChanged,
-    signOut
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 import {
     collection,
     addDoc,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-// BLOCK file://
-if (window.location.protocol === "file:") {
-
-    document.body.innerHTML = `
-        <div style="padding:20px;font-family:Arial;">
-            <h2>Firebase cannot run on file://</h2>
-            <p>Use GitHub Pages or Live Server.</p>
-        </div>
-    `;
-
-    throw new Error("file:// blocked");
-}
+    query,
+    where,
+    getDocs,
+    deleteDoc,
+    doc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 let cart = {};
+let currentUser = null;
 
-// =========================
-// AUTH
-// =========================
-onAuthStateChanged(auth, (user) => {
+const bundles = {
+    "Bundle Pack": {
+        "Dr Pepper": 1,
+        "Chicken Noodle Snack": 1
+    }
+};
+
+// ---------------- AUTH ----------------
+onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
-        window.location.href = "login.html";
+        window.location.href = 'login.html';
         return;
     }
 
-    const userInfo =
-        document.getElementById("userInfo");
+    currentUser = user;
 
-    const userName =
-        document.getElementById("userName");
+    document.getElementById('userName').textContent =
+        user.displayName || user.email;
 
-    userInfo.style.display = "block";
+    document.getElementById('userInfo').style.display = 'block';
 
-    userName.textContent =
-        user.email;
+    document.getElementById('customerName').value =
+        user.displayName || user.email;
+
+    await renderOrderHistory();
 });
 
-// =========================
-// ADD TO CART
-// =========================
-function addToCart(productId, price) {
+// ---------------- LOGOUT ----------------
+window.logout = async function () {
 
-    const input =
-        document.getElementById(
-            "input-" + productId
-        );
+    if (!confirm('Logout?')) return;
 
-    if (!input) return;
+    await signOut(auth);
+    window.location.href = 'login.html';
+};
 
-    let qty = parseInt(input.value);
+// ---------------- CART ----------------
+window.addToCartWithInput = function (name, price) {
 
-    if (isNaN(qty) || qty < 1) {
-        qty = 1;
+    const input = document.getElementById('input-' + name);
+    const qty = parseInt(input.value);
+
+    if (!qty || qty < 1) {
+        alert('Invalid quantity');
+        return;
     }
 
-    if (!cart[productId]) {
-
-        cart[productId] = {
-            price,
-            qty:0
-        };
+    if (!cart[name]) {
+        cart[name] = { price, quantity: qty };
+    } else {
+        cart[name].quantity += qty;
     }
 
-    cart[productId].qty += qty;
+    input.value = 1;
+    updateCart();
+};
 
-    updateCartUI();
-}
+window.removeItem = function (name) {
 
-// =========================
-// UPDATE CART
-// =========================
-function updateCartUI() {
+    if (!cart[name]) return;
 
-    const cartItems =
-        document.getElementById("cart-items");
+    cart[name].quantity--;
 
-    const totalEl =
-        document.getElementById("total");
+    if (cart[name].quantity <= 0) {
+        delete cart[name];
+    }
 
-    cartItems.innerHTML = "";
+    updateCart();
+};
+
+function updateCart() {
+
+    const cartDiv = document.getElementById('cart-items');
+    cartDiv.innerHTML = '';
 
     let total = 0;
 
-    for (const id in cart) {
+    for (let item in cart) {
 
-        const item = cart[id];
+        const entry = cart[item];
+        total += entry.price * entry.quantity;
 
-        const subtotal =
-            item.price * item.qty;
+        const div = document.createElement('div');
+        div.className = 'cart-item';
 
-        total += subtotal;
-
-        // UPDATE COUNTER
-        const qtyEl =
-            document.getElementById(
-                "qty-" + id
-            );
-
-        if (qtyEl) {
-            qtyEl.textContent =
-                item.qty;
-        }
-
-        // CART ITEM
-        const div =
-            document.createElement("div");
-
-        div.className = "cart-item";
-
-        div.innerHTML = `
-            <strong>${id}</strong><br>
-            Qty: ${item.qty}<br>
-            Subtotal: NT$${subtotal}
+        let html = `
+            <div><strong>${item} x${entry.quantity}</strong></div>
+            <div style="color:#666;margin-top:5px;">
+                NT$${entry.price} × ${entry.quantity}
+            </div>
         `;
 
-        cartItems.appendChild(div);
-    }
+        if (bundles[item]) {
 
-    totalEl.textContent = total;
-}
+            html += `<div class="bundle-sub">`;
 
-// =========================
-// CHECKOUT
-// =========================
-async function checkout() {
+            for (let sub in bundles[item]) {
 
-    if (!auth.currentUser) {
-        alert("Please wait for login.");
-        return;
-    }
-
-    if (Object.keys(cart).length === 0) {
-        alert("Cart is empty.");
-        return;
-    }
-
-    try {
-
-        let total = 0;
-
-        for (const id in cart) {
-
-            total +=
-                cart[id].price *
-                cart[id].qty;
-        }
-
-        await addDoc(
-            collection(db, "orders"),
-            {
-                user:
-                    auth.currentUser.email,
-
-                items:
-                    structuredClone(cart),
-
-                total,
-
-                createdAt:
-                    serverTimestamp()
+                html += `
+                    <div>${sub} x${bundles[item][sub] * entry.quantity}</div>
+                `;
             }
-        );
 
-        alert("Order placed!");
-
-        cart = {};
-
-        updateCartUI();
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert(
-            "Checkout failed."
-        );
-    }
-}
-
-// =========================
-// LOGOUT
-// =========================
-async function logout() {
-
-    try {
-
-        await signOut(auth);
-
-        window.location.href =
-            "login.html";
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert("Logout failed.");
-    }
-}
-
-// =========================
-// EVENTS
-// =========================
-
-// ADD BUTTONS
-document
-.querySelectorAll(".add-btn")
-.forEach((button) => {
-
-    button.addEventListener(
-        "click",
-        () => {
-
-            const id =
-                button.dataset.id;
-
-            const price =
-                Number(button.dataset.price);
-
-            addToCart(id, price);
+            html += `</div>`;
         }
+
+        html += `
+            <div style="margin-top:8px;font-weight:bold;color:green;">
+                NT$${entry.price * entry.quantity}
+            </div>
+
+            <button class="remove-btn" onclick="removeItem('${item}')">
+                Remove 1
+            </button>
+        `;
+
+        div.innerHTML = html;
+        cartDiv.appendChild(div);
+    }
+
+    if (total === 0) {
+        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
+    }
+
+    document.getElementById('total').textContent = total;
+
+    document.getElementById('qty-Dr Pepper').textContent =
+        cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
+
+    document.getElementById('qty-Chicken Noodle Snack').textContent =
+        cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
+
+    document.getElementById('qty-Bundle Pack').textContent =
+        cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
+
+    document.getElementById('qty-Chocolate').textContent =
+        cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
+}
+
+// ---------------- CHECKOUT ----------------
+window.checkout = async function () {
+
+    const name = document.getElementById('customerName').value.trim();
+    const total = document.getElementById('total').textContent;
+
+    if (!name || total <= 0) {
+        alert('Invalid order');
+        return;
+    }
+
+    await addDoc(collection(db, "orders"), {
+        customer: name,
+        userEmail: currentUser.email,
+        items: cart,
+        total,
+        createdAt: new Date().toISOString()
+    });
+
+    alert("Order placed!");
+
+    cart = {};
+    updateCart();
+
+    await renderOrderHistory();
+};
+
+// ---------------- TOGGLE HISTORY ----------------
+window.toggleOrderHistory = function () {
+
+    const box = document.getElementById('order-history');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+};
+
+// ---------------- DELETE ORDER ----------------
+window.deleteOrder = async function (id) {
+
+    if (!confirm('Delete this order?')) return;
+
+    await deleteDoc(doc(db, "orders", id));
+
+    await renderOrderHistory();
+};
+
+// ---------------- ORDER HISTORY ----------------
+async function renderOrderHistory() {
+
+    const box = document.getElementById('history-list');
+    box.innerHTML = 'Loading...';
+
+    const q = query(
+        collection(db, "orders"),
+        where("userEmail", "==", currentUser.email)
     );
-});
 
-// CHECKOUT BUTTON
-document
-.getElementById("checkoutBtn")
-.addEventListener(
-    "click",
-    checkout
-);
+    const snap = await getDocs(q);
 
-// LOGOUT BUTTON
-document
-.getElementById("logoutBtn")
-.addEventListener(
-    "click",
-    logout
-);
+    if (snap.empty) {
+        box.innerHTML = 'No orders yet';
+        return;
+    }
+
+    let orders = [];
+
+    snap.forEach(d => {
+        orders.push({ id: d.id, ...d.data() });
+    });
+
+    orders.sort((a, b) =>
+        new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    box.innerHTML = '';
+
+    orders.forEach(order => {
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+
+        let html = `
+            <div style="font-weight:bold;color:#007bff;">
+                📦 Order
+            </div>
+
+            <div style="color:#666;">
+                ${new Date(order.createdAt).toLocaleString()}
+            </div>
+
+            <div style="margin-top:10px;">
+        `;
+
+        for (let item in order.items) {
+
+            html += `<div>${item} x${order.items[item].quantity}</div>`;
+        }
+
+        html += `
+            </div>
+
+            <div style="margin-top:10px;font-weight:bold;color:green;">
+                Total: NT$${order.total}
+            </div>
+
+            <button class="remove-btn"
+                style="margin-top:10px;"
+                onclick="deleteOrder('${order.id}')">
+                Delete Order
+            </button>
+        `;
+
+        div.innerHTML = html;
+        box.appendChild(div);
+    });
+}
+
+// INIT
+updateCart();
