@@ -1,100 +1,177 @@
+<!-- =========================
+FILE: index.html
+========================= -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Snack Store</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snack Store</title>
 
-<style>
-body {
-    font-family: Arial;
-    padding: 20px;
-}
-
-/* USER INFO */
-#userInfo {
-    display: none;
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: #fff;
-    color: #000;
-    padding: 10px;
-    border-radius: 8px;
-    z-index: 999;
-}
-
-/* PRODUCTS */
-.product {
-    margin-bottom: 15px;
-}
-
-/* BUTTONS */
-button {
-    margin-left: 10px;
-    padding: 6px 10px;
-    cursor: pointer;
-}
-
-/* CART BOX */
-#cart-items {
-    margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
-}
-
-/* TOTAL */
-h3 {
-    margin-top: 10px;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <!-- USER INFO -->
 <div id="userInfo">
-    Logged in as: <span id="userName"></span>
-    <button onclick="logout()">Logout</button>
+    Logged in as:
+    <span id="userName"></span>
+
+    <button id="logoutBtn">
+        Logout
+    </button>
 </div>
 
-<hr>
+<header>
+    Snack Store
+</header>
 
-<h2>Products</h2>
+<div class="main-container">
 
-<!-- PRODUCT 1 -->
-<div class="product">
-    <input id="input-DrPepper" type="number" value="1" min="1">
-    Dr Pepper ($3)
-    <button onclick="addToCartWithInput('DrPepper', 3)">Add</button>
-    <span>Qty: <span id="qty-DrPepper">0</span></span>
+    <!-- PRODUCTS -->
+    <div class="store-container">
+
+        <!-- DR PEPPER -->
+        <div class="item">
+
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Dr_Pepper_can.jpg"
+                alt="Dr Pepper"
+            >
+
+            <h3>Dr Pepper</h3>
+
+            <p>NT$3</p>
+
+            <div class="quantity">
+
+                <input
+                    id="input-DrPepper"
+                    type="number"
+                    min="1"
+                    value="1"
+                >
+
+                <button
+                    class="add-btn"
+                    data-id="DrPepper"
+                    data-price="3"
+                >
+                    Add
+                </button>
+
+            </div>
+
+            <div class="cart-counter">
+                Qty:
+                <span id="qty-DrPepper">0</span>
+            </div>
+
+        </div>
+
+        <!-- CHICKEN NOODLES -->
+        <div class="item">
+
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/5/59/Cup_noodle.jpg"
+                alt="Chicken Noodles"
+            >
+
+            <h3>Chicken Noodles</h3>
+
+            <p>NT$5</p>
+
+            <div class="quantity">
+
+                <input
+                    id="input-ChickenNoodles"
+                    type="number"
+                    min="1"
+                    value="1"
+                >
+
+                <button
+                    class="add-btn"
+                    data-id="ChickenNoodles"
+                    data-price="5"
+                >
+                    Add
+                </button>
+
+            </div>
+
+            <div class="cart-counter">
+                Qty:
+                <span id="qty-ChickenNoodles">0</span>
+            </div>
+
+        </div>
+
+        <!-- COKE ZERO -->
+        <div class="item">
+
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/1/1f/Coca-Cola_Zero_Sugar_2021.jpg"
+                alt="Coke Zero"
+            >
+
+            <h3>Coke Zero</h3>
+
+            <p>NT$2</p>
+
+            <div class="quantity">
+
+                <input
+                    id="input-CokeZero"
+                    type="number"
+                    min="1"
+                    value="1"
+                >
+
+                <button
+                    class="add-btn"
+                    data-id="CokeZero"
+                    data-price="2"
+                >
+                    Add
+                </button>
+
+            </div>
+
+            <div class="cart-counter">
+                Qty:
+                <span id="qty-CokeZero">0</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- CART -->
+    <aside class="cart-panel">
+
+        <div class="cart-header">
+            Cart
+        </div>
+
+        <div id="cart-items"></div>
+
+        <div class="cart-total">
+            Total:
+            NT$<span id="total">0</span>
+        </div>
+
+        <button
+            class="checkout-btn"
+            id="checkoutBtn"
+        >
+            Checkout
+        </button>
+
+    </aside>
+
 </div>
-
-<!-- PRODUCT 2 -->
-<div class="product">
-    <input id="input-ChickenNoodles" type="number" value="1" min="1">
-    Chicken Noodles ($5)
-    <button onclick="addToCartWithInput('ChickenNoodles', 5)">Add</button>
-    <span>Qty: <span id="qty-ChickenNoodles">0</span></span>
-</div>
-
-<!-- PRODUCT 3 -->
-<div class="product">
-    <input id="input-CokeZero" type="number" value="1" min="1">
-    Coke Zero ($2)
-    <button onclick="addToCartWithInput('CokeZero', 2)">Add</button>
-    <span>Qty: <span id="qty-CokeZero">0</span></span>
-</div>
-
-<hr>
-
-<h2>Cart</h2>
-
-<div id="cart-items"></div>
-
-<h3>Total: NT$<span id="total">0</span></h3>
-
-<button onclick="checkout()">Checkout</button>
 
 <script type="module" src="./script.js"></script>
 
