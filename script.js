@@ -87,6 +87,7 @@ window.removeItem = function (name) {
     updateCart();
 };
 
+// ---------------- CART UPDATE (UNCHANGED) ----------------
 function updateCart() {
 
     const cartDiv = document.getElementById('cart-items');
@@ -110,12 +111,10 @@ function updateCart() {
         `;
 
         if (bundles[item]) {
-            html += `<div class="bundle-sub">`;
-
+            html += `<div>`;
             for (let sub in bundles[item]) {
                 html += `<div>${sub} x${bundles[item][sub] * entry.quantity}</div>`;
             }
-
             html += `</div>`;
         }
 
@@ -124,7 +123,7 @@ function updateCart() {
                 NT$${entry.price * entry.quantity}
             </div>
 
-            <button class="remove-btn" onclick="removeItem('${item}')">
+            <button onclick="removeItem('${item}')">
                 Remove 1
             </button>
         `;
@@ -134,7 +133,7 @@ function updateCart() {
     }
 
     if (total === 0) {
-        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
+        cartDiv.innerHTML = `<div>Cart empty</div>`;
     }
 
     document.getElementById('total').textContent = total;
@@ -152,7 +151,7 @@ function updateCart() {
         cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
 }
 
-// ---------------- CHECKOUT (FIREBASE + FORMSUBMIT FIX) ----------------
+// ---------------- CHECKOUT (FIXED SAFE VERSION) ----------------
 window.checkout = async function () {
 
     const name = document.getElementById('customerName').value.trim();
@@ -163,30 +162,36 @@ window.checkout = async function () {
         return;
     }
 
-    // ---------------- FIREBASE SAVE ----------------
-    await addDoc(collection(db, "orders"), {
-        customer: name,
-        userEmail: currentUser.email,
-        items: cart,
-        total,
-        createdAt: new Date().toISOString()
-    });
+    try {
 
-    // ---------------- FORMSUBMIT (EMAIL BACKUP) ----------------
-    document.getElementById("customerNameField").value = name;
-    document.getElementById("orderTotal").value = "NT$" + total;
-    document.getElementById("orderDetails").value = JSON.stringify(cart);
-    document.getElementById("emailSubject").value = "New Order from Snack Store";
+        // FIREBASE SAVE
+        await addDoc(collection(db, "orders"), {
+            customer: name,
+            userEmail: currentUser.email,
+            items: structuredClone(cart),
+            total,
+            createdAt: new Date().toISOString()
+        });
 
-    document.getElementById("orderForm").submit();
+        // FORMSUBMIT EMAIL
+        document.getElementById("customerNameField").value = name;
+        document.getElementById("orderTotal").value = "NT$" + total;
+        document.getElementById("orderDetails").value = JSON.stringify(cart);
+        document.getElementById("emailSubject").value = "New Order from Snack Store";
 
-    // ---------------- RESET ----------------
-    alert("Order placed!");
+        document.getElementById("orderForm").submit();
 
-    cart = {};
-    updateCart();
+        // RESET
+        cart = {};
+        updateCart();
+        await renderOrderHistory();
 
-    await renderOrderHistory();
+        alert("Order placed!");
+
+    } catch (err) {
+        console.error(err);
+        alert("Checkout failed");
+    }
 };
 
 // ---------------- HISTORY ----------------
@@ -242,15 +247,8 @@ async function renderOrderHistory() {
         div.className = 'cart-item';
 
         let html = `
-            <div style="font-weight:bold;color:#007bff;">
-                📦 Order
-            </div>
-
-            <div style="color:#666;">
-                ${new Date(order.createdAt).toLocaleString()}
-            </div>
-
-            <div style="margin-top:10px;">
+            <div>📦 Order</div>
+            <div>${new Date(order.createdAt).toLocaleString()}</div>
         `;
 
         for (let item in order.items) {
@@ -258,15 +256,8 @@ async function renderOrderHistory() {
         }
 
         html += `
-            </div>
-
-            <div style="margin-top:10px;font-weight:bold;color:green;">
-                Total: NT$${order.total}
-            </div>
-
-            <button class="remove-btn"
-                style="margin-top:10px;"
-                onclick="deleteOrder('${order.id}')">
+            <div>Total: NT$${order.total}</div>
+            <button onclick="deleteOrder('${order.id}')">
                 Delete Order
             </button>
         `;
