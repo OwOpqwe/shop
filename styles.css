@@ -21,52 +21,58 @@ header{
     justify-content:center;
     align-items:center;
     position:relative;
-    font-size:3rem;
+}
+
+.header-center{
+    display:flex;
+    align-items:center;
+    gap:25px;
+}
+
+header h1{
+    font-size:4rem;
     font-weight:bold;
 }
+
+/* CASH ONLY */
 
 .cash-only{
     background:white;
     color:black;
-    font-size:1.5rem;
     padding:14px 24px;
     border-radius:14px;
-    margin-left:25px;
     font-weight:bold;
+    font-size:1.5rem;
 }
 
-/* ================= USER INFO ================= */
+/* USER INFO */
 
 #userInfo{
     position:absolute;
     right:20px;
-    top:50%;
-    transform:translateY(-50%);
     background:white;
     color:black;
     padding:14px 18px;
     border-radius:14px;
     display:flex;
-    align-items:center;
     gap:10px;
-    font-size:1.1rem;
+    align-items:center;
 }
 
-#userInfo button{
-    padding:6px 10px;
+#logoutBtn{
     cursor:pointer;
 }
 
-/* ================= MAIN LAYOUT ================= */
+/* ================= MAIN ================= */
 
 .main-container{
     display:flex;
     gap:20px;
-    padding:0 20px 20px 20px;
+    padding:0 20px 20px;
     align-items:flex-start;
 }
 
-/* ================= PRODUCTS ================= */
+/* ================= STORE ================= */
 
 .store-container{
     flex:1;
@@ -78,11 +84,11 @@ header{
 /* ================= PRODUCT CARD ================= */
 
 .item{
-    background:#f3f3f3;
+    background:#efefef;
     color:black;
     border-radius:24px;
     padding:22px;
-    min-height:540px;
+    min-height:520px;
 }
 
 .item img{
@@ -101,15 +107,15 @@ header{
     color:green;
     font-size:1.7rem;
     font-weight:bold;
-    margin-bottom:15px;
+    margin-bottom:20px;
 }
 
-/* ================= QUANTITY ================= */
+/* QUANTITY */
 
 .quantity{
     display:flex;
-    align-items:center;
     gap:12px;
+    align-items:center;
 }
 
 .quantity input{
@@ -119,7 +125,7 @@ header{
     font-size:1.2rem;
 }
 
-/* ================= BUTTONS ================= */
+/* BUTTONS */
 
 .add-btn,
 .checkout-btn,
@@ -142,34 +148,34 @@ header{
 
 .cart-counter{
     margin-top:15px;
-    font-size:1.4rem;
+    font-size:1.3rem;
 }
 
 /* ================= CART ================= */
 
 .cart-panel{
     width:380px;
-    background:#f3f3f3;
+    background:#efefef;
     color:black;
     border-radius:24px;
     padding:24px;
-    min-height:540px;
+    min-height:520px;
 }
 
 .cart-header{
     font-size:2.2rem;
-    margin-bottom:10px;
+    font-weight:bold;
+    margin-bottom:20px;
 }
 
 .customer-info{
-    margin-top:10px;
     margin-bottom:30px;
 }
 
 .customer-info label{
     display:block;
+    margin-bottom:10px;
     font-size:1.3rem;
-    margin-bottom:8px;
 }
 
 .customer-info input{
@@ -189,12 +195,6 @@ header{
 .history-btn{
     width:100%;
     margin-bottom:15px;
-}
-
-/* ================= CART ITEMS ================= */
-
-#cart-items{
-    margin-bottom:25px;
 }
 
 .cart-item{
@@ -222,14 +222,16 @@ header{
 
     header{
         flex-direction:column;
-        gap:15px;
-        font-size:2.2rem;
+        gap:20px;
     }
 
     #userInfo{
         position:relative;
-        transform:none;
         right:auto;
-        top:auto;
     }
+
+    header h1{
+        font-size:2.5rem;
+    }
+
 }
