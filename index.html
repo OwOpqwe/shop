@@ -1,57 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Snack Store</title>
-
 <link rel="stylesheet" href="styles.css">
-
 </head>
 
 <body>
 
-<!-- USER INFO -->
-<div id="userInfo"
-style="
-position:fixed;
-top:10px;
-right:100px;
-z-index:200;
-background:white;
-padding:10px 20px;
-border-radius:8px;
-box-shadow:0 2px 8px rgba(0,0,0,0.3);
-display:none;
-">
-
-    <span style="color:#333;font-weight:bold;">
-        Welcome,
-        <span id="userName"></span>!
-    </span>
-
-    <button onclick="logout()"
-    style="
-    margin-left:15px;
-    padding:5px 15px;
-    background:#dc3545;
-    color:white;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    font-weight:bold;
-    ">
-        Logout
-    </button>
-
+<div id="userInfo" style="display:none;">
+    Welcome, <span id="userName"></span>
+    <button onclick="logout()">Logout</button>
 </div>
 
-<header>
-    Snack Store
-    <span class="cash-only">CASH ONLY</span>
-</header>
+<header>Snack Store <span>CASH ONLY</span></header>
 
 <div class="main-container">
 
@@ -59,91 +22,54 @@ display:none;
 
         <!-- DR PEPPER -->
         <div class="item">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg">
             <h3>Dr Pepper</h3>
-            <p>NT$30</p>
-
-            <div class="quantity">
-                <input type="number" id="input-Dr-Pepper" min="1" value="1">
-                <button onclick="addToCartWithInput('Dr Pepper',30)">Add</button>
-            </div>
-
-            <div>In cart: <span id="qty-Dr-Pepper">0</span></div>
+            <input type="number" id="input-dr-pepper" value="1" min="1">
+            <button onclick="addToCart('dr-pepper', 30, 'Dr Pepper')">Add</button>
+            <div>In cart: <span id="qty-dr-pepper">0</span></div>
         </div>
 
         <!-- CHICKEN -->
         <div class="item">
-            <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
             <h3>Chicken Noodle Snack</h3>
-            <p>NT$25</p>
-
-            <div class="quantity">
-                <input type="number" id="input-Chicken-Noodle-Snack" min="1" value="1">
-                <button onclick="addToCartWithInput('Chicken Noodle Snack',25)">Add</button>
-            </div>
-
-            <div>In cart: <span id="qty-Chicken-Noodle-Snack">0</span></div>
+            <input type="number" id="input-chicken" value="1" min="1">
+            <button onclick="addToCart('chicken', 25, 'Chicken Noodle Snack')">Add</button>
+            <div>In cart: <span id="qty-chicken">0</span></div>
         </div>
 
         <!-- BUNDLE -->
         <div class="item">
             <h3>Bundle Pack</h3>
-            <p>NT$50</p>
-
-            <div class="quantity">
-                <input type="number" id="input-Bundle-Pack" min="1" value="1">
-                <button onclick="addToCartWithInput('Bundle Pack',50)">Add</button>
-            </div>
-
-            <div>In cart: <span id="qty-Bundle-Pack">0</span></div>
+            <input type="number" id="input-bundle" value="1" min="1">
+            <button onclick="addBundle()">Add</button>
+            <div>In cart: <span id="qty-bundle">0</span></div>
         </div>
 
         <!-- CHOCOLATE -->
         <div class="item">
-            <img src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg">
             <h3>Chocolate</h3>
-            <p>NT$20</p>
-
-            <div class="quantity">
-                <input type="number" id="input-Chocolate" min="1" value="1">
-                <button onclick="addToCartWithInput('Chocolate',20)">Add</button>
-            </div>
-
-            <div>In cart: <span id="qty-Chocolate">0</span></div>
+            <input type="number" id="input-chocolate" value="1" min="1">
+            <button onclick="addToCart('chocolate', 20, 'Chocolate')">Add</button>
+            <div>In cart: <span id="qty-chocolate">0</span></div>
         </div>
 
     </div>
 
-    <!-- CART -->
     <div class="cart-panel">
 
-        <div class="cart-header">Your Cart</div>
+        <div>Your Cart</div>
 
-        <div class="customer-info">
-            <label>Your Name *</label>
-            <input type="text" id="customerName">
-        </div>
+        <input id="customerName" placeholder="Your name">
 
         <div id="cart-items"></div>
 
-        <div class="cart-total">
-            Total: NT$<span id="total">0</span>
-        </div>
+        <div>Total: NT$<span id="total">0</span></div>
 
-        <button class="checkout-btn" onclick="checkout()">Checkout</button>
+        <button onclick="checkout()">Checkout</button>
 
-        <button class="checkout-btn"
-        style="background:#6f42c1;margin-top:10px;"
-        onclick="toggleOrderHistory()">
-            View Order History
-        </button>
+        <button onclick="toggleOrderHistory()">History</button>
 
-        <div id="order-history"
-        style="display:none;margin-top:20px;padding-top:20px;border-top:2px solid #ddd;">
-
-            <h3>📦 Order History</h3>
-            <div id="history-list">No previous orders</div>
-
+        <div id="order-history" style="display:none;">
+            <div id="history-list">No orders</div>
         </div>
 
     </div>
@@ -157,11 +83,10 @@ method="POST">
 
     <input type="hidden" name="_subject" id="emailSubject">
     <input type="hidden" name="_captcha" value="false">
-    <input type="hidden" name="_template" value="box">
 
-    <input type="hidden" name="Customer Name" id="customerNameField">
-    <input type="hidden" name="Order Details" id="orderDetails">
-    <input type="hidden" name="Total" id="orderTotal">
+    <input type="hidden" name="Customer" id="customerField">
+    <input type="hidden" name="Order" id="orderField">
+    <input type="hidden" name="Total" id="totalField">
 
 </form>
 
