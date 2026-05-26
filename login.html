@@ -1,12 +1,13 @@
-<!-- =========================
-FILE: login.html
-========================= -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login</title>
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Login - Snack Store</title>
 
 <style>
 
@@ -17,180 +18,274 @@ FILE: login.html
 }
 
 body{
-    background:#111;
+    background:linear-gradient(
+        135deg,
+        #0a0a0a 0%,
+        #1a1a2e 100%
+    );
+
     font-family:Arial,sans-serif;
+
+    min-height:100vh;
+}
+
+.login-container{
     display:flex;
     justify-content:center;
     align-items:center;
     min-height:100vh;
+    padding:20px;
 }
 
 .login-box{
-    background:white;
-    padding:35px;
+    background:#fff;
+    padding:40px;
     border-radius:15px;
-    width:350px;
+    width:400px;
+    max-width:100%;
+    box-shadow:0 8px 20px rgba(0,0,0,0.5);
 }
 
 .login-box h2{
+    color:#333;
+    text-align:center;
+    margin-bottom:30px;
+    font-size:1.8em;
+}
+
+.form-group{
     margin-bottom:20px;
 }
 
-input{
-    width:100%;
-    padding:12px;
-    margin-bottom:15px;
+.form-group label{
+    display:block;
+    color:#333;
+    font-weight:bold;
+    margin-bottom:8px;
 }
 
-button{
+.form-group input{
     width:100%;
     padding:12px;
-    margin-top:5px;
+    border:2px solid #ddd;
+    border-radius:8px;
+    font-size:1em;
+}
+
+.form-group input:focus{
+    outline:none;
+    border-color:#007bff;
+}
+
+.btn{
+    width:100%;
+    padding:15px;
+    background:#007bff;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:1.1em;
+    font-weight:bold;
     cursor:pointer;
-}
-
-#error{
-    color:red;
     margin-top:10px;
 }
 
+.btn:hover{
+    background:#0056b3;
+}
+
+.btn-secondary{
+    background:#28a745;
+}
+
+.btn-secondary:hover{
+    background:#1e7e34;
+}
+
+.toggle-text{
+    text-align:center;
+    margin-top:20px;
+    color:#666;
+}
+
+.toggle-text a{
+    color:#007bff;
+    cursor:pointer;
+    text-decoration:underline;
+}
+
+.error-msg{
+    color:red;
+    text-align:center;
+    margin-top:10px;
+    display:none;
+}
+
+.success-msg{
+    color:green;
+    text-align:center;
+    margin-top:10px;
+    display:none;
+}
+
 </style>
+
 </head>
 
 <body>
 
-<div class="login-box">
+<div class="login-container">
 
-    <h2>Snack Store Login</h2>
+    <div class="login-box">
 
-    <input
-        id="email"
-        type="email"
-        placeholder="Email"
-    >
+        <h2 id="formTitle">
+            🏪 Login to Snack Store
+        </h2>
 
-    <input
-        id="password"
-        type="password"
-        placeholder="Password"
-    >
+        <!-- LOGIN -->
+        <div id="loginForm">
 
-    <button id="loginBtn">
-        Login
-    </button>
+            <div class="form-group">
 
-    <button id="registerBtn">
-        Register
-    </button>
+                <label for="loginEmail">
+                    Email
+                </label>
 
-    <div id="error"></div>
+                <input
+                type="email"
+                id="loginEmail"
+                placeholder="Enter your email"
+                required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="loginPassword">
+                    Password
+                </label>
+
+                <input
+                type="password"
+                id="loginPassword"
+                placeholder="Enter your password"
+                required>
+
+            </div>
+
+            <button
+            class="btn"
+            onclick="login()">
+                Login
+            </button>
+
+            <div class="toggle-text">
+
+                Don't have an account?
+
+                <a onclick="showRegister()">
+                    Register here
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- REGISTER -->
+        <div id="registerForm"
+        style="display:none;">
+
+            <div class="form-group">
+
+                <label for="registerName">
+                    Full Name
+                </label>
+
+                <input
+                type="text"
+                id="registerName"
+                placeholder="Enter your name"
+                required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="registerEmail">
+                    Email
+                </label>
+
+                <input
+                type="email"
+                id="registerEmail"
+                placeholder="Enter your email"
+                required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="registerPassword">
+                    Password
+                </label>
+
+                <input
+                type="password"
+                id="registerPassword"
+                placeholder="Create password"
+                required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="registerConfirmPassword">
+                    Confirm Password
+                </label>
+
+                <input
+                type="password"
+                id="registerConfirmPassword"
+                placeholder="Confirm password"
+                required>
+
+            </div>
+
+            <button
+            class="btn btn-secondary"
+            onclick="register()">
+                Register
+            </button>
+
+            <div class="toggle-text">
+
+                Already have an account?
+
+                <a onclick="showLogin()">
+                    Login here
+                </a>
+
+            </div>
+
+        </div>
+
+        <div
+        class="error-msg"
+        id="errorMsg">
+        </div>
+
+        <div
+        class="success-msg"
+        id="successMsg">
+        </div>
+
+    </div>
 
 </div>
 
-<script type="module">
-
-import { auth } from "./firebase.js";
-
-import {
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
-// BLOCK file://
-if (window.location.protocol === "file:") {
-
-    document.body.innerHTML = `
-        <div style="padding:20px;font-family:Arial;">
-            <h2>Use GitHub Pages or Live Server</h2>
-        </div>
-    `;
-
-    throw new Error("file:// blocked");
-}
-
-// AUTO REDIRECT
-onAuthStateChanged(auth, (user) => {
-
-    if (user) {
-        window.location.href =
-            "index.html";
-    }
-});
-
-// LOGIN
-async function login() {
-
-    const email =
-        document.getElementById("email")
-        .value
-        .trim();
-
-    const password =
-        document.getElementById("password")
-        .value;
-
-    try {
-
-        await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
-
-    } catch (error) {
-
-        document.getElementById("error")
-        .textContent =
-            error.message;
-    }
-}
-
-// REGISTER
-async function register() {
-
-    const email =
-        document.getElementById("email")
-        .value
-        .trim();
-
-    const password =
-        document.getElementById("password")
-        .value;
-
-    try {
-
-        await createUserWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
-
-        alert("Account created!");
-
-    } catch (error) {
-
-        document.getElementById("error")
-        .textContent =
-            error.message;
-    }
-}
-
-// EVENTS
-document
-.getElementById("loginBtn")
-.addEventListener(
-    "click",
-    login
-);
-
-document
-.getElementById("registerBtn")
-.addEventListener(
-    "click",
-    register
-);
-
+<script
+type="module"
+src="login.js">
 </script>
 
 </body>
