@@ -18,6 +18,7 @@ import {
 let cart = {};
 let currentUser = null;
 
+// ---------------- AUTH ----------------
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
@@ -35,9 +36,12 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('customerName').value =
         user.displayName || user.email;
 
-    await renderOrderHistory();
+    if (currentUser) {
+        await renderOrderHistory();
+    }
 });
 
+// ---------------- LOGOUT ----------------
 window.logout = async function () {
     await signOut(auth);
     window.location.href = 'login.html';
@@ -46,7 +50,8 @@ window.logout = async function () {
 // ---------------- CART ----------------
 window.addToCartWithInput = function (name, price) {
 
-    const input = document.getElementById('input-' + name);
+    const safeId = name.replace(/ /g, '-');
+    const input = document.getElementById('input-' + safeId);
     const qty = parseInt(input.value);
 
     if (!qty || qty < 1) return;
@@ -74,6 +79,7 @@ window.removeItem = function (name) {
     updateCart();
 };
 
+// ---------------- CART UPDATE ----------------
 function updateCart() {
 
     const cartDiv = document.getElementById('cart-items');
@@ -100,23 +106,21 @@ function updateCart() {
 
     document.getElementById('total').textContent = total;
 
-    document.getElementById('qty-Dr Pepper').textContent =
-        cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
+    const setQty = (id, item) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = cart[item] ? cart[item].quantity : 0;
+    };
 
-    document.getElementById('qty-Chicken Noodle Snack').textContent =
-        cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-
-    document.getElementById('qty-Bundle-Pack').textContent =
-        cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-
-    document.getElementById('qty-Chocolate').textContent =
-        cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
+    setQty('qty-Dr-Pepper', 'Dr Pepper');
+    setQty('qty-Chicken-Noodle-Snack', 'Chicken Noodle Snack');
+    setQty('qty-Bundle-Pack', 'Bundle Pack');
+    setQty('qty-Chocolate', 'Chocolate');
 }
 
-// ---------------- CHECKOUT (NO REDIRECT FIX) ----------------
+// ---------------- CHECKOUT (NO REDIRECT) ----------------
 window.checkout = async function () {
 
-    const name = document.getElementById('customerName').value;
+    const name = document.getElementById('customerName').value.trim();
     const total = document.getElementById('total').textContent;
 
     if (!name || total <= 0) {
@@ -132,7 +136,7 @@ window.checkout = async function () {
         createdAt: new Date().toISOString()
     });
 
-    // FORMSUBMIT (NO PAGE RELOAD / NO REDIRECT)
+    // FORMSUBMIT (NO REDIRECT)
     const form = document.getElementById("orderForm");
 
     document.getElementById("customerNameField").value = name;
@@ -159,5 +163,50 @@ window.toggleOrderHistory = function () {
     box.style.display = box.style.display === 'block' ? 'none' : 'block';
 };
 
-// ---------------- INIT ----------------
+// ---------------- ORDER HISTORY ----------------
+async function renderOrderHistory() {
+
+    if (!currentUser) return;
+
+    const box = document.getElementById('history-list');
+    box.innerHTML = 'Loading...';
+
+    const q = query(
+        collection(db, "orders"),
+        where("userEmail", "==", currentUser.email)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+        box.innerHTML = 'No orders yet';
+        return;
+    }
+
+    box.innerHTML = '';
+
+    snap.forEach(d => {
+
+        const order = d.data();
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+
+        let html = `
+            <div>📦 Order</div>
+            <div>${new Date(order.createdAt).toLocaleString()}</div>
+        `;
+
+        for (let item in order.items) {
+            html += `<div>${item} x${order.items[item].quantity}</div>`;
+        }
+
+        html += `<div>Total: NT$${order.total}</div>`;
+
+        div.innerHTML = html;
+        box.appendChild(div);
+    });
+}
+
+// INIT
 updateCart();
