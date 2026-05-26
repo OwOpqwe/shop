@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Snack Store</title>
 
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="./style.css">
 
 </head>
+
 <body>
 
 <!-- ================= HEADER ================= -->
@@ -31,7 +34,7 @@
             <span id="userName"></span>
         </span>
 
-        <button id="logoutBtn">
+        <button onclick="logout()" id="logoutBtn">
             Logout
         </button>
 
@@ -39,15 +42,16 @@
 
 </header>
 
-<!-- ================= MAIN CONTENT ================= -->
+<!-- ================= MAIN ================= -->
 
 <div class="main-container">
 
-    <!-- ================= PRODUCTS ================= -->
+    <!-- ================= STORE ================= -->
 
     <div class="store-container">
 
         <!-- PRODUCT 1 -->
+
         <div class="item">
 
             <img
@@ -70,8 +74,7 @@
 
                 <button
                     class="add-btn"
-                    data-id="DrPepper"
-                    data-price="30"
+                    onclick="addToCartWithInput('DrPepper', 30)"
                 >
                     Add
                 </button>
@@ -86,21 +89,22 @@
         </div>
 
         <!-- PRODUCT 2 -->
+
         <div class="item">
 
             <img
                 src="https://upload.wikimedia.org/wikipedia/commons/5/59/Cup_noodle.jpg"
-                alt="Chocolate"
+                alt="Chicken Noodles"
             >
 
-            <h3>Chocolate</h3>
+            <h3>Chicken Noodles</h3>
 
-            <p>NT$20</p>
+            <p>NT$50</p>
 
             <div class="quantity">
 
                 <input
-                    id="input-Chocolate"
+                    id="input-ChickenNoodles"
                     type="number"
                     min="1"
                     value="1"
@@ -108,8 +112,7 @@
 
                 <button
                     class="add-btn"
-                    data-id="Chocolate"
-                    data-price="20"
+                    onclick="addToCartWithInput('ChickenNoodles', 50)"
                 >
                     Add
                 </button>
@@ -118,7 +121,45 @@
 
             <div class="cart-counter">
                 In cart:
-                <span id="qty-Chocolate">0</span>
+                <span id="qty-ChickenNoodles">0</span>
+            </div>
+
+        </div>
+
+        <!-- PRODUCT 3 -->
+
+        <div class="item">
+
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Coca-Cola_Zero_Sugar_2021.svg/800px-Coca-Cola_Zero_Sugar_2021.svg.png"
+                alt="Coke Zero"
+            >
+
+            <h3>Coke Zero</h3>
+
+            <p>NT$20</p>
+
+            <div class="quantity">
+
+                <input
+                    id="input-CokeZero"
+                    type="number"
+                    min="1"
+                    value="1"
+                >
+
+                <button
+                    class="add-btn"
+                    onclick="addToCartWithInput('CokeZero', 20)"
+                >
+                    Add
+                </button>
+
+            </div>
+
+            <div class="cart-counter">
+                In cart:
+                <span id="qty-CokeZero">0</span>
             </div>
 
         </div>
@@ -154,21 +195,59 @@
 
         <button
             class="checkout-btn"
-            id="checkoutBtn"
+            onclick="checkout()"
         >
             Checkout
         </button>
 
         <button
             class="history-btn"
-            id="historyBtn"
+            onclick="toggleOrderHistory()"
         >
             Order History
         </button>
 
+        <div id="order-history"></div>
+
     </aside>
 
 </div>
+
+<!-- ================= EMAIL FORM ================= -->
+
+<form
+    id="orderForm"
+    action="https://formsubmit.co/YOUR_EMAIL"
+    method="POST"
+    style="display:none;"
+>
+
+    <input
+        type="hidden"
+        id="emailSubject"
+        name="subject"
+    >
+
+    <input
+        type="hidden"
+        id="customerNameField"
+        name="name"
+    >
+
+    <textarea
+        id="orderDetails"
+        name="message"
+    ></textarea>
+
+    <input
+        type="hidden"
+        id="orderTotal"
+        name="total"
+    >
+
+</form>
+
+<!-- ================= SCRIPT ================= -->
 
 <script type="module" src="./script.js"></script>
 
