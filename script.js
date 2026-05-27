@@ -10,10 +10,11 @@ import {
     addDoc,
     query,
     where,
-    getDocs
+    getDocs,
+    deleteDoc,
+    doc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-// ---------------- GLOBALS ----------------
 let cart = {};
 let currentUser = null;
 
@@ -42,7 +43,6 @@ onAuthStateChanged(auth, async (user) => {
 window.logout = async function () {
 
     await signOut(auth);
-
     window.location.href = "login.html";
 };
 
@@ -61,12 +61,7 @@ window.addItem = function (id, label, price) {
     }
 
     if (!cart[id]) {
-
-        cart[id] = {
-            label,
-            price,
-            qty: 0
-        };
+        cart[id] = { label, price, qty: 0 };
     }
 
     cart[id].qty += qty;
@@ -106,7 +101,6 @@ function updateCart() {
         total += item.price * item.qty;
 
         const div = document.createElement("div");
-
         div.className = "cart-item";
 
         div.innerHTML = `
@@ -114,24 +108,16 @@ function updateCart() {
                 <strong>${item.label} x${item.qty}</strong>
             </div>
 
-            <div style="
-                margin-top:8px;
-                color:#666;
-            ">
+            <div style="margin-top:6px;color:#aaa;">
                 NT$${item.price} × ${item.qty}
             </div>
 
-            <div style="
-                margin-top:8px;
-                font-weight:bold;
-                color:green;
-            ">
+            <div style="margin-top:6px;font-weight:bold;color:#4caf50;">
                 NT$${item.price * item.qty}
             </div>
 
-            <button
-            class="remove-btn"
-            onclick="removeItem('${id}')">
+            <button class="remove-btn"
+                onclick="removeItem('${id}')">
                 Remove 1
             </button>
         `;
@@ -139,27 +125,15 @@ function updateCart() {
         cartDiv.appendChild(div);
     }
 
-    // EMPTY CART
     if (Object.keys(cart).length === 0) {
-
-        cartDiv.innerHTML = `
-            <div class="empty-cart">
-                Cart empty
-            </div>
-        `;
+        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
     }
 
-    // TOTAL
     document.getElementById("total").textContent = total;
 
-    // SAFE QUANTITY UPDATE
     const setQty = (id) => {
-
         const el = document.getElementById("qty-" + id);
-
-        if (el) {
-            el.textContent = cart[id]?.qty || 0;
-        }
+        if (el) el.textContent = cart[id]?.qty || 0;
     };
 
     setQty("dr-pepper");
@@ -171,82 +145,66 @@ function updateCart() {
 // ---------------- CHECKOUT ----------------
 window.checkout = async function () {
 
-    const name =
-        document.getElementById("customerName").value.trim();
-
-    const total =
-        document.getElementById("total").textContent;
+    const name = document.getElementById("customerName").value.trim();
+    const total = document.getElementById("total").textContent;
 
     if (!name || total <= 0) {
-
         alert("Invalid order");
-
         return;
     }
 
     try {
 
-        // SAVE TO FIREBASE
         await addDoc(collection(db, "orders"), {
-
             customer: name,
-
             userEmail: currentUser.email,
-
             items: cart,
-
             total,
-
             createdAt: new Date().toISOString()
         });
 
-        // SEND EMAIL USING FORMSUBMIT
+        // FormSubmit (no redirect)
         const form = document.getElementById("orderForm");
 
         document.getElementById("customerField").value = name;
+        document.getElementById("orderField").value = JSON.stringify(cart);
+        document.getElementById("totalField").value = total;
+        document.getElementById("emailSubject").value = "New Order";
 
-        document.getElementById("orderField").value =
-            JSON.stringify(cart, null, 2);
-
-        document.getElementById("totalField").value =
-            "NT$" + total;
-
-        document.getElementById("emailSubject").value =
-            "New Snack Store Order";
-
-        await fetch(form.action, {
-
+        fetch(form.action, {
             method: "POST",
-
             body: new FormData(form)
         });
 
-        // RESET CART
         cart = {};
-
         updateCart();
-
         await renderHistory();
 
         alert("Order placed!");
 
     } catch (err) {
-
         console.error(err);
-
         alert("Checkout failed");
     }
 };
 
-// ---------------- TOGGLE HISTORY ----------------
-window.toggleOrderHistory = function () {
+// ---------------- DELETE ORDER ----------------
+window.deleteOrder = async function (id) {
 
-    const box = document.getElementById("order-history");
+    if (!confirm("Delete this order?")) return;
 
-    box.style.display =
-        box.style.display === "block"
-            ? "none"
-            : "block";
+    try {
+
+        await deleteDoc(doc(db, "orders", id));
+
+        await renderHistory();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Failed to delete order");
+    }
 };
 
 // ---------------- ORDER HISTORY ----------------
@@ -254,31 +212,21 @@ async function renderHistory() {
 
     if (!currentUser) return;
 
-    const box =
-        document.getElementById("history-list");
+    const box = document.getElementById("history-list");
 
     box.innerHTML = "Loading...";
 
     try {
 
         const q = query(
-
             collection(db, "orders"),
-
             where("userEmail", "==", currentUser.email)
         );
 
         const snap = await getDocs(q);
 
-        // NO ORDERS
         if (snap.empty) {
-
-            box.innerHTML = `
-                <div class="empty-cart">
-                    No orders yet
-                </div>
-            `;
-
+            box.innerHTML = `<div class="empty-cart">No orders yet</div>`;
             return;
         }
 
@@ -287,54 +235,37 @@ async function renderHistory() {
         snap.forEach((docSnap) => {
 
             const order = docSnap.data();
+            const id = docSnap.id;
 
-            const div =
-                document.createElement("div");
-
+            const div = document.createElement("div");
             div.className = "cart-item";
 
             let html = `
-                <div style="
-                    font-weight:bold;
-                    color:#007bff;
-                    margin-bottom:6px;
-                ">
+                <div style="font-weight:bold;color:#4dabf7;">
                     📦 Order
                 </div>
 
-                <div style="
-                    color:#666;
-                    margin-bottom:10px;
-                ">
-                    ${new Date(order.createdAt)
-                        .toLocaleString()}
+                <div style="color:#aaa;margin-bottom:10px;">
+                    ${new Date(order.createdAt).toLocaleString()}
                 </div>
             `;
 
-            // ITEMS
-            for (let itemId in order.items) {
-
-                const item = order.items[itemId];
-
-                html += `
-                    <div>
-                        ${item.label} x${item.qty}
-                    </div>
-                `;
+            for (let item in order.items) {
+                html += `<div>${order.items[item].label} x${order.items[item].qty}</div>`;
             }
 
             html += `
-                <div style="
-                    margin-top:10px;
-                    font-weight:bold;
-                    color:green;
-                ">
+                <div style="margin-top:10px;font-weight:bold;color:#4caf50;">
                     Total: NT$${order.total}
                 </div>
+
+                <button class="remove-btn"
+                    onclick="deleteOrder('${id}')">
+                    Delete Order
+                </button>
             `;
 
             div.innerHTML = html;
-
             box.appendChild(div);
         });
 
@@ -342,11 +273,7 @@ async function renderHistory() {
 
         console.error(err);
 
-        box.innerHTML = `
-            <div class="empty-cart">
-                Failed to load history
-            </div>
-        `;
+        box.innerHTML = `<div class="empty-cart">Failed to load orders</div>`;
     }
 }
 
