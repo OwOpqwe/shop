@@ -1,3 +1,4 @@
+
 import { auth, db } from './firebase.js';
 
 import {
@@ -29,11 +30,11 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUser = user;
 
-    const userBox = document.getElementById("userInfo");
-    if (userBox) userBox.style.display = "block";
+    const userInfo = document.getElementById("userInfo");
+    if (userInfo) userInfo.style.display = "block";
 
-    const nameEl = document.getElementById("userName");
-    if (nameEl) nameEl.textContent = user.displayName || user.email;
+    const name = document.getElementById("userName");
+    if (name) name.textContent = user.displayName || user.email;
 
     const customer = document.getElementById("customerName");
     if (customer) customer.value = user.displayName || user.email;
@@ -47,7 +48,7 @@ window.logout = async function () {
     window.location.href = "login.html";
 };
 
-// ---------------- ADD TO CART ----------------
+// ---------------- ADD ITEM ----------------
 window.addItem = function (id, label, price) {
 
     const input = document.getElementById("input-" + id);
@@ -85,7 +86,7 @@ window.removeItem = function (id) {
     updateCart();
 };
 
-// ---------------- UPDATE CART ----------------
+// ---------------- CART UPDATE ----------------
 function updateCart() {
 
     const cartDiv = document.getElementById("cart-items");
@@ -154,7 +155,6 @@ window.checkout = async function () {
 
     try {
 
-        // SAVE FIREBASE ORDER
         await addDoc(collection(db, "orders"), {
             customer: name,
             userEmail: currentUser.email,
@@ -163,7 +163,7 @@ window.checkout = async function () {
             createdAt: new Date().toISOString()
         });
 
-        // OPTIONAL FORM SUBMIT (SAFE)
+        // OPTIONAL FORM SUBMIT (safe, no redirect)
         const form = document.getElementById("orderForm");
 
         if (form) {
@@ -181,7 +181,7 @@ window.checkout = async function () {
         alert("Order placed!");
 
     } catch (err) {
-        console.error("Checkout error:", err);
+        console.error(err);
         alert("Checkout failed");
     }
 };
@@ -199,9 +199,22 @@ window.deleteOrder = async function (id) {
 
     } catch (err) {
 
-        console.error("Delete error:", err);
+        console.error(err);
         alert("Failed to delete order");
     }
+};
+
+// ---------------- TOGGLE HISTORY (FIXED ERROR) ----------------
+window.toggleOrderHistory = function () {
+
+    const box = document.getElementById("order-history");
+
+    if (!box) return;
+
+    box.style.display =
+        box.style.display === "block"
+            ? "none"
+            : "block";
 };
 
 // ---------------- ORDER HISTORY ----------------
@@ -248,10 +261,8 @@ async function renderHistory() {
                 </div>
             `;
 
-            if (order.items) {
-                for (let key in order.items) {
-                    html += `<div>${order.items[key].label} x${order.items[key].qty}</div>`;
-                }
+            for (let key in order.items) {
+                html += `<div>${order.items[key].label} x${order.items[key].qty}</div>`;
             }
 
             html += `
@@ -271,7 +282,7 @@ async function renderHistory() {
 
     } catch (err) {
 
-        console.error("History error:", err);
+        console.error(err);
         box.innerHTML = `<div class="empty-cart">Failed to load history</div>`;
     }
 }
