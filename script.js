@@ -15,6 +15,7 @@ import {
     doc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
+// ---------------- STATE ----------------
 let cart = {};
 let currentUser = null;
 
@@ -28,29 +29,28 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUser = user;
 
-    document.getElementById("userInfo").style.display = "block";
+    const userBox = document.getElementById("userInfo");
+    if (userBox) userBox.style.display = "block";
 
-    document.getElementById("userName").textContent =
-        user.displayName || user.email;
+    const nameEl = document.getElementById("userName");
+    if (nameEl) nameEl.textContent = user.displayName || user.email;
 
-    document.getElementById("customerName").value =
-        user.displayName || user.email;
+    const customer = document.getElementById("customerName");
+    if (customer) customer.value = user.displayName || user.email;
 
     await renderHistory();
 });
 
 // ---------------- LOGOUT ----------------
 window.logout = async function () {
-
     await signOut(auth);
     window.location.href = "login.html";
 };
 
-// ---------------- ADD ITEM ----------------
+// ---------------- ADD TO CART ----------------
 window.addItem = function (id, label, price) {
 
     const input = document.getElementById("input-" + id);
-
     if (!input) return;
 
     const qty = parseInt(input.value);
@@ -89,6 +89,7 @@ window.removeItem = function (id) {
 function updateCart() {
 
     const cartDiv = document.getElementById("cart-items");
+    if (!cartDiv) return;
 
     cartDiv.innerHTML = "";
 
@@ -97,16 +98,13 @@ function updateCart() {
     for (let id in cart) {
 
         const item = cart[id];
-
         total += item.price * item.qty;
 
         const div = document.createElement("div");
         div.className = "cart-item";
 
         div.innerHTML = `
-            <div>
-                <strong>${item.label} x${item.qty}</strong>
-            </div>
+            <div><strong>${item.label} x${item.qty}</strong></div>
 
             <div style="margin-top:6px;color:#aaa;">
                 NT$${item.price} × ${item.qty}
@@ -129,24 +127,25 @@ function updateCart() {
         cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
     }
 
-    document.getElementById("total").textContent = total;
+    const totalEl = document.getElementById("total");
+    if (totalEl) totalEl.textContent = total;
 
     const setQty = (id) => {
         const el = document.getElementById("qty-" + id);
         if (el) el.textContent = cart[id]?.qty || 0;
     };
 
-    setQty("dr-pepper");
-    setQty("chicken");
-    setQty("bundle");
-    setQty("chocolate");
+    setQty("Dr Pepper");
+    setQty("Chicken Noodle Snack");
+    setQty("Bundle Pack");
+    setQty("Chocolate");
 }
 
 // ---------------- CHECKOUT ----------------
 window.checkout = async function () {
 
-    const name = document.getElementById("customerName").value.trim();
-    const total = document.getElementById("total").textContent;
+    const name = document.getElementById("customerName")?.value.trim();
+    const total = Number(document.getElementById("total")?.textContent || 0);
 
     if (!name || total <= 0) {
         alert("Invalid order");
@@ -155,6 +154,7 @@ window.checkout = async function () {
 
     try {
 
+        // SAVE FIREBASE ORDER
         await addDoc(collection(db, "orders"), {
             customer: name,
             userEmail: currentUser.email,
@@ -163,27 +163,25 @@ window.checkout = async function () {
             createdAt: new Date().toISOString()
         });
 
-        // FormSubmit (no redirect)
+        // OPTIONAL FORM SUBMIT (SAFE)
         const form = document.getElementById("orderForm");
 
-        document.getElementById("customerField").value = name;
-        document.getElementById("orderField").value = JSON.stringify(cart);
-        document.getElementById("totalField").value = total;
-        document.getElementById("emailSubject").value = "New Order";
-
-        fetch(form.action, {
-            method: "POST",
-            body: new FormData(form)
-        });
+        if (form) {
+            fetch(form.action, {
+                method: "POST",
+                body: new FormData(form)
+            }).catch(() => {});
+        }
 
         cart = {};
         updateCart();
+
         await renderHistory();
 
         alert("Order placed!");
 
     } catch (err) {
-        console.error(err);
+        console.error("Checkout error:", err);
         alert("Checkout failed");
     }
 };
@@ -201,8 +199,7 @@ window.deleteOrder = async function (id) {
 
     } catch (err) {
 
-        console.error(err);
-
+        console.error("Delete error:", err);
         alert("Failed to delete order");
     }
 };
@@ -213,6 +210,7 @@ async function renderHistory() {
     if (!currentUser) return;
 
     const box = document.getElementById("history-list");
+    if (!box) return;
 
     box.innerHTML = "Loading...";
 
@@ -246,12 +244,14 @@ async function renderHistory() {
                 </div>
 
                 <div style="color:#aaa;margin-bottom:10px;">
-                    ${new Date(order.createdAt).toLocaleString()}
+                    ${order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown date"}
                 </div>
             `;
 
-            for (let item in order.items) {
-                html += `<div>${order.items[item].label} x${order.items[item].qty}</div>`;
+            if (order.items) {
+                for (let key in order.items) {
+                    html += `<div>${order.items[key].label} x${order.items[key].qty}</div>`;
+                }
             }
 
             html += `
@@ -271,9 +271,8 @@ async function renderHistory() {
 
     } catch (err) {
 
-        console.error(err);
-
-        box.innerHTML = `<div class="empty-cart">Failed to load orders</div>`;
+        console.error("History error:", err);
+        box.innerHTML = `<div class="empty-cart">Failed to load history</div>`;
     }
 }
 
