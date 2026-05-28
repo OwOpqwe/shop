@@ -1,3 +1,6 @@
+/* =========================
+   GLOBAL RESET
+========================= */
 *,
 *::before,
 *::after {
@@ -17,25 +20,30 @@ body {
 
     font-family: Arial, sans-serif;
 
-    background: #0f0f0f;   /* BLACK BACKGROUND */
-    color: #eaeaea;        /* LIGHT TEXT */
+    background: #0f0f0f;
+    color: #eaeaea;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
 header {
     background: #1c1c1c;
     color: white;
 
     padding: 20px;
+
     font-size: 32px;
     font-weight: bold;
+
     text-align: center;
 
     position: sticky;
     top: 0;
+
     z-index: 100;
 
     box-shadow: 0 2px 10px rgba(0,0,0,0.6);
@@ -43,96 +51,158 @@ header {
 
 .cash-only {
     margin-left: 10px;
+
     background: #b71c1c;
+
     padding: 4px 10px;
+
     border-radius: 999px;
+
     font-size: 14px;
 }
 
-/* MAIN LAYOUT */
+/* =========================
+   MAIN LAYOUT
+========================= */
 .main-container {
     display: flex;
+
     gap: 24px;
+
     padding: 24px;
 
     align-items: flex-start;
+
     width: 100%;
 }
 
-/* 2x2 GRID */
+/* =========================
+   STORE GRID (2x2)
+========================= */
 .store-container {
     flex: 3;
+
     min-width: 0;
 
     display: grid;
+
     grid-template-columns: repeat(2, 1fr);
+
     gap: 24px;
 }
 
-/* PRODUCT CARD */
+/* =========================
+   PRODUCT CARD
+========================= */
 .item {
     background: #1a1a1a;
+
     border-radius: 16px;
 
     padding: 16px;
+
+    border: 1px solid #2a2a2a;
 
     box-shadow: 0 4px 14px rgba(0,0,0,0.6);
 
     text-align: center;
 
     transition: transform 0.2s ease;
-    border: 1px solid #2a2a2a;
 }
 
 .item:hover {
     transform: translateY(-3px);
 }
 
-/* IMAGES */
+/* =========================
+   PRODUCT IMAGES (FIXED)
+========================= */
 .item img {
     width: 100%;
-    height: 220px;
 
-    object-fit: cover;
+    height: 160px;
+
+    object-fit: contain;
 
     display: block;
 
     border-radius: 12px;
 
     margin-bottom: 10px;
+
+    background: #111;
+
+    padding: 10px;
 }
 
-/* TEXT */
+/* =========================
+   BUNDLE IMAGES
+========================= */
+.bundle-images {
+    display: flex;
+
+    gap: 8px;
+}
+
+.bundle-images img {
+    width: 50%;
+
+    height: 100px;
+
+    object-fit: contain;
+
+    border-radius: 10px;
+
+    background: #111;
+
+    padding: 6px;
+}
+
+/* =========================
+   TEXT
+========================= */
 .item h3 {
     margin: 10px 0 6px;
+
     font-size: 20px;
 }
 
 .item p {
     font-weight: bold;
+
     color: #81c784;
 }
 
-/* QUANTITY */
+/* =========================
+   QUANTITY ROW
+========================= */
 .quantity {
     display: flex;
+
     gap: 10px;
+
     justify-content: center;
 
     margin-top: 10px;
 }
 
-/* INPUT */
+/* =========================
+   INPUTS
+========================= */
 input {
     font: inherit;
+
     background: #111;
-    color: #fff;
+
+    color: white;
+
     border: 1px solid #333;
 }
 
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
+
     margin: 0;
 }
 
@@ -146,7 +216,9 @@ input[type=number]::-webkit-outer-spin-button {
     text-align: center;
 }
 
-/* BUTTON BASE */
+/* =========================
+   BUTTONS
+========================= */
 button {
     appearance: none;
     -webkit-appearance: none;
@@ -154,6 +226,7 @@ button {
     font: inherit;
 
     border: none;
+
     border-radius: 12px;
 
     cursor: pointer;
@@ -163,9 +236,10 @@ button {
     min-height: 42px;
 }
 
-/* 🟢 ADD BUTTON (CHANGED) */
+/* ADD BUTTON */
 .add-btn {
-    background: #2ecc71;   /* GREEN */
+    background: #2ecc71;
+
     color: white;
 
     padding: 10px 16px;
@@ -175,30 +249,74 @@ button {
     background: #27ae60;
 }
 
-/* CART */
+/* REMOVE BUTTON */
+.remove-btn {
+    background: #e53935;
+
+    color: white;
+
+    padding: 8px 12px;
+
+    margin-top: 8px;
+}
+
+.remove-btn:hover {
+    background: #c62828;
+}
+
+/* CHECKOUT BUTTON */
+.checkout-btn {
+    width: 100%;
+
+    padding: 14px;
+
+    background: #43a047;
+
+    color: white;
+
+    font-size: 16px;
+
+    border-radius: 12px;
+}
+
+.checkout-btn:hover {
+    background: #2e7d32;
+}
+
+/* =========================
+   CART PANEL
+========================= */
 .cart-panel {
     flex: 1;
+
     min-width: 300px;
 
     background: #1a1a1a;
+
     border-radius: 16px;
 
     padding: 16px;
 
+    border: 1px solid #2a2a2a;
+
     box-shadow: 0 4px 14px rgba(0,0,0,0.6);
 
     position: sticky;
-    top: 90px;
 
-    border: 1px solid #2a2a2a;
+    top: 90px;
 }
 
 .cart-header {
     font-size: 24px;
+
     font-weight: bold;
+
     margin-bottom: 16px;
 }
 
+/* =========================
+   CART ITEMS
+========================= */
 .cart-item {
     background: #111;
 
@@ -211,76 +329,46 @@ button {
     margin-bottom: 10px;
 }
 
-.remove-btn {
-    background: #e53935;
-    color: white;
-
-    padding: 8px 12px;
-
-    margin-top: 8px;
-}
-
-.remove-btn:hover {
-    background: #c62828;
-}
-
+/* =========================
+   TOTAL
+========================= */
 .cart-total {
     font-size: 20px;
+
     font-weight: bold;
 
     margin: 16px 0;
+
     text-align: right;
 }
 
-.checkout-btn {
-    width: 100%;
-
-    padding: 14px;
-
-    background: #43a047;
-    color: white;
-
-    font-size: 16px;
-
-    border-radius: 12px;
-}
-
-.checkout-btn:hover {
-    background: #2e7d32;
-}
-
+/* =========================
+   EMPTY CART
+========================= */
 .empty-cart {
     text-align: center;
+
     color: #aaa;
 
     padding: 16px;
 }
 
-/* BUNDLE IMAGES */
-.bundle-images {
-    display: flex;
-    gap: 8px;
-}
-
-.bundle-images img {
-    width: 50%;
-    height: 140px;
-
-    object-fit: cover;
-
-    border-radius: 10px;
-}
-
-/* USER INFO */
+/* =========================
+   USER INFO BUTTON
+========================= */
 #userInfo button {
     background: #b71c1c;
+
     color: white;
 
     padding: 8px 12px;
+
     border-radius: 10px;
 }
 
-/* MOBILE */
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
 @media (max-width: 900px) {
 
     .main-container {
@@ -293,6 +381,7 @@ button {
 
     .cart-panel {
         position: static;
+
         width: 100%;
     }
 }
