@@ -115,7 +115,7 @@ header {
 }
 
 /* =========================
-   PRODUCT IMAGES (FIXED)
+   PRODUCT IMAGES
 ========================= */
 .item img {
     width: 100%;
@@ -136,18 +136,22 @@ header {
 }
 
 /* =========================
-   BUNDLE IMAGES
+   BUNDLE IMAGES (LARGER)
 ========================= */
 .bundle-images {
     display: flex;
 
     gap: 8px;
+
+    align-items: center;
+
+    justify-content: center;
 }
 
 .bundle-images img {
     width: 50%;
 
-    height: 100px;
+    height: 130px;
 
     object-fit: contain;
 
@@ -155,7 +159,7 @@ header {
 
     background: #111;
 
-    padding: 6px;
+    padding: 4px;
 }
 
 /* =========================
