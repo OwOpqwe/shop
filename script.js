@@ -1,4 +1,7 @@
 
+/* =========================
+   IMPORTS
+========================= */
 import { auth, db } from './firebase.js';
 
 import {
@@ -13,279 +16,284 @@ import {
     where,
     getDocs,
     deleteDoc,
-    doc
+    doc,
+    orderBy,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-// ---------------- STATE ----------------
+/* =========================
+   STATE
+========================= */
 let cart = {};
 let currentUser = null;
 
-// ---------------- AUTH ----------------
+const bundles = {
+    "Bundle Pack": {
+        "Dr Pepper": 1,
+        "Chicken Noodle Snack": 1
+    }
+};
+
+/* =========================
+   AUTH STATE
+========================= */
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
-        window.location.href = "login.html";
+        window.location.href = 'login.html';
         return;
     }
 
     currentUser = user;
 
-    const userInfo = document.getElementById("userInfo");
-    if (userInfo) userInfo.style.display = "block";
+    document.getElementById('userName').textContent =
+        user.displayName || user.email;
 
-    const name = document.getElementById("userName");
-    if (name) name.textContent = user.displayName || user.email;
+    document.getElementById('userInfo').style.display = 'block';
 
-    const customer = document.getElementById("customerName");
-    if (customer) customer.value = user.displayName || user.email;
+    document.getElementById('customerName').value =
+        user.displayName || user.email;
 
-    await renderHistory();
+    await renderOrderHistory();
 });
 
-// ---------------- LOGOUT ----------------
+/* =========================
+   LOGOUT
+========================= */
 window.logout = async function () {
+    if (!confirm('Logout?')) return;
+
     await signOut(auth);
-    window.location.href = "login.html";
+    window.location.href = 'login.html';
 };
 
-// ---------------- ADD ITEM ----------------
-window.addItem = function (id, label, price) {
+/* =========================
+   CART FUNCTIONS
+========================= */
+window.addToCartWithInput = function (name, price) {
 
-    const input = document.getElementById("input-" + id);
-    if (!input) return;
-
+    const input = document.getElementById('input-' + name);
     const qty = parseInt(input.value);
 
     if (!qty || qty < 1) {
-        alert("Invalid quantity");
+        alert('Invalid quantity');
         return;
     }
 
-    if (!cart[id]) {
-        cart[id] = { label, price, qty: 0 };
+    if (!cart[name]) {
+        cart[name] = { price, quantity: qty };
+    } else {
+        cart[name].quantity += qty;
     }
-
-    cart[id].qty += qty;
 
     input.value = 1;
-
     updateCart();
 };
 
-// ---------------- REMOVE ITEM ----------------
-window.removeItem = function (id) {
+window.removeItem = function (name) {
 
-    if (!cart[id]) return;
+    if (!cart[name]) return;
 
-    cart[id].qty--;
+    cart[name].quantity--;
 
-    if (cart[id].qty <= 0) {
-        delete cart[id];
+    if (cart[name].quantity <= 0) {
+        delete cart[name];
     }
 
     updateCart();
 };
 
-// ---------------- CART UPDATE ----------------
+/* =========================
+   UPDATE CART UI
+========================= */
 function updateCart() {
 
-    const cartDiv = document.getElementById("cart-items");
-    if (!cartDiv) return;
-
-    cartDiv.innerHTML = "";
+    const cartDiv = document.getElementById('cart-items');
+    cartDiv.innerHTML = '';
 
     let total = 0;
 
-    for (let id in cart) {
+    for (let item in cart) {
 
-        const item = cart[id];
-        total += item.price * item.qty;
+        const entry = cart[item];
+        total += entry.price * entry.quantity;
 
-        const div = document.createElement("div");
-        div.className = "cart-item";
+        const div = document.createElement('div');
+        div.className = 'cart-item';
 
-        div.innerHTML = `
-            <div><strong>${item.label} x${item.qty}</strong></div>
+        let html = `
+            <div><strong>${item} x${entry.quantity}</strong></div>
+            <div style="color:#666;margin-top:5px;">
+                NT$${entry.price} × ${entry.quantity}
+            </div>
+        `;
 
-            <div style="margin-top:6px;color:#aaa;">
-                NT$${item.price} × ${item.qty}
+        if (bundles[item]) {
+            html += `<div class="bundle-sub">`;
+
+            for (let sub in bundles[item]) {
+                html += `
+                    <div>${sub} x${bundles[item][sub] * entry.quantity}</div>
+                `;
+            }
+
+            html += `</div>`;
+        }
+
+        html += `
+            <div style="margin-top:8px;font-weight:bold;color:green;">
+                NT$${entry.price * entry.quantity}
             </div>
 
-            <div style="margin-top:6px;font-weight:bold;color:#4caf50;">
-                NT$${item.price * item.qty}
-            </div>
-
-            <button class="remove-btn"
-                onclick="removeItem('${id}')">
+            <button class="remove-btn" onclick="removeItem('${item}')">
                 Remove 1
             </button>
         `;
 
+        div.innerHTML = html;
         cartDiv.appendChild(div);
     }
 
-    if (Object.keys(cart).length === 0) {
+    if (total === 0) {
         cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
     }
 
-    const totalEl = document.getElementById("total");
-    if (totalEl) totalEl.textContent = total;
+    document.getElementById('total').textContent = total;
 
-    const setQty = (id) => {
-        const el = document.getElementById("qty-" + id);
-        if (el) el.textContent = cart[id]?.qty || 0;
-    };
+    document.getElementById('qty-Dr Pepper').textContent =
+        cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
 
-    setQty("Dr Pepper");
-    setQty("Chicken Noodle Snack");
-    setQty("Bundle Pack");
-    setQty("Chocolate");
+    document.getElementById('qty-Chicken Noodle Snack').textContent =
+        cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
+
+    document.getElementById('qty-Bundle Pack').textContent =
+        cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
+
+    document.getElementById('qty-Chocolate').textContent =
+        cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
 }
 
-// ---------------- CHECKOUT ----------------
+/* =========================
+   CHECKOUT (FIXED TIMESTAMP)
+========================= */
 window.checkout = async function () {
 
-    const name = document.getElementById("customerName")?.value.trim();
-    const total = Number(document.getElementById("total")?.textContent || 0);
+    const name = document.getElementById('customerName').value.trim();
+    const total = Number(document.getElementById('total').textContent);
 
     if (!name || total <= 0) {
-        alert("Invalid order");
+        alert('Invalid order');
         return;
     }
 
-    try {
+    await addDoc(collection(db, "orders"), {
+        customer: name,
+        userEmail: currentUser.email,
+        items: cart,
+        total: total,
+        createdAt: serverTimestamp()
+    });
 
-        await addDoc(collection(db, "orders"), {
-            customer: name,
-            userEmail: currentUser.email,
-            items: cart,
-            total,
-            createdAt: new Date().toISOString()
-        });
+    alert("Order placed!");
 
-        // OPTIONAL FORM SUBMIT (safe, no redirect)
-        const form = document.getElementById("orderForm");
+    cart = {};
+    updateCart();
 
-        if (form) {
-            fetch(form.action, {
-                method: "POST",
-                body: new FormData(form)
-            }).catch(() => {});
+    await renderOrderHistory();
+};
+
+/* =========================
+   ORDER HISTORY (NEWEST FIRST FIX)
+========================= */
+async function renderOrderHistory() {
+
+    const box = document.getElementById('history-list');
+    box.innerHTML = 'Loading...';
+
+    const q = query(
+        collection(db, "orders"),
+        where("userEmail", "==", currentUser.email),
+        orderBy("createdAt", "desc")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+        box.innerHTML = 'No orders yet';
+        return;
+    }
+
+    box.innerHTML = '';
+
+    snap.forEach(d => {
+
+        const order = { id: d.id, ...d.data() };
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+
+        const time = order.createdAt?.toDate
+            ? order.createdAt.toDate().toLocaleString()
+            : "Just now";
+
+        let html = `
+            <div style="font-weight:bold;color:#007bff;">
+                📦 Order
+            </div>
+
+            <div style="color:#666;">
+                ${time}
+            </div>
+
+            <div style="margin-top:10px;">
+        `;
+
+        for (let item in order.items) {
+            html += `<div>${item} x${order.items[item].quantity}</div>`;
         }
 
-        cart = {};
-        updateCart();
+        html += `
+            </div>
 
-        await renderHistory();
+            <div style="margin-top:10px;font-weight:bold;color:green;">
+                Total: NT$${order.total}
+            </div>
 
-        alert("Order placed!");
+            <button class="remove-btn"
+                style="margin-top:10px;"
+                onclick="deleteOrder('${order.id}')">
+                Delete Order
+            </button>
+        `;
 
-    } catch (err) {
-        console.error(err);
-        alert("Checkout failed");
-    }
-};
-
-// ---------------- DELETE ORDER ----------------
-window.deleteOrder = async function (id) {
-
-    if (!confirm("Delete this order?")) return;
-
-    try {
-
-        await deleteDoc(doc(db, "orders", id));
-
-        await renderHistory();
-
-    } catch (err) {
-
-        console.error(err);
-        alert("Failed to delete order");
-    }
-};
-
-// ---------------- TOGGLE HISTORY (FIXED ERROR) ----------------
-window.toggleOrderHistory = function () {
-
-    const box = document.getElementById("order-history");
-
-    if (!box) return;
-
-    box.style.display =
-        box.style.display === "block"
-            ? "none"
-            : "block";
-};
-
-// ---------------- ORDER HISTORY ----------------
-async function renderHistory() {
-
-    if (!currentUser) return;
-
-    const box = document.getElementById("history-list");
-    if (!box) return;
-
-    box.innerHTML = "Loading...";
-
-    try {
-
-        const q = query(
-            collection(db, "orders"),
-            where("userEmail", "==", currentUser.email)
-        );
-
-        const snap = await getDocs(q);
-
-        if (snap.empty) {
-            box.innerHTML = `<div class="empty-cart">No orders yet</div>`;
-            return;
-        }
-
-        box.innerHTML = "";
-
-        snap.forEach((docSnap) => {
-
-            const order = docSnap.data();
-            const id = docSnap.id;
-
-            const div = document.createElement("div");
-            div.className = "cart-item";
-
-            let html = `
-                <div style="font-weight:bold;color:#4dabf7;">
-                    📦 Order
-                </div>
-
-                <div style="color:#aaa;margin-bottom:10px;">
-                    ${order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown date"}
-                </div>
-            `;
-
-            for (let key in order.items) {
-                html += `<div>${order.items[key].label} x${order.items[key].qty}</div>`;
-            }
-
-            html += `
-                <div style="margin-top:10px;font-weight:bold;color:#4caf50;">
-                    Total: NT$${order.total}
-                </div>
-
-                <button class="remove-btn"
-                    onclick="deleteOrder('${id}')">
-                    Delete Order
-                </button>
-            `;
-
-            div.innerHTML = html;
-            box.appendChild(div);
-        });
-
-    } catch (err) {
-
-        console.error(err);
-        box.innerHTML = `<div class="empty-cart">Failed to load history</div>`;
-    }
+        div.innerHTML = html;
+        box.appendChild(div);
+    });
 }
 
-// ---------------- INIT ----------------
+/* =========================
+   TOGGLE HISTORY
+========================= */
+window.toggleOrderHistory = function () {
+
+    const box = document.getElementById('order-history');
+    box.style.display =
+        box.style.display === 'block' ? 'none' : 'block';
+};
+
+/* =========================
+   DELETE ORDER
+========================= */
+window.deleteOrder = async function (id) {
+
+    if (!confirm('Delete this order?')) return;
+
+    await deleteDoc(doc(db, "orders", id));
+
+    await renderOrderHistory();
+};
+
+/* =========================
+   INIT
+========================= */
 updateCart();
