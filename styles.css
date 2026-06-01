@@ -61,7 +61,7 @@ header {
 }
 
 /* =========================
-   MAIN LAYOUT (DESKTOP)
+   MAIN LAYOUT
 ========================= */
 .main-container {
     display: flex;
@@ -83,7 +83,7 @@ header {
 }
 
 /* =========================
-   PRODUCT CARD
+   PRODUCT CARD (WITH HOVER FIX)
 ========================= */
 .item {
     background: #1a1a1a;
@@ -100,6 +100,16 @@ header {
     justify-content: space-between;
 
     min-height: 480px;
+
+    /* ⭐ SMOOTH ANIMATION */
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+/* ⭐ PRODUCT HOVER */
+.item:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+    border-color: #3a3a3a;
 }
 
 /* =========================
@@ -114,6 +124,14 @@ header {
     padding: 10px;
     border-radius: 12px;
     margin-bottom: 10px;
+
+    /* ⭐ IMAGE ANIMATION */
+    transition: transform 0.25s ease;
+}
+
+/* ⭐ IMAGE ZOOM ON HOVER */
+.item:hover img {
+    transform: scale(1.05);
 }
 
 /* =========================
@@ -171,14 +189,14 @@ header {
 }
 
 /* =========================
-   BUTTONS
+   BUTTONS (WITH HOVER EFFECTS)
 ========================= */
 button {
     cursor: pointer;
     border: none;
     border-radius: 12px;
-    transition: 0.2s;
-    min-height: 42px;
+
+    transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 /* ADD BUTTON */
@@ -189,7 +207,8 @@ button {
 }
 
 .add-btn:hover {
-    background: #27ae60;
+    transform: scale(1.05);
+    filter: brightness(1.1);
 }
 
 /* REMOVE BUTTON */
@@ -200,14 +219,33 @@ button {
     margin-top: 8px;
 }
 
-/* CHECKOUT */
+.remove-btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+/* CHECKOUT BUTTON */
 .checkout-btn {
     width: 100%;
     padding: 14px;
+
     background: #43a047;
     color: white;
+
     font-size: 16px;
     border-radius: 12px;
+}
+
+.checkout-btn:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+}
+
+/* CLICK FEEDBACK */
+.add-btn:active,
+.remove-btn:active,
+.checkout-btn:active {
+    transform: scale(0.98);
 }
 
 /* =========================
@@ -254,10 +292,8 @@ button {
 }
 
 /* =========================
-   RESPONSIVE DESIGN
+   RESPONSIVE
 ========================= */
-
-/* TABLET */
 @media (max-width: 1024px) {
     .main-container {
         flex-direction: column;
@@ -272,15 +308,9 @@ button {
     .store-container {
         grid-template-columns: repeat(2, 1fr);
     }
-
-    .item {
-        min-height: auto;
-    }
 }
 
-/* PHONE */
 @media (max-width: 768px) {
-
     header {
         font-size: 24px;
         padding: 15px;
@@ -302,19 +332,9 @@ button {
     .bundle-images img {
         height: 130px;
     }
-
-    .quantity {
-        flex-wrap: wrap;
-    }
-
-    .quantity input {
-        width: 80px;
-    }
 }
 
-/* SMALL PHONE */
 @media (max-width: 480px) {
-
     header {
         font-size: 20px;
     }
