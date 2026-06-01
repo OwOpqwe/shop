@@ -1,7 +1,4 @@
 
-/* =========================
-   IMPORTS
-========================= */
 import { auth, db } from './firebase.js';
 
 import {
@@ -27,15 +24,8 @@ import {
 let cart = {};
 let currentUser = null;
 
-const bundles = {
-    "Bundle Pack": {
-        "Dr Pepper": 1,
-        "Chicken Noodle Snack": 1
-    }
-};
-
 /* =========================
-   AUTH STATE
+   AUTH
 ========================= */
 onAuthStateChanged(auth, async (user) => {
 
@@ -58,27 +48,14 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 /* =========================
-   LOGOUT
-========================= */
-window.logout = async function () {
-    if (!confirm('Logout?')) return;
-
-    await signOut(auth);
-    window.location.href = 'login.html';
-};
-
-/* =========================
-   CART FUNCTIONS
+   CART
 ========================= */
 window.addToCartWithInput = function (name, price) {
 
-    const input = document.getElementById('input-' + name);
+    const input = document.getElementById('input-' + name.replaceAll(' ', ''));
     const qty = parseInt(input.value);
 
-    if (!qty || qty < 1) {
-        alert('Invalid quantity');
-        return;
-    }
+    if (!qty || qty < 1) return;
 
     if (!cart[name]) {
         cart[name] = { price, quantity: qty };
@@ -96,15 +73,13 @@ window.removeItem = function (name) {
 
     cart[name].quantity--;
 
-    if (cart[name].quantity <= 0) {
-        delete cart[name];
-    }
+    if (cart[name].quantity <= 0) delete cart[name];
 
     updateCart();
 };
 
 /* =========================
-   UPDATE CART UI
+   UPDATE CART
 ========================= */
 function updateCart() {
 
@@ -121,94 +96,64 @@ function updateCart() {
         const div = document.createElement('div');
         div.className = 'cart-item';
 
-        let html = `
+        div.innerHTML = `
             <div><strong>${item} x${entry.quantity}</strong></div>
-            <div style="color:#666;margin-top:5px;">
-                NT$${entry.price} × ${entry.quantity}
-            </div>
+            <div>NT$${entry.price * entry.quantity}</div>
+            <button onclick="removeItem('${item}')">Remove</button>
         `;
 
-        if (bundles[item]) {
-            html += `<div class="bundle-sub">`;
-
-            for (let sub in bundles[item]) {
-                html += `
-                    <div>${sub} x${bundles[item][sub] * entry.quantity}</div>
-                `;
-            }
-
-            html += `</div>`;
-        }
-
-        html += `
-            <div style="margin-top:8px;font-weight:bold;color:green;">
-                NT$${entry.price * entry.quantity}
-            </div>
-
-            <button class="remove-btn" onclick="removeItem('${item}')">
-                Remove 1
-            </button>
-        `;
-
-        div.innerHTML = html;
         cartDiv.appendChild(div);
     }
 
     if (total === 0) {
-        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
+        cartDiv.innerHTML = "Cart empty";
     }
 
     document.getElementById('total').textContent = total;
 
-    document.getElementById('qty-Dr Pepper').textContent =
-        cart['Dr Pepper'] ? cart['Dr Pepper'].quantity : 0;
+    const map = {
+        "Dr Pepper": "DrPepper",
+        "Chicken Noodle Snack": "ChickenNoodleSnack",
+        "Bundle Pack": "BundlePack",
+        "Chocolate": "Chocolate"
+    };
 
-    document.getElementById('qty-Chicken Noodle Snack').textContent =
-        cart['Chicken Noodle Snack'] ? cart['Chicken Noodle Snack'].quantity : 0;
-
-    document.getElementById('qty-Bundle Pack').textContent =
-        cart['Bundle Pack'] ? cart['Bundle Pack'].quantity : 0;
-
-    document.getElementById('qty-Chocolate').textContent =
-        cart['Chocolate'] ? cart['Chocolate'].quantity : 0;
+    for (let key in map) {
+        const el = document.getElementById('qty-' + map[key]);
+        if (el) el.textContent = cart[key]?.quantity || 0;
+    }
 }
 
 /* =========================
-   CHECKOUT (FIXED TIMESTAMP)
+   CHECKOUT
 ========================= */
 window.checkout = async function () {
 
-    const name = document.getElementById('customerName').value.trim();
+    const name = document.getElementById('customerName').value;
     const total = Number(document.getElementById('total').textContent);
 
-    if (!name || total <= 0) {
-        alert('Invalid order');
-        return;
-    }
+    if (!name || total <= 0) return;
 
     await addDoc(collection(db, "orders"), {
         customer: name,
         userEmail: currentUser.email,
         items: cart,
-        total: total,
+        total,
         createdAt: serverTimestamp()
     });
 
-    alert("Order placed!");
-
     cart = {};
     updateCart();
-
     await renderOrderHistory();
 };
 
 /* =========================
-   ORDER HISTORY (NEWEST FIRST FIX)
+   ORDER HISTORY (NEWEST FIRST)
 ========================= */
 async function renderOrderHistory() {
 
     const box = document.getElementById('history-list');
-    box.innerHTML = 'Loading...';
+    box.innerHTML = '';
 
     const q = query(
         collection(db, "orders"),
@@ -218,55 +163,18 @@ async function renderOrderHistory() {
 
     const snap = await getDocs(q);
 
-    if (snap.empty) {
-        box.innerHTML = 'No orders yet';
-        return;
-    }
-
-    box.innerHTML = '';
-
     snap.forEach(d => {
 
-        const order = { id: d.id, ...d.data() };
+        const order = d.data();
 
         const div = document.createElement('div');
         div.className = 'cart-item';
 
-        const time = order.createdAt?.toDate
-            ? order.createdAt.toDate().toLocaleString()
-            : "Just now";
-
-        let html = `
-            <div style="font-weight:bold;color:#007bff;">
-                📦 Order
-            </div>
-
-            <div style="color:#666;">
-                ${time}
-            </div>
-
-            <div style="margin-top:10px;">
+        div.innerHTML = `
+            <div>${order.customer}</div>
+            <div>Total: NT$${order.total}</div>
         `;
 
-        for (let item in order.items) {
-            html += `<div>${item} x${order.items[item].quantity}</div>`;
-        }
-
-        html += `
-            </div>
-
-            <div style="margin-top:10px;font-weight:bold;color:green;">
-                Total: NT$${order.total}
-            </div>
-
-            <button class="remove-btn"
-                style="margin-top:10px;"
-                onclick="deleteOrder('${order.id}')">
-                Delete Order
-            </button>
-        `;
-
-        div.innerHTML = html;
         box.appendChild(div);
     });
 }
@@ -275,22 +183,16 @@ async function renderOrderHistory() {
    TOGGLE HISTORY
 ========================= */
 window.toggleOrderHistory = function () {
-
     const box = document.getElementById('order-history');
-    box.style.display =
-        box.style.display === 'block' ? 'none' : 'block';
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
 };
 
 /* =========================
-   DELETE ORDER
+   LOGOUT
 ========================= */
-window.deleteOrder = async function (id) {
-
-    if (!confirm('Delete this order?')) return;
-
-    await deleteDoc(doc(db, "orders", id));
-
-    await renderOrderHistory();
+window.logout = async function () {
+    await signOut(auth);
+    window.location.href = 'login.html';
 };
 
 /* =========================
