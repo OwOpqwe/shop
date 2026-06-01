@@ -1,291 +1,329 @@
-
-import { auth, db } from './firebase.js';
-
-import {
-    signOut,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-
-import {
-    collection,
-    addDoc,
-    query,
-    where,
-    getDocs,
-    deleteDoc,
-    doc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-// ---------------- STATE ----------------
-let cart = {};
-let currentUser = null;
-
-// ---------------- AUTH ----------------
-onAuthStateChanged(auth, async (user) => {
-
-    if (!user) {
-        window.location.href = "login.html";
-        return;
-    }
-
-    currentUser = user;
-
-    const userInfo = document.getElementById("userInfo");
-    if (userInfo) userInfo.style.display = "block";
-
-    const name = document.getElementById("userName");
-    if (name) name.textContent = user.displayName || user.email;
-
-    const customer = document.getElementById("customerName");
-    if (customer) customer.value = user.displayName || user.email;
-
-    await renderHistory();
-});
-
-// ---------------- LOGOUT ----------------
-window.logout = async function () {
-    await signOut(auth);
-    window.location.href = "login.html";
-};
-
-// ---------------- ADD ITEM ----------------
-window.addItem = function (id, label, price) {
-
-    const input = document.getElementById("input-" + id);
-    if (!input) return;
-
-    const qty = parseInt(input.value);
-
-    if (!qty || qty < 1) {
-        alert("Invalid quantity");
-        return;
-    }
-
-    if (!cart[id]) {
-        cart[id] = { label, price, qty: 0 };
-    }
-
-    cart[id].qty += qty;
-
-    input.value = 1;
-
-    updateCart();
-};
-
-// ---------------- REMOVE ITEM ----------------
-window.removeItem = function (id) {
-
-    if (!cart[id]) return;
-
-    cart[id].qty--;
-
-    if (cart[id].qty <= 0) {
-        delete cart[id];
-    }
-
-    updateCart();
-};
-
-// ---------------- CART UPDATE ----------------
-function updateCart() {
-
-    const cartDiv = document.getElementById("cart-items");
-    if (!cartDiv) return;
-
-    cartDiv.innerHTML = "";
-
-    let total = 0;
-
-    for (let id in cart) {
-
-        const item = cart[id];
-        total += item.price * item.qty;
-
-        const div = document.createElement("div");
-        div.className = "cart-item";
-
-        div.innerHTML = `
-            <div><strong>${item.label} x${item.qty}</strong></div>
-
-            <div style="margin-top:6px;color:#aaa;">
-                NT$${item.price} × ${item.qty}
-            </div>
-
-            <div style="margin-top:6px;font-weight:bold;color:#4caf50;">
-                NT$${item.price * item.qty}
-            </div>
-
-            <button class="remove-btn"
-                onclick="removeItem('${id}')">
-                Remove 1
-            </button>
-        `;
-
-        cartDiv.appendChild(div);
-    }
-
-    if (Object.keys(cart).length === 0) {
-        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
-    }
-
-    const totalEl = document.getElementById("total");
-    if (totalEl) totalEl.textContent = total;
-
-    const setQty = (id) => {
-        const el = document.getElementById("qty-" + id);
-        if (el) el.textContent = cart[id]?.qty || 0;
-    };
-
-    setQty("Dr Pepper");
-    setQty("Chicken Noodle Snack");
-    setQty("Bundle Pack");
-    setQty("Chocolate");
-}
-
-// ---------------- CHECKOUT ----------------
-window.checkout = async function () {
-
-    const name = document.getElementById("customerName")?.value.trim();
-    const total = Number(document.getElementById("total")?.textContent || 0);
-
-    if (!name || total <= 0) {
-        alert("Invalid order");
-        return;
-    }
-
-    try {
-
-        await addDoc(collection(db, "orders"), {
-            customer: name,
-            userEmail: currentUser.email,
-            items: cart,
-            total,
-            createdAt: new Date().toISOString()
-        });
-
-        // OPTIONAL FORM SUBMIT (safe, no redirect)
-        const form = document.getElementById("orderForm");
-
-        if (form) {
-            fetch(form.action, {
-                method: "POST",
-                body: new FormData(form)
-            }).catch(() => {});
-        }
-
-        cart = {};
-        updateCart();
-
-        await renderHistory();
-
-        alert("Order placed!");
-
-    } catch (err) {
-        console.error(err);
-        alert("Checkout failed");
-    }
-};
-
-// ---------------- DELETE ORDER ----------------
-window.deleteOrder = async function (id) {
-
-    if (!confirm("Delete this order?")) return;
-
-    try {
-
-        await deleteDoc(doc(db, "orders", id));
-
-        await renderHistory();
-
-    } catch (err) {
-
-        console.error(err);
-        alert("Failed to delete order");
-    }
-};
-
-// ---------------- TOGGLE HISTORY (FIXED ERROR) ----------------
-window.toggleOrderHistory = function () {
-
-    const box = document.getElementById("order-history");
-
-    if (!box) return;
-
-    box.style.display =
-        box.style.display === "block"
-            ? "none"
-            : "block";
-};
-
-// ---------------- ORDER HISTORY ----------------
-async function renderHistory() {
-
-    if (!currentUser) return;
-
-    const box = document.getElementById("history-list");
-    if (!box) return;
-
-    box.innerHTML = "Loading...";
-
-    try {
-
-        const q = query(
-            collection(db, "orders"),
-            where("userEmail", "==", currentUser.email)
-        );
-
-        const snap = await getDocs(q);
-
-        if (snap.empty) {
-            box.innerHTML = `<div class="empty-cart">No orders yet</div>`;
-            return;
-        }
-
-        box.innerHTML = "";
-
-        snap.forEach((docSnap) => {
-
-            const order = docSnap.data();
-            const id = docSnap.id;
-
-            const div = document.createElement("div");
-            div.className = "cart-item";
-
-            let html = `
-                <div style="font-weight:bold;color:#4dabf7;">
-                    📦 Order
-                </div>
-
-                <div style="color:#aaa;margin-bottom:10px;">
-                    ${order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown date"}
-                </div>
-            `;
-
-            for (let key in order.items) {
-                html += `<div>${order.items[key].label} x${order.items[key].qty}</div>`;
-            }
-
-            html += `
-                <div style="margin-top:10px;font-weight:bold;color:#4caf50;">
-                    Total: NT$${order.total}
-                </div>
-
-                <button class="remove-btn"
-                    onclick="deleteOrder('${id}')">
-                    Delete Order
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Snack Store</title>
+
+<link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+
+<!-- USER INFO -->
+<div id="userInfo"
+style="
+position:fixed;
+top:10px;
+right:100px;
+z-index:200;
+background:white;
+padding:10px 20px;
+border-radius:12px;
+box-shadow:0 2px 10px rgba(0,0,0,0.2);
+display:none;
+">
+
+    <span style="font-weight:bold;color:#333;">
+        Welcome,
+        <span id="userName"></span>!
+    </span>
+
+    <button
+    onclick="logout()"
+    style="
+    margin-left:15px;
+    padding:8px 14px;
+    background:#d32f2f;
+    color:white;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+    ">
+        Logout
+    </button>
+
+</div>
+
+<header>
+
+    Snack Store
+
+    <span class="cash-only">
+        CASH ONLY
+    </span>
+
+</header>
+
+<div class="main-container">
+
+    <!-- STORE -->
+    <div class="store-container">
+
+        <!-- DR PEPPER -->
+        <div class="item">
+
+            <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg"
+            alt="Dr Pepper">
+
+            <h3>Dr Pepper</h3>
+
+            <p>NT$30</p>
+
+            <div class="quantity">
+
+                <input
+                type="number"
+                id="input-dr-pepper"
+                min="1"
+                value="1">
+
+                <button
+                class="add-btn"
+                onclick="addItem('dr-pepper','Dr Pepper',30)">
+                    Add
                 </button>
-            `;
 
-            div.innerHTML = html;
-            box.appendChild(div);
-        });
+            </div>
 
-    } catch (err) {
+            <div style="margin-top:10px;font-weight:bold;">
+                In cart:
+                <span id="qty-dr-pepper">0</span>
+            </div>
 
-        console.error(err);
-        box.innerHTML = `<div class="empty-cart">Failed to load history</div>`;
-    }
-}
+        </div>
 
-// ---------------- INIT ----------------
-updateCart();
+        <!-- CHICKEN -->
+        <div class="item">
+
+            <img
+            src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
+            alt="Chicken Noodle Snack">
+
+            <h3>Chicken Noodle Snack</h3>
+
+            <p>NT$25</p>
+
+            <div class="quantity">
+
+                <input
+                type="number"
+                id="input-chicken"
+                min="1"
+                value="1">
+
+                <button
+                class="add-btn"
+                onclick="addItem('chicken','Chicken Noodle Snack',25)">
+                    Add
+                </button>
+
+            </div>
+
+            <div style="margin-top:10px;font-weight:bold;">
+                In cart:
+                <span id="qty-chicken">0</span>
+            </div>
+
+        </div>
+
+        <!-- BUNDLE PACK -->
+        <div class="item">
+
+            <div class="bundle-images">
+
+                <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/250px-Dr_Pepper_Dose_2024.jpg"
+                alt="Dr Pepper">
+
+                <img
+                src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
+                alt="Chicken Noodle Snack">
+
+            </div>
+
+            <h3>Bundle Pack</h3>
+
+            <p>NT$50</p>
+
+            <div class="quantity">
+
+                <input
+                type="number"
+                id="input-bundle"
+                min="1"
+                value="1">
+
+                <button
+                class="add-btn"
+                onclick="addItem('bundle','Bundle Pack',50)">
+                    Add
+                </button>
+
+            </div>
+
+            <div style="margin-top:10px;font-weight:bold;">
+                In cart:
+                <span id="qty-bundle">0</span>
+            </div>
+
+        </div>
+
+        <!-- CHOCOLATE -->
+        <div class="item">
+
+            <img
+            src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg"
+            alt="Chocolate">
+
+            <h3>Chocolate</h3>
+
+            <p>NT$20</p>
+
+            <div class="quantity">
+
+                <input
+                type="number"
+                id="input-chocolate"
+                min="1"
+                value="1">
+
+                <button
+                class="add-btn"
+                onclick="addItem('chocolate','Chocolate',20)">
+                    Add
+                </button>
+
+            </div>
+
+            <div style="margin-top:10px;font-weight:bold;">
+                In cart:
+                <span id="qty-chocolate">0</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- CART -->
+    <div class="cart-panel">
+
+        <div class="cart-header">
+            Your Cart
+        </div>
+
+        <!-- CUSTOMER -->
+        <div class="customer-info">
+
+            <label for="customerName">
+                Your Name *
+            </label>
+
+            <input
+            type="text"
+            id="customerName"
+            readonly>
+
+        </div>
+
+        <!-- CART ITEMS -->
+        <div id="cart-items">
+
+            <div class="empty-cart">
+                Cart empty
+            </div>
+
+        </div>
+
+        <!-- TOTAL -->
+        <div class="cart-total">
+
+            Total:
+            NT$<span id="total">0</span>
+
+        </div>
+
+        <!-- CHECKOUT -->
+        <button
+        class="checkout-btn"
+        onclick="checkout()">
+            Checkout
+        </button>
+
+        <!-- HISTORY -->
+        <button
+        class="checkout-btn"
+        style="
+        background:#6f42c1;
+        margin-top:10px;
+        "
+        onclick="toggleOrderHistory()">
+            View Order History
+        </button>
+
+        <!-- ORDER HISTORY -->
+        <div
+        id="order-history"
+        style="
+        display:none;
+        margin-top:20px;
+        padding-top:20px;
+        border-top:2px solid #ddd;
+        ">
+
+            <h3 style="margin-bottom:15px;">
+                📦 Order History
+            </h3>
+
+            <div id="history-list">
+                No previous orders
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FORMSUBMIT -->
+<form
+id="orderForm"
+action="https://formsubmit.co/charlie2011.ting@gmail.com"
+method="POST">
+
+    <input
+    type="hidden"
+    name="_subject"
+    id="emailSubject">
+
+    <input
+    type="hidden"
+    name="_captcha"
+    value="false">
+
+    <input
+    type="hidden"
+    name="customer"
+    id="customerField">
+
+    <input
+    type="hidden"
+    name="order"
+    id="orderField">
+
+    <input
+    type="hidden"
+    name="total"
+    id="totalField">
+
+</form>
+
+<script type="module" src="script.js"></script>
+
+</body>
+</html>
