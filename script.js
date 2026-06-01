@@ -13,189 +13,279 @@ import {
     where,
     getDocs,
     deleteDoc,
-    doc,
-    orderBy,
-    serverTimestamp
+    doc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* =========================
-   STATE
-========================= */
+// ---------------- STATE ----------------
 let cart = {};
 let currentUser = null;
 
-/* =========================
-   AUTH
-========================= */
+// ---------------- AUTH ----------------
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
-        window.location.href = 'login.html';
+        window.location.href = "login.html";
         return;
     }
 
     currentUser = user;
 
-    document.getElementById('userName').textContent =
-        user.displayName || user.email;
+    const userInfo = document.getElementById("userInfo");
+    if (userInfo) userInfo.style.display = "block";
 
-    document.getElementById('userInfo').style.display = 'block';
+    const name = document.getElementById("userName");
+    if (name) name.textContent = user.displayName || user.email;
 
-    document.getElementById('customerName').value =
-        user.displayName || user.email;
+    const customer = document.getElementById("customerName");
+    if (customer) customer.value = user.displayName || user.email;
 
-    await renderOrderHistory();
+    await renderHistory();
 });
 
-/* =========================
-   CART
-========================= */
-window.addToCartWithInput = function (name, price) {
+// ---------------- LOGOUT ----------------
+window.logout = async function () {
+    await signOut(auth);
+    window.location.href = "login.html";
+};
 
-    const input = document.getElementById('input-' + name.replaceAll(' ', ''));
+// ---------------- ADD ITEM ----------------
+window.addItem = function (id, label, price) {
+
+    const input = document.getElementById("input-" + id);
+    if (!input) return;
+
     const qty = parseInt(input.value);
 
-    if (!qty || qty < 1) return;
-
-    if (!cart[name]) {
-        cart[name] = { price, quantity: qty };
-    } else {
-        cart[name].quantity += qty;
+    if (!qty || qty < 1) {
+        alert("Invalid quantity");
+        return;
     }
 
+    if (!cart[id]) {
+        cart[id] = { label, price, qty: 0 };
+    }
+
+    cart[id].qty += qty;
+
     input.value = 1;
-    updateCart();
-};
-
-window.removeItem = function (name) {
-
-    if (!cart[name]) return;
-
-    cart[name].quantity--;
-
-    if (cart[name].quantity <= 0) delete cart[name];
 
     updateCart();
 };
 
-/* =========================
-   UPDATE CART
-========================= */
+// ---------------- REMOVE ITEM ----------------
+window.removeItem = function (id) {
+
+    if (!cart[id]) return;
+
+    cart[id].qty--;
+
+    if (cart[id].qty <= 0) {
+        delete cart[id];
+    }
+
+    updateCart();
+};
+
+// ---------------- CART UPDATE ----------------
 function updateCart() {
 
-    const cartDiv = document.getElementById('cart-items');
-    cartDiv.innerHTML = '';
+    const cartDiv = document.getElementById("cart-items");
+    if (!cartDiv) return;
+
+    cartDiv.innerHTML = "";
 
     let total = 0;
 
-    for (let item in cart) {
+    for (let id in cart) {
 
-        const entry = cart[item];
-        total += entry.price * entry.quantity;
+        const item = cart[id];
+        total += item.price * item.qty;
 
-        const div = document.createElement('div');
-        div.className = 'cart-item';
+        const div = document.createElement("div");
+        div.className = "cart-item";
 
         div.innerHTML = `
-            <div><strong>${item} x${entry.quantity}</strong></div>
-            <div>NT$${entry.price * entry.quantity}</div>
-            <button onclick="removeItem('${item}')">Remove</button>
+            <div><strong>${item.label} x${item.qty}</strong></div>
+
+            <div style="margin-top:6px;color:#aaa;">
+                NT$${item.price} × ${item.qty}
+            </div>
+
+            <div style="margin-top:6px;font-weight:bold;color:#4caf50;">
+                NT$${item.price * item.qty}
+            </div>
+
+            <button class="remove-btn"
+                onclick="removeItem('${id}')">
+                Remove 1
+            </button>
         `;
 
         cartDiv.appendChild(div);
     }
 
-    if (total === 0) {
-        cartDiv.innerHTML = "Cart empty";
+    if (Object.keys(cart).length === 0) {
+        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
     }
 
-    document.getElementById('total').textContent = total;
+    const totalEl = document.getElementById("total");
+    if (totalEl) totalEl.textContent = total;
 
-    const map = {
-        "Dr Pepper": "DrPepper",
-        "Chicken Noodle Snack": "ChickenNoodleSnack",
-        "Bundle Pack": "BundlePack",
-        "Chocolate": "Chocolate"
+    const setQty = (id) => {
+        const el = document.getElementById("qty-" + id);
+        if (el) el.textContent = cart[id]?.qty || 0;
     };
 
-    for (let key in map) {
-        const el = document.getElementById('qty-' + map[key]);
-        if (el) el.textContent = cart[key]?.quantity || 0;
+    setQty("Dr Pepper");
+    setQty("Chicken Noodle Snack");
+    setQty("Bundle Pack");
+    setQty("Chocolate");
+}
+
+// ---------------- CHECKOUT ----------------
+window.checkout = async function () {
+
+    const name = document.getElementById("customerName")?.value.trim();
+    const total = Number(document.getElementById("total")?.textContent || 0);
+
+    if (!name || total <= 0) {
+        alert("Invalid order");
+        return;
+    }
+
+    try {
+
+        await addDoc(collection(db, "orders"), {
+            customer: name,
+            userEmail: currentUser.email,
+            items: cart,
+            total,
+            createdAt: new Date().toISOString()
+        });
+
+        // OPTIONAL FORM SUBMIT (safe, no redirect)
+        const form = document.getElementById("orderForm");
+
+        if (form) {
+            fetch(form.action, {
+                method: "POST",
+                body: new FormData(form)
+            }).catch(() => {});
+        }
+
+        cart = {};
+        updateCart();
+
+        await renderHistory();
+
+        alert("Order placed!");
+
+    } catch (err) {
+        console.error(err);
+        alert("Checkout failed");
+    }
+};
+
+// ---------------- DELETE ORDER ----------------
+window.deleteOrder = async function (id) {
+
+    if (!confirm("Delete this order?")) return;
+
+    try {
+
+        await deleteDoc(doc(db, "orders", id));
+
+        await renderHistory();
+
+    } catch (err) {
+
+        console.error(err);
+        alert("Failed to delete order");
+    }
+};
+
+// ---------------- TOGGLE HISTORY (FIXED ERROR) ----------------
+window.toggleOrderHistory = function () {
+
+    const box = document.getElementById("order-history");
+
+    if (!box) return;
+
+    box.style.display =
+        box.style.display === "block"
+            ? "none"
+            : "block";
+};
+
+// ---------------- ORDER HISTORY ----------------
+async function renderHistory() {
+
+    if (!currentUser) return;
+
+    const box = document.getElementById("history-list");
+    if (!box) return;
+
+    box.innerHTML = "Loading...";
+
+    try {
+
+        const q = query(
+            collection(db, "orders"),
+            where("userEmail", "==", currentUser.email)
+        );
+
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            box.innerHTML = `<div class="empty-cart">No orders yet</div>`;
+            return;
+        }
+
+        box.innerHTML = "";
+
+        snap.forEach((docSnap) => {
+
+            const order = docSnap.data();
+            const id = docSnap.id;
+
+            const div = document.createElement("div");
+            div.className = "cart-item";
+
+            let html = `
+                <div style="font-weight:bold;color:#4dabf7;">
+                    📦 Order
+                </div>
+
+                <div style="color:#aaa;margin-bottom:10px;">
+                    ${order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown date"}
+                </div>
+            `;
+
+            for (let key in order.items) {
+                html += `<div>${order.items[key].label} x${order.items[key].qty}</div>`;
+            }
+
+            html += `
+                <div style="margin-top:10px;font-weight:bold;color:#4caf50;">
+                    Total: NT$${order.total}
+                </div>
+
+                <button class="remove-btn"
+                    onclick="deleteOrder('${id}')">
+                    Delete Order
+                </button>
+            `;
+
+            div.innerHTML = html;
+            box.appendChild(div);
+        });
+
+    } catch (err) {
+
+        console.error(err);
+        box.innerHTML = `<div class="empty-cart">Failed to load history</div>`;
     }
 }
 
-/* =========================
-   CHECKOUT
-========================= */
-window.checkout = async function () {
-
-    const name = document.getElementById('customerName').value;
-    const total = Number(document.getElementById('total').textContent);
-
-    if (!name || total <= 0) return;
-
-    await addDoc(collection(db, "orders"), {
-        customer: name,
-        userEmail: currentUser.email,
-        items: cart,
-        total,
-        createdAt: serverTimestamp()
-    });
-
-    cart = {};
-    updateCart();
-    await renderOrderHistory();
-};
-
-/* =========================
-   ORDER HISTORY (NEWEST FIRST)
-========================= */
-async function renderOrderHistory() {
-
-    const box = document.getElementById('history-list');
-    box.innerHTML = '';
-
-    const q = query(
-        collection(db, "orders"),
-        where("userEmail", "==", currentUser.email),
-        orderBy("createdAt", "desc")
-    );
-
-    const snap = await getDocs(q);
-
-    snap.forEach(d => {
-
-        const order = d.data();
-
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-
-        div.innerHTML = `
-            <div>${order.customer}</div>
-            <div>Total: NT$${order.total}</div>
-        `;
-
-        box.appendChild(div);
-    });
-}
-
-/* =========================
-   TOGGLE HISTORY
-========================= */
-window.toggleOrderHistory = function () {
-    const box = document.getElementById('order-history');
-    box.style.display = box.style.display === 'block' ? 'none' : 'block';
-};
-
-/* =========================
-   LOGOUT
-========================= */
-window.logout = async function () {
-    await signOut(auth);
-    window.location.href = 'login.html';
-};
-
-/* =========================
-   INIT
-========================= */
+// ---------------- INIT ----------------
 updateCart();
