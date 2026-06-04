@@ -16,15 +16,10 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* =========================
-   STATE
-========================= */
 let cart = {};
 let currentUser = null;
 
-/* =========================
-   AUTH
-========================= */
+/* AUTH */
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
@@ -34,11 +29,8 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUser = user;
 
-    const nameEl = document.getElementById('userName');
-    if (nameEl) nameEl.textContent = user.displayName || user.email;
-
-    const panel = document.getElementById('userInfo');
-    if (panel) panel.style.display = 'block';
+    const name = document.getElementById('userName');
+    if (name) name.textContent = user.displayName || user.email;
 
     const customer = document.getElementById('customerName');
     if (customer) customer.value = user.displayName || user.email;
@@ -46,16 +38,13 @@ onAuthStateChanged(auth, async (user) => {
     await renderOrderHistory();
 });
 
-/* =========================
-   ADD ITEM (MATCHES YOUR HTML)
-========================= */
+/* ADD ITEM */
 window.addItem = function (id, name, price) {
 
     const input = document.getElementById('input-' + id);
     if (!input) return;
 
     const qty = parseInt(input.value);
-
     if (!qty || qty < 1) return;
 
     if (!cart[name]) {
@@ -65,13 +54,10 @@ window.addItem = function (id, name, price) {
     }
 
     input.value = 1;
-
     updateCart();
 };
 
-/* =========================
-   REMOVE ITEM
-========================= */
+/* REMOVE */
 window.removeItem = function (name) {
 
     if (!cart[name]) return;
@@ -85,29 +71,25 @@ window.removeItem = function (name) {
     updateCart();
 };
 
-/* =========================
-   UPDATE CART
-========================= */
+/* UPDATE CART */
 function updateCart() {
 
     const cartDiv = document.getElementById('cart-items');
-    if (!cartDiv) return;
-
     cartDiv.innerHTML = '';
 
     let total = 0;
 
     for (let item in cart) {
 
-        const entry = cart[item];
-        total += entry.price * entry.quantity;
+        const c = cart[item];
+        total += c.price * c.quantity;
 
         const div = document.createElement('div');
         div.className = 'cart-item';
 
         div.innerHTML = `
-            <div><strong>${item} x${entry.quantity}</strong></div>
-            <div>NT$${entry.price * entry.quantity}</div>
+            <div><strong>${item} x${c.quantity}</strong></div>
+            <div>NT$${c.price * c.quantity}</div>
             <button onclick="removeItem('${item}')">Remove</button>
         `;
 
@@ -121,36 +103,26 @@ function updateCart() {
     const totalEl = document.getElementById('total');
     if (totalEl) totalEl.textContent = total;
 
-    // update quantities in UI
-    const map = {
-        "dr-pepper": "dr-pepper",
-        "chicken": "chicken",
-        "bundle": "bundle",
-        "chocolate": "chocolate"
-    };
-
-    for (let key in map) {
-        const el = document.getElementById('qty-' + map[key]);
-        if (el) el.textContent = cartNameToQty(key);
-    }
+    updateQtyUI();
 }
 
-/* helper */
-function cartNameToQty(key) {
+/* UPDATE SMALL COUNTERS */
+function updateQtyUI() {
 
-    const nameMap = {
+    const map = {
         "dr-pepper": "Dr Pepper",
         "chicken": "Chicken Noodle Snack",
         "bundle": "Bundle Pack",
         "chocolate": "Chocolate"
     };
 
-    return cart[nameMap[key]]?.quantity || 0;
+    for (let key in map) {
+        const el = document.getElementById('qty-' + key);
+        if (el) el.textContent = cart[map[key]]?.quantity || 0;
+    }
 }
 
-/* =========================
-   CHECKOUT
-========================= */
+/* CHECKOUT */
 window.checkout = async function () {
 
     const name = document.getElementById('customerName')?.value;
@@ -168,13 +140,10 @@ window.checkout = async function () {
 
     cart = {};
     updateCart();
-
     await renderOrderHistory();
 };
 
-/* =========================
-   ORDER HISTORY (NEWEST FIRST)
-========================= */
+/* HISTORY */
 async function renderOrderHistory() {
 
     const box = document.getElementById('history-list');
@@ -190,43 +159,34 @@ async function renderOrderHistory() {
 
     const snap = await getDocs(q);
 
-    snap.forEach(d => {
+    snap.forEach(doc => {
 
-        const order = d.data();
+        const o = doc.data();
 
         const div = document.createElement('div');
         div.className = 'cart-item';
 
         div.innerHTML = `
-            <div><strong>${order.customer}</strong></div>
-            <div>Total: NT$${order.total}</div>
+            <div><strong>${o.customer}</strong></div>
+            <div>Total: NT$${o.total}</div>
         `;
 
         box.appendChild(div);
     });
 }
 
-/* =========================
-   TOGGLE HISTORY
-========================= */
+/* TOGGLE */
 window.toggleOrderHistory = function () {
 
     const box = document.getElementById('order-history');
-    if (!box) return;
-
-    box.style.display =
-        box.style.display === 'block' ? 'none' : 'block';
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
 };
 
-/* =========================
-   LOGOUT
-========================= */
+/* LOGOUT */
 window.logout = async function () {
     await signOut(auth);
     window.location.href = 'login.html';
 };
 
-/* =========================
-   INIT
-========================= */
+/* INIT */
 updateCart();
