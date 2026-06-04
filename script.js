@@ -1,3 +1,4 @@
+
 import { auth, db } from './firebase.js';
 
 import {
@@ -11,8 +12,6 @@ import {
     query,
     where,
     getDocs,
-    deleteDoc,
-    doc,
     orderBy,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
@@ -35,23 +34,26 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUser = user;
 
-    document.getElementById('userName').textContent =
-        user.displayName || user.email;
+    const nameEl = document.getElementById('userName');
+    if (nameEl) nameEl.textContent = user.displayName || user.email;
 
-    document.getElementById('userInfo').style.display = 'block';
+    const panel = document.getElementById('userInfo');
+    if (panel) panel.style.display = 'block';
 
-    document.getElementById('customerName').value =
-        user.displayName || user.email;
+    const customer = document.getElementById('customerName');
+    if (customer) customer.value = user.displayName || user.email;
 
     await renderOrderHistory();
 });
 
 /* =========================
-   CART
+   ADD ITEM (MATCHES YOUR HTML)
 ========================= */
-window.addToCartWithInput = function (name, price) {
+window.addItem = function (id, name, price) {
 
-    const input = document.getElementById('input-' + name.replaceAll(' ', ''));
+    const input = document.getElementById('input-' + id);
+    if (!input) return;
+
     const qty = parseInt(input.value);
 
     if (!qty || qty < 1) return;
@@ -63,16 +65,22 @@ window.addToCartWithInput = function (name, price) {
     }
 
     input.value = 1;
+
     updateCart();
 };
 
+/* =========================
+   REMOVE ITEM
+========================= */
 window.removeItem = function (name) {
 
     if (!cart[name]) return;
 
     cart[name].quantity--;
 
-    if (cart[name].quantity <= 0) delete cart[name];
+    if (cart[name].quantity <= 0) {
+        delete cart[name];
+    }
 
     updateCart();
 };
@@ -83,6 +91,8 @@ window.removeItem = function (name) {
 function updateCart() {
 
     const cartDiv = document.getElementById('cart-items');
+    if (!cartDiv) return;
+
     cartDiv.innerHTML = '';
 
     let total = 0;
@@ -105,22 +115,37 @@ function updateCart() {
     }
 
     if (total === 0) {
-        cartDiv.innerHTML = "Cart empty";
+        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
     }
 
-    document.getElementById('total').textContent = total;
+    const totalEl = document.getElementById('total');
+    if (totalEl) totalEl.textContent = total;
 
+    // update quantities in UI
     const map = {
-        "Dr Pepper": "DrPepper",
-        "Chicken Noodle Snack": "ChickenNoodleSnack",
-        "Bundle Pack": "BundlePack",
-        "Chocolate": "Chocolate"
+        "dr-pepper": "dr-pepper",
+        "chicken": "chicken",
+        "bundle": "bundle",
+        "chocolate": "chocolate"
     };
 
     for (let key in map) {
         const el = document.getElementById('qty-' + map[key]);
-        if (el) el.textContent = cart[key]?.quantity || 0;
+        if (el) el.textContent = cartNameToQty(key);
     }
+}
+
+/* helper */
+function cartNameToQty(key) {
+
+    const nameMap = {
+        "dr-pepper": "Dr Pepper",
+        "chicken": "Chicken Noodle Snack",
+        "bundle": "Bundle Pack",
+        "chocolate": "Chocolate"
+    };
+
+    return cart[nameMap[key]]?.quantity || 0;
 }
 
 /* =========================
@@ -128,10 +153,10 @@ function updateCart() {
 ========================= */
 window.checkout = async function () {
 
-    const name = document.getElementById('customerName').value;
-    const total = Number(document.getElementById('total').textContent);
+    const name = document.getElementById('customerName')?.value;
+    const total = Number(document.getElementById('total')?.textContent);
 
-    if (!name || total <= 0) return;
+    if (!name || total <= 0 || !currentUser) return;
 
     await addDoc(collection(db, "orders"), {
         customer: name,
@@ -143,6 +168,7 @@ window.checkout = async function () {
 
     cart = {};
     updateCart();
+
     await renderOrderHistory();
 };
 
@@ -152,6 +178,8 @@ window.checkout = async function () {
 async function renderOrderHistory() {
 
     const box = document.getElementById('history-list');
+    if (!box || !currentUser) return;
+
     box.innerHTML = '';
 
     const q = query(
@@ -170,7 +198,7 @@ async function renderOrderHistory() {
         div.className = 'cart-item';
 
         div.innerHTML = `
-            <div>${order.customer}</div>
+            <div><strong>${order.customer}</strong></div>
             <div>Total: NT$${order.total}</div>
         `;
 
@@ -182,8 +210,12 @@ async function renderOrderHistory() {
    TOGGLE HISTORY
 ========================= */
 window.toggleOrderHistory = function () {
+
     const box = document.getElementById('order-history');
-    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    if (!box) return;
+
+    box.style.display =
+        box.style.display === 'block' ? 'none' : 'block';
 };
 
 /* =========================
