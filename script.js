@@ -19,7 +19,9 @@ import {
 let cart = {};
 let currentUser = null;
 
-/* AUTH */
+/* =========================
+   AUTH (SAFE FIX)
+========================= */
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
@@ -29,8 +31,11 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUser = user;
 
-    const name = document.getElementById('userName');
-    if (name) name.textContent = user.displayName || user.email;
+    const nameEl = document.getElementById('userName');
+    if (nameEl) nameEl.textContent = user.displayName || user.email;
+
+    const panel = document.getElementById('userInfo');
+    if (panel) panel.style.display = 'block';
 
     const customer = document.getElementById('customerName');
     if (customer) customer.value = user.displayName || user.email;
@@ -38,7 +43,9 @@ onAuthStateChanged(auth, async (user) => {
     await renderOrderHistory();
 });
 
-/* ADD ITEM */
+/* =========================
+   ADD ITEM
+========================= */
 window.addItem = function (id, name, price) {
 
     const input = document.getElementById('input-' + id);
@@ -54,10 +61,13 @@ window.addItem = function (id, name, price) {
     }
 
     input.value = 1;
+
     updateCart();
 };
 
-/* REMOVE */
+/* =========================
+   REMOVE ITEM
+========================= */
 window.removeItem = function (name) {
 
     if (!cart[name]) return;
@@ -71,10 +81,14 @@ window.removeItem = function (name) {
     updateCart();
 };
 
-/* UPDATE CART */
+/* =========================
+   UPDATE CART
+========================= */
 function updateCart() {
 
     const cartDiv = document.getElementById('cart-items');
+    if (!cartDiv) return;
+
     cartDiv.innerHTML = '';
 
     let total = 0;
@@ -106,7 +120,9 @@ function updateCart() {
     updateQtyUI();
 }
 
-/* UPDATE SMALL COUNTERS */
+/* =========================
+   UPDATE QTY UI
+========================= */
 function updateQtyUI() {
 
     const map = {
@@ -116,13 +132,15 @@ function updateQtyUI() {
         "chocolate": "Chocolate"
     };
 
-    for (let key in map) {
-        const el = document.getElementById('qty-' + key);
-        if (el) el.textContent = cart[map[key]]?.quantity || 0;
+    for (let id in map) {
+        const el = document.getElementById('qty-' + id);
+        if (el) el.textContent = cart[map[id]]?.quantity || 0;
     }
 }
 
-/* CHECKOUT */
+/* =========================
+   CHECKOUT
+========================= */
 window.checkout = async function () {
 
     const name = document.getElementById('customerName')?.value;
@@ -143,7 +161,9 @@ window.checkout = async function () {
     await renderOrderHistory();
 };
 
-/* HISTORY */
+/* =========================
+   ORDER HISTORY
+========================= */
 async function renderOrderHistory() {
 
     const box = document.getElementById('history-list');
@@ -175,18 +195,27 @@ async function renderOrderHistory() {
     });
 }
 
-/* TOGGLE */
+/* =========================
+   TOGGLE HISTORY
+========================= */
 window.toggleOrderHistory = function () {
 
     const box = document.getElementById('order-history');
-    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    if (!box) return;
+
+    box.style.display =
+        box.style.display === 'block' ? 'none' : 'block';
 };
 
-/* LOGOUT */
+/* =========================
+   LOGOUT
+========================= */
 window.logout = async function () {
     await signOut(auth);
     window.location.href = 'login.html';
 };
 
-/* INIT */
+/* =========================
+   INIT
+========================= */
 updateCart();
