@@ -16,11 +16,14 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
+/* =========================
+   STATE
+========================= */
 let cart = {};
 let currentUser = null;
 
 /* =========================
-   AUTH (SAFE FIX)
+   AUTH SAFE
 ========================= */
 onAuthStateChanged(auth, async (user) => {
 
@@ -82,36 +85,36 @@ window.removeItem = function (name) {
 };
 
 /* =========================
-   UPDATE CART
+   CART UPDATE
 ========================= */
 function updateCart() {
 
-    const cartDiv = document.getElementById('cart-items');
-    if (!cartDiv) return;
+    const box = document.getElementById('cart-items');
+    if (!box) return;
 
-    cartDiv.innerHTML = '';
+    box.innerHTML = '';
 
     let total = 0;
 
     for (let item in cart) {
 
-        const c = cart[item];
-        total += c.price * c.quantity;
+        const data = cart[item];
+        total += data.price * data.quantity;
 
         const div = document.createElement('div');
         div.className = 'cart-item';
 
         div.innerHTML = `
-            <div><strong>${item} x${c.quantity}</strong></div>
-            <div>NT$${c.price * c.quantity}</div>
+            <div><strong>${item} x${data.quantity}</strong></div>
+            <div>NT$${data.price * data.quantity}</div>
             <button onclick="removeItem('${item}')">Remove</button>
         `;
 
-        cartDiv.appendChild(div);
+        box.appendChild(div);
     }
 
     if (total === 0) {
-        cartDiv.innerHTML = `<div class="empty-cart">Cart empty</div>`;
+        box.innerHTML = `<div class="empty-cart">Cart empty</div>`;
     }
 
     const totalEl = document.getElementById('total');
@@ -121,7 +124,7 @@ function updateCart() {
 }
 
 /* =========================
-   UPDATE QTY UI
+   SMALL QTY DISPLAY
 ========================= */
 function updateQtyUI() {
 
@@ -158,11 +161,12 @@ window.checkout = async function () {
 
     cart = {};
     updateCart();
+
     await renderOrderHistory();
 };
 
 /* =========================
-   ORDER HISTORY
+   ORDER HISTORY (FIXED: ITEMS + TIME)
 ========================= */
 async function renderOrderHistory() {
 
@@ -179,20 +183,40 @@ async function renderOrderHistory() {
 
     const snap = await getDocs(q);
 
-    snap.forEach(doc => {
+    snap.forEach(docSnap => {
 
-        const o = doc.data();
+        const o = docSnap.data();
+
+        // TIME FIX
+        const time = o.createdAt?.toDate
+            ? o.createdAt.toDate().toLocaleString()
+            : "Unknown time";
+
+        // ITEMS FIX
+        let items = "";
+
+        if (o.items) {
+            items = Object.entries(o.items)
+                .map(([name, data]) => `${name} x${data.quantity}`)
+                .join(", ");
+        }
 
         const div = document.createElement('div');
         div.className = 'cart-item';
 
         div.innerHTML = `
             <div><strong>${o.customer}</strong></div>
+            <div style="font-size:12px;color:#aaa;">${time}</div>
+            <div>${items}</div>
             <div>Total: NT$${o.total}</div>
         `;
 
         box.appendChild(div);
     });
+
+    if (snap.empty) {
+        box.innerHTML = `<div class="empty-cart">No orders yet</div>`;
+    }
 }
 
 /* =========================
