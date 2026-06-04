@@ -4,13 +4,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Snack Store</title>
-
 <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+
+<!-- USER INFO -->
+<div id="userInfo" style="display:none;">
+    Welcome, <span id="userName"></span>
+    <button onclick="logout()">Logout</button>
+</div>
 
 <header>
     Snack Store <span class="cash-only">CASH ONLY</span>
@@ -23,15 +27,14 @@
 
     <!-- DR PEPPER -->
     <div class="item">
-
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg">
 
         <h3>Dr Pepper</h3>
         <p>NT$30</p>
 
         <div class="quantity">
-            <input id="input-dr-pepper" type="number" min="1" value="1">
-            <button class="add-btn" onclick="addItem('dr-pepper','Dr Pepper',30)">Add</button>
+            <input id="input-dr-pepper" type="number" value="1" min="1">
+            <button onclick="addItem('dr-pepper','Dr Pepper',30)" class="add-btn">Add</button>
         </div>
 
         <div>In cart: <span id="qty-dr-pepper">0</span></div>
@@ -39,15 +42,14 @@
 
     <!-- CHICKEN -->
     <div class="item">
-
         <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
 
         <h3>Chicken Noodle Snack</h3>
         <p>NT$25</p>
 
         <div class="quantity">
-            <input id="input-chicken" type="number" min="1" value="1">
-            <button class="add-btn" onclick="addItem('chicken','Chicken Noodle Snack',25)">Add</button>
+            <input id="input-chicken" type="number" value="1" min="1">
+            <button onclick="addItem('chicken','Chicken Noodle Snack',25)" class="add-btn">Add</button>
         </div>
 
         <div>In cart: <span id="qty-chicken">0</span></div>
@@ -65,8 +67,8 @@
         <p>NT$50</p>
 
         <div class="quantity">
-            <input id="input-bundle" type="number" min="1" value="1">
-            <button class="add-btn" onclick="addItem('bundle','Bundle Pack',50)">Add</button>
+            <input id="input-bundle" type="number" value="1" min="1">
+            <button onclick="addItem('bundle','Bundle Pack',50)" class="add-btn">Add</button>
         </div>
 
         <div>In cart: <span id="qty-bundle">0</span></div>
@@ -74,15 +76,14 @@
 
     <!-- CHOCOLATE -->
     <div class="item">
-
         <img src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg">
 
         <h3>Chocolate</h3>
         <p>NT$20</p>
 
         <div class="quantity">
-            <input id="input-chocolate" type="number" min="1" value="1">
-            <button class="add-btn" onclick="addItem('chocolate','Chocolate',20)">Add</button>
+            <input id="input-chocolate" type="number" value="1" min="1">
+            <button onclick="addItem('chocolate','Chocolate',20)" class="add-btn">Add</button>
         </div>
 
         <div>In cart: <span id="qty-chocolate">0</span></div>
