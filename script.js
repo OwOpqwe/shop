@@ -1,4 +1,3 @@
-
 import { auth, db } from './firebase.js';
 
 import {
@@ -13,7 +12,9 @@ import {
     where,
     getDocs,
     orderBy,
-    serverTimestamp
+    serverTimestamp,
+    deleteDoc,
+    doc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 /* =========================
@@ -23,7 +24,7 @@ let cart = {};
 let currentUser = null;
 
 /* =========================
-   AUTH SAFE
+   AUTH (SAFE)
 ========================= */
 onAuthStateChanged(auth, async (user) => {
 
@@ -64,7 +65,6 @@ window.addItem = function (id, name, price) {
     }
 
     input.value = 1;
-
     updateCart();
 };
 
@@ -98,15 +98,15 @@ function updateCart() {
 
     for (let item in cart) {
 
-        const data = cart[item];
-        total += data.price * data.quantity;
+        const c = cart[item];
+        total += c.price * c.quantity;
 
         const div = document.createElement('div');
         div.className = 'cart-item';
 
         div.innerHTML = `
-            <div><strong>${item} x${data.quantity}</strong></div>
-            <div>NT$${data.price * data.quantity}</div>
+            <div><strong>${item} x${c.quantity}</strong></div>
+            <div>NT$${c.price * c.quantity}</div>
             <button onclick="removeItem('${item}')">Remove</button>
         `;
 
@@ -124,7 +124,7 @@ function updateCart() {
 }
 
 /* =========================
-   SMALL QTY DISPLAY
+   QTY DISPLAY
 ========================= */
 function updateQtyUI() {
 
@@ -166,7 +166,7 @@ window.checkout = async function () {
 };
 
 /* =========================
-   ORDER HISTORY (FIXED: ITEMS + TIME)
+   ORDER HISTORY (WITH DELETE)
 ========================= */
 async function renderOrderHistory() {
 
@@ -175,49 +175,82 @@ async function renderOrderHistory() {
 
     box.innerHTML = '';
 
-    const q = query(
-        collection(db, "orders"),
-        where("userEmail", "==", currentUser.email),
-        orderBy("createdAt", "desc")
-    );
+    try {
 
-    const snap = await getDocs(q);
+        const q = query(
+            collection(db, "orders"),
+            where("userEmail", "==", currentUser.email),
+            orderBy("createdAt", "desc")
+        );
 
-    snap.forEach(docSnap => {
+        const snap = await getDocs(q);
 
-        const o = docSnap.data();
+        snap.forEach(docSnap => {
 
-        // TIME FIX
-        const time = o.createdAt?.toDate
-            ? o.createdAt.toDate().toLocaleString()
-            : "Unknown time";
+            const o = docSnap.data();
+            const id = docSnap.id;
 
-        // ITEMS FIX
-        let items = "";
+            const time = o.createdAt?.toDate
+                ? o.createdAt.toDate().toLocaleString()
+                : "Unknown time";
 
-        if (o.items) {
-            items = Object.entries(o.items)
-                .map(([name, data]) => `${name} x${data.quantity}`)
-                .join(", ");
+            const items = o.items
+                ? Object.entries(o.items)
+                    .map(([name, data]) => `${name} x${data.quantity}`)
+                    .join(", ")
+                : "No items";
+
+            const div = document.createElement('div');
+            div.className = 'cart-item';
+
+            div.innerHTML = `
+                <div><strong>${o.customer}</strong></div>
+                <div style="font-size:12px;color:#aaa;">${time}</div>
+                <div>${items}</div>
+                <div>Total: NT$${o.total}</div>
+
+                <button onclick="deleteOrder('${id}')"
+                    style="
+                        margin-top:8px;
+                        background:#e53935;
+                        color:white;
+                        border:none;
+                        padding:6px 10px;
+                        border-radius:8px;
+                        cursor:pointer;
+                    ">
+                    Delete
+                </button>
+            `;
+
+            box.appendChild(div);
+        });
+
+        if (snap.empty) {
+            box.innerHTML = `<div class="empty-cart">No orders yet</div>`;
         }
 
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-
-        div.innerHTML = `
-            <div><strong>${o.customer}</strong></div>
-            <div style="font-size:12px;color:#aaa;">${time}</div>
-            <div>${items}</div>
-            <div>Total: NT$${o.total}</div>
-        `;
-
-        box.appendChild(div);
-    });
-
-    if (snap.empty) {
-        box.innerHTML = `<div class="empty-cart">No orders yet</div>`;
+    } catch (err) {
+        console.error(err);
+        box.innerHTML = `<div class="empty-cart">Failed to load history</div>`;
     }
 }
+
+/* =========================
+   DELETE ORDER
+========================= */
+window.deleteOrder = async function (orderId) {
+
+    if (!confirm("Delete this order?")) return;
+
+    try {
+        await deleteDoc(doc(db, "orders", orderId));
+        await renderOrderHistory();
+    } catch (err) {
+        console.error("Delete failed:", err);
+        alert("Failed to delete order.");
+    }
+};
 
 /* =========================
    TOGGLE HISTORY
