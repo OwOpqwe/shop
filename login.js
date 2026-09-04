@@ -1,27 +1,26 @@
-import { auth, functions } from './firebase.js';
+import { auth } from './firebase.js';
 
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     updateProfile,
     onAuthStateChanged,
-    getIdTokenResult
+    getIdTokenResult,
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-
-import {
-    httpsCallable
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-functions.js";
 
 
 /* =========================
-   CLOUD FUNCTIONS
+   ADMIN SETTINGS
 ========================= */
 
-const sendAdminCode =
-    httpsCallable(functions, "sendAdminCode");
+// Your admin email
+const ADMIN_EMAIL = "charlie197103@gmail.com";
 
-const verifyAdminCodeFunction =
-    httpsCallable(functions, "verifyAdminCode");
+// Temporary verification code.
+// IMPORTANT: This is NOT secure because it is visible
+// in the website's JavaScript.
+const ADMIN_CODE = "123456";
 
 
 /* =========================
@@ -125,7 +124,7 @@ function hideMessages() {
 
 
 /* =========================
-   ERROR MESSAGE
+   ERROR
 ========================= */
 
 function showError(message) {
@@ -142,7 +141,7 @@ function showError(message) {
 
 
 /* =========================
-   SUCCESS MESSAGE
+   SUCCESS
 ========================= */
 
 function showSuccess(message) {
@@ -165,16 +164,22 @@ function showSuccess(message) {
 window.register = async function() {
 
     const name =
-        document.getElementById('registerName').value.trim();
+        document.getElementById('registerName')
+            .value
+            .trim();
 
     const email =
-        document.getElementById('registerEmail').value.trim();
+        document.getElementById('registerEmail')
+            .value
+            .trim();
 
     const password =
-        document.getElementById('registerPassword').value;
+        document.getElementById('registerPassword')
+            .value;
 
     const confirmPassword =
-        document.getElementById('registerConfirmPassword').value;
+        document.getElementById('registerConfirmPassword')
+            .value;
 
 
     if (!name || !email || !password || !confirmPassword) {
@@ -219,6 +224,9 @@ window.register = async function() {
         );
 
 
+        await signOut(auth);
+
+
         showSuccess(
             'Registration successful! You can now login.'
         );
@@ -249,10 +257,13 @@ window.register = async function() {
 window.login = async function() {
 
     const email =
-        document.getElementById('loginEmail').value.trim();
+        document.getElementById('loginEmail')
+            .value
+            .trim();
 
     const password =
-        document.getElementById('loginPassword').value;
+        document.getElementById('loginPassword')
+            .value;
 
 
     if (!email || !password) {
@@ -305,10 +316,13 @@ window.login = async function() {
 window.adminLogin = async function() {
 
     const email =
-        document.getElementById('adminEmail').value.trim();
+        document.getElementById('adminEmail')
+            .value
+            .trim();
 
     const password =
-        document.getElementById('adminPassword').value;
+        document.getElementById('adminPassword')
+            .value;
 
 
     if (!email || !password) {
@@ -321,9 +335,21 @@ window.adminLogin = async function() {
     }
 
 
+    if (
+        email.toLowerCase() !==
+        ADMIN_EMAIL.toLowerCase()
+    ) {
+
+        showError(
+            'This account is not the administrator account.'
+        );
+
+        return;
+    }
+
+
     try {
 
-        // Sign in normally first
         const userCredential =
             await signInWithEmailAndPassword(
                 auth,
@@ -332,21 +358,19 @@ window.adminLogin = async function() {
             );
 
 
-        const user =
-            userCredential.user;
-
-
-        // Force Firebase to refresh the ID token
-        // so we get the latest admin claim.
         const tokenResult =
             await getIdTokenResult(
-                user,
+                userCredential.user,
                 true
             );
 
 
-        // Check the admin custom claim.
+        /*
+         * Check Firebase custom admin permission.
+         */
         if (tokenResult.claims.admin !== true) {
+
+            await signOut(auth);
 
             showError(
                 'This account does not have administrator permission.'
@@ -356,20 +380,15 @@ window.adminLogin = async function() {
         }
 
 
-        showSuccess(
-            'Admin account verified. Sending code...'
-        );
-
-
-        // Cloud Function sends the 6-digit code.
-        await sendAdminCode();
-
-
+        /*
+         * In this free version, the code is shown
+         * on screen instead of being emailed.
+         */
         showVerification();
 
 
         showSuccess(
-            'Verification code sent to the administrator email.'
+            'Admin verified. Enter the verification code: 123456'
         );
 
 
@@ -379,7 +398,6 @@ window.adminLogin = async function() {
             'Admin login error:',
             error
         );
-
 
         showError(
             error.message ||
@@ -411,16 +429,52 @@ window.verifyAdminCode = async function() {
     }
 
 
-    try {
+    if (code !== ADMIN_CODE) {
 
-        showSuccess(
-            'Checking verification code...'
+        showError(
+            'Incorrect verification code.'
         );
 
+        return;
+    }
 
-        await verifyAdminCodeFunction({
-            code: code
-        });
+
+    try {
+
+        const user = auth.currentUser;
+
+
+        if (!user) {
+
+            showError(
+                'Your login session has expired. Please login again.'
+            );
+
+            showLogin();
+
+            return;
+        }
+
+
+        const tokenResult =
+            await getIdTokenResult(
+                user,
+                true
+            );
+
+
+        if (tokenResult.claims.admin !== true) {
+
+            await signOut(auth);
+
+            showError(
+                'Administrator permission could not be verified.'
+            );
+
+            showLogin();
+
+            return;
+        }
 
 
         showSuccess(
@@ -428,12 +482,6 @@ window.verifyAdminCode = async function() {
         );
 
 
-        /*
-         * Temporary destination.
-         *
-         * We will create the actual admin page
-         * later.
-         */
         setTimeout(function() {
 
             window.location.href =
@@ -449,10 +497,8 @@ window.verifyAdminCode = async function() {
             error
         );
 
-
         showError(
-            error.message ||
-            'Incorrect verification code.'
+            'Admin verification failed.'
         );
     }
 };
@@ -462,17 +508,13 @@ window.verifyAdminCode = async function() {
    AUTH STATE
 ========================= */
 
-// Do NOT automatically redirect users here.
-//
-// Admin users must be allowed to complete
-// the verification-code step.
+// Do not automatically redirect.
+// Admin users must complete verification.
 
 onAuthStateChanged(
     auth,
     (user) => {
 
         // Intentionally empty.
-        //
-        // Login buttons control navigation.
     }
 );
