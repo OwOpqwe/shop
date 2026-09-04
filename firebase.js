@@ -1,4 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
 import {
     getAuth
@@ -8,21 +10,46 @@ import {
     getFirestore
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-// FIREBASE CONFIG
+import {
+    getFunctions
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-functions.js";
+
+
 const firebaseConfig = {
+
     apiKey: "AIzaSyDhzfNAuJWW09uiXm2sj3apnG48Y7MFLs4",
-    authDomain: "snack-store-ecc61.firebaseapp.com",
-    projectId: "snack-store-ecc61",
-    storageBucket: "snack-store-ecc61.firebasestorage.app",
-    messagingSenderId: "373410660807",
-    appId: "1:373410660807:web:9e16901f9602f05713d9e2",
-    measurementId: "G-P0EERKE117"
+
+    authDomain:
+        "snack-store-ecc61.firebaseapp.com",
+
+    projectId:
+        "snack-store-ecc61",
+
+    storageBucket:
+        "snack-store-ecc61.firebasestorage.app",
+
+    messagingSenderId:
+        "373410660807",
+
+    appId:
+        "1:373410660807:web:9e16901f9602f05713d9e2",
+
+    measurementId:
+        "G-P0EERKE117"
 };
 
-// INITIALIZE FIREBASE
-const app = initializeApp(firebaseConfig);
 
-// EXPORT AUTH + DATABASE
-export const auth = getAuth(app);
+const app =
+    initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
+
+export const auth =
+    getAuth(app);
+
+
+export const db =
+    getFirestore(app);
+
+
+export const functions =
+    getFunctions(app);
