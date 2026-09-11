@@ -102,6 +102,14 @@ body{
     background:#1e7e34;
 }
 
+.btn-admin{
+    background:#6f42c1;
+}
+
+.btn-admin:hover{
+    background:#56329a;
+}
+
 .toggle-text{
     text-align:center;
     margin-top:20px;
@@ -128,6 +136,16 @@ body{
     display:none;
 }
 
+.admin-info{
+    background:#f1e9ff;
+    color:#4b277d;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:20px;
+    text-align:center;
+    font-size:14px;
+}
+
 </style>
 
 </head>
@@ -142,7 +160,11 @@ body{
             🏪 Login to Snack Store
         </h2>
 
-        <!-- LOGIN -->
+
+        <!-- =========================
+             CUSTOMER LOGIN
+        ========================== -->
+
         <div id="loginForm">
 
             <div class="form-group">
@@ -152,12 +174,13 @@ body{
                 </label>
 
                 <input
-                type="email"
-                id="loginEmail"
-                placeholder="Enter your email"
-                required>
+                    type="email"
+                    id="loginEmail"
+                    placeholder="Enter your email"
+                    required>
 
             </div>
+
 
             <div class="form-group">
 
@@ -166,18 +189,29 @@ body{
                 </label>
 
                 <input
-                type="password"
-                id="loginPassword"
-                placeholder="Enter your password"
-                required>
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Enter your password"
+                    required>
 
             </div>
 
+
             <button
-            class="btn"
-            onclick="login()">
+                class="btn"
+                onclick="login()">
                 Login
             </button>
+
+
+            <!-- ADMIN BUTTON -->
+
+            <button
+                class="btn btn-admin"
+                onclick="showAdminLogin()">
+                🛡️ Admin Login
+            </button>
+
 
             <div class="toggle-text">
 
@@ -191,9 +225,131 @@ body{
 
         </div>
 
-        <!-- REGISTER -->
-        <div id="registerForm"
-        style="display:none;">
+
+        <!-- =========================
+             ADMIN LOGIN
+        ========================== -->
+
+        <div
+            id="adminLoginForm"
+            style="display:none;">
+
+            <div class="admin-info">
+
+                🛡️ Admin login requires
+                administrator permission
+                and a verification code.
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="adminEmail">
+                    Admin Email
+                </label>
+
+                <input
+                    type="email"
+                    id="adminEmail"
+                    placeholder="Enter admin email"
+                    required>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="adminPassword">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="adminPassword"
+                    placeholder="Enter admin password"
+                    required>
+
+            </div>
+
+
+            <button
+                class="btn btn-admin"
+                onclick="adminLogin()">
+                Continue as Admin
+            </button>
+
+
+            <div class="toggle-text">
+
+                <a onclick="showLogin()">
+                    Back to customer login
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             ADMIN VERIFICATION
+        ========================== -->
+
+        <div
+            id="verificationForm"
+            style="display:none;">
+
+            <div class="admin-info">
+
+                🔐 Enter the 6-digit
+                administrator verification code.
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="verificationCode">
+                    Verification Code
+                </label>
+
+                <input
+                    type="text"
+                    id="verificationCode"
+                    placeholder="Enter 6-digit code"
+                    maxlength="6"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    required>
+
+            </div>
+
+
+            <button
+                class="btn btn-admin"
+                onclick="verifyAdminCode()">
+                Verify Admin
+            </button>
+
+
+            <div class="toggle-text">
+
+                <a onclick="showLogin()">
+                    Cancel
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             REGISTER
+        ========================== -->
+
+        <div
+            id="registerForm"
+            style="display:none;">
 
             <div class="form-group">
 
@@ -202,12 +358,13 @@ body{
                 </label>
 
                 <input
-                type="text"
-                id="registerName"
-                placeholder="Enter your name"
-                required>
+                    type="text"
+                    id="registerName"
+                    placeholder="Enter your name"
+                    required>
 
             </div>
+
 
             <div class="form-group">
 
@@ -216,12 +373,13 @@ body{
                 </label>
 
                 <input
-                type="email"
-                id="registerEmail"
-                placeholder="Enter your email"
-                required>
+                    type="email"
+                    id="registerEmail"
+                    placeholder="Enter your email"
+                    required>
 
             </div>
+
 
             <div class="form-group">
 
@@ -230,12 +388,13 @@ body{
                 </label>
 
                 <input
-                type="password"
-                id="registerPassword"
-                placeholder="Create password"
-                required>
+                    type="password"
+                    id="registerPassword"
+                    placeholder="Create password"
+                    required>
 
             </div>
+
 
             <div class="form-group">
 
@@ -244,18 +403,20 @@ body{
                 </label>
 
                 <input
-                type="password"
-                id="registerConfirmPassword"
-                placeholder="Confirm password"
-                required>
+                    type="password"
+                    id="registerConfirmPassword"
+                    placeholder="Confirm password"
+                    required>
 
             </div>
 
+
             <button
-            class="btn btn-secondary"
-            onclick="register()">
+                class="btn btn-secondary"
+                onclick="register()">
                 Register
             </button>
+
 
             <div class="toggle-text">
 
@@ -269,23 +430,30 @@ body{
 
         </div>
 
-        <div
-        class="error-msg"
-        id="errorMsg">
-        </div>
+
+        <!-- =========================
+             MESSAGES
+        ========================== -->
 
         <div
-        class="success-msg"
-        id="successMsg">
+            class="error-msg"
+            id="errorMsg">
+        </div>
+
+
+        <div
+            class="success-msg"
+            id="successMsg">
         </div>
 
     </div>
 
 </div>
 
+
 <script
-type="module"
-src="login.js">
+    type="module"
+    src="login.js">
 </script>
 
 </body>
