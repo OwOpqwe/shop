@@ -1,125 +1,370 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
 <title>Snack Store</title>
+
 <link rel="stylesheet" href="styles.css">
+
 </head>
+
 
 <body>
 
+
 <!-- USER INFO -->
+
 <div id="userInfo" style="display:none;">
-    Welcome, <span id="userName"></span>
-    <button onclick="logout()">Logout</button>
+
+    Welcome,
+    <span id="userName"></span>
+
+
+    <button
+        id="adminDashboardBtn"
+        onclick="goToAdminDashboard()"
+        style="
+            display:none;
+            background:#6f42c1;
+            color:white;
+            border:none;
+            padding:8px 12px;
+            border-radius:8px;
+            cursor:pointer;
+            margin-left:10px;
+        ">
+
+        🛡️ Admin Dashboard
+
+    </button>
+
+
+    <button onclick="logout()">
+
+        Logout
+
+    </button>
+
 </div>
 
+
+
 <header>
-    Snack Store <span class="cash-only">CASH ONLY</span>
+
+    Snack Store
+
+    <span class="cash-only">
+        CASH ONLY
+    </span>
+
 </header>
+
+
 
 <div class="main-container">
 
-<!-- STORE -->
+
+<!-- =========================
+     STORE
+========================= -->
+
 <div class="store-container">
 
-    <!-- DR PEPPER -->
-    <div class="item">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg">
 
-        <h3>Dr Pepper</h3>
-        <p>NT$30</p>
+    <!-- DR PEPPER -->
+
+    <div class="item">
+
+        <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
+        >
+
+        <h3>
+            Dr Pepper
+        </h3>
+
+        <p>
+            NT$30
+        </p>
+
 
         <div class="quantity">
-            <input id="input-dr-pepper" type="number" value="1" min="1">
-            <button onclick="addItem('dr-pepper','Dr Pepper',30)" class="add-btn">Add</button>
+
+            <input
+                id="input-dr-pepper"
+                type="number"
+                value="1"
+                min="1"
+            >
+
+            <button
+                onclick="addItem('dr-pepper','Dr Pepper',30)"
+                class="add-btn">
+
+                Add
+
+            </button>
+
         </div>
 
-        <div>In cart: <span id="qty-dr-pepper">0</span></div>
+
+        <div>
+
+            In cart:
+            <span id="qty-dr-pepper">
+                0
+            </span>
+
+        </div>
+
     </div>
+
+
 
     <!-- CHICKEN -->
-    <div class="item">
-        <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
 
-        <h3>Chicken Noodle Snack</h3>
-        <p>NT$25</p>
+    <div class="item">
+
+        <img
+            src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
+        >
+
+        <h3>
+            Chicken Noodle Snack
+        </h3>
+
+        <p>
+            NT$25
+        </p>
+
 
         <div class="quantity">
-            <input id="input-chicken" type="number" value="1" min="1">
-            <button onclick="addItem('chicken','Chicken Noodle Snack',25)" class="add-btn">Add</button>
+
+            <input
+                id="input-chicken"
+                type="number"
+                value="1"
+                min="1"
+            >
+
+            <button
+                onclick="addItem('chicken','Chicken Noodle Snack',25)"
+                class="add-btn">
+
+                Add
+
+            </button>
+
         </div>
 
-        <div>In cart: <span id="qty-chicken">0</span></div>
+
+        <div>
+
+            In cart:
+            <span id="qty-chicken">
+                0
+            </span>
+
+        </div>
+
     </div>
 
+
+
     <!-- BUNDLE -->
+
     <div class="item">
 
         <div class="bundle-images">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg">
-            <img src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg">
+
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
+            >
+
+            <img
+                src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
+            >
+
         </div>
 
-        <h3>Bundle Pack</h3>
-        <p>NT$50</p>
+
+        <h3>
+            Bundle Pack
+        </h3>
+
+        <p>
+            NT$50
+        </p>
+
 
         <div class="quantity">
-            <input id="input-bundle" type="number" value="1" min="1">
-            <button onclick="addItem('bundle','Bundle Pack',50)" class="add-btn">Add</button>
+
+            <input
+                id="input-bundle"
+                type="number"
+                value="1"
+                min="1"
+            >
+
+            <button
+                onclick="addItem('bundle','Bundle Pack',50)"
+                class="add-btn">
+
+                Add
+
+            </button>
+
         </div>
 
-        <div>In cart: <span id="qty-bundle">0</span></div>
+
+        <div>
+
+            In cart:
+            <span id="qty-bundle">
+                0
+            </span>
+
+        </div>
+
     </div>
+
+
 
     <!-- CHOCOLATE -->
-    <div class="item">
-        <img src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg">
 
-        <h3>Chocolate</h3>
-        <p>NT$20</p>
+    <div class="item">
+
+        <img
+            src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg"
+        >
+
+        <h3>
+            Chocolate
+        </h3>
+
+        <p>
+            NT$20
+        </p>
+
 
         <div class="quantity">
-            <input id="input-chocolate" type="number" value="1" min="1">
-            <button onclick="addItem('chocolate','Chocolate',20)" class="add-btn">Add</button>
+
+            <input
+                id="input-chocolate"
+                type="number"
+                value="1"
+                min="1"
+            >
+
+            <button
+                onclick="addItem('chocolate','Chocolate',20)"
+                class="add-btn">
+
+                Add
+
+            </button>
+
         </div>
 
-        <div>In cart: <span id="qty-chocolate">0</span></div>
+
+        <div>
+
+            In cart:
+            <span id="qty-chocolate">
+                0
+            </span>
+
+        </div>
+
     </div>
+
 
 </div>
 
-<!-- CART -->
+
+
+<!-- =========================
+     CART
+========================= -->
+
 <div class="cart-panel">
 
-    <div class="cart-header">Your Cart</div>
 
-    <input id="customerName" readonly>
+    <div class="cart-header">
+
+        Your Cart
+
+    </div>
+
+
+    <input
+        id="customerName"
+        readonly
+    >
+
 
     <div id="cart-items"></div>
 
+
     <div class="cart-total">
+
         Total: NT$<span id="total">0</span>
+
     </div>
 
-    <button class="checkout-btn" onclick="checkout()">Checkout</button>
 
-    <button class="checkout-btn" style="background:#6f42c1;" onclick="toggleOrderHistory()">
-        View Order History
+    <button
+        class="checkout-btn"
+        onclick="checkout()">
+
+        Checkout
+
     </button>
 
-    <div id="order-history" style="display:none;">
-        <h3>Order History</h3>
+
+    <button
+        class="checkout-btn"
+        style="background:#6f42c1;"
+        onclick="toggleOrderHistory()">
+
+        View Order History
+
+    </button>
+
+
+    <div
+        id="order-history"
+        style="display:none;">
+
+        <h3>
+            Order History
+        </h3>
+
+
         <div id="history-list"></div>
+
     </div>
 
-</div>
 
 </div>
 
-<script type="module" src="script.js"></script>
+
+</div>
+
+
+
+<script
+    type="module"
+    src="script.js">
+</script>
+
 
 </body>
+
 </html>
