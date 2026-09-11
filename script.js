@@ -2,7 +2,8 @@ import { auth, db } from './firebase.js';
 
 import {
     signOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    getIdTokenResult
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 import {
@@ -33,62 +34,209 @@ let currentUser = null;
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
+
         window.location.href = 'login.html';
+
         return;
     }
 
+
     currentUser = user;
+
+
+    /* =========================
+       USER NAME
+    ========================= */
 
     const nameEl =
         document.getElementById('userName');
 
     if (nameEl) {
+
         nameEl.textContent =
             user.displayName || user.email;
+
     }
+
 
     const panel =
         document.getElementById('userInfo');
 
     if (panel) {
+
         panel.style.display = 'block';
+
     }
+
 
     const customer =
         document.getElementById('customerName');
 
     if (customer) {
+
         customer.value =
             user.displayName || user.email;
+
     }
 
+
+    /* =========================
+       CHECK ADMIN
+    ========================= */
+
+    try {
+
+        const tokenResult =
+            await getIdTokenResult(
+                user,
+                true
+            );
+
+
+        const isAdmin =
+            tokenResult.claims.admin === true;
+
+
+        const adminButton =
+            document.getElementById(
+                'adminDashboardBtn'
+            );
+
+
+        if (adminButton) {
+
+            if (isAdmin) {
+
+                adminButton.style.display =
+                    'inline-block';
+
+            } else {
+
+                adminButton.style.display =
+                    'none';
+
+            }
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            'Admin check failed:',
+            error
+        );
+
+    }
+
+
+    /* =========================
+       LOAD ORDER HISTORY
+    ========================= */
+
     await renderOrderHistory();
+
 });
+
+
+/* =========================
+   ADMIN DASHBOARD
+========================= */
+
+window.goToAdminDashboard =
+    async function() {
+
+        if (!currentUser) {
+
+            window.location.href =
+                'login.html';
+
+            return;
+
+        }
+
+
+        try {
+
+            const tokenResult =
+                await getIdTokenResult(
+                    currentUser,
+                    true
+                );
+
+
+            if (
+                tokenResult.claims.admin !== true
+            ) {
+
+                alert(
+                    'You do not have administrator permission.'
+                );
+
+                return;
+
+            }
+
+
+            window.location.href =
+                'admin.html';
+
+
+        } catch (error) {
+
+            console.error(
+                'Admin verification failed:',
+                error
+            );
+
+
+            alert(
+                'Could not verify administrator permission.'
+            );
+
+        }
+
+    };
 
 
 /* =========================
    ADD ITEM
 ========================= */
 
-window.addItem = function(id, name, price) {
+window.addItem = function(
+    id,
+    name,
+    price
+) {
 
     const input =
-        document.getElementById('input-' + id);
+        document.getElementById(
+            'input-' + id
+        );
 
-    if (!input) return;
+
+    if (!input) {
+        return;
+    }
+
 
     const qty =
         parseInt(input.value);
+
 
     if (!qty || qty < 1) {
         return;
     }
 
+
     if (!cart[name]) {
 
         cart[name] = {
+
             price: price,
+
             quantity: qty
+
         };
 
     } else {
@@ -97,9 +245,12 @@ window.addItem = function(id, name, price) {
 
     }
 
+
     input.value = 1;
 
+
     updateCart();
+
 };
 
 
@@ -113,13 +264,19 @@ window.removeItem = function(name) {
         return;
     }
 
+
     cart[name].quantity--;
 
+
     if (cart[name].quantity <= 0) {
+
         delete cart[name];
+
     }
 
+
     updateCart();
+
 };
 
 
@@ -130,62 +287,109 @@ window.removeItem = function(name) {
 function updateCart() {
 
     const box =
-        document.getElementById('cart-items');
+        document.getElementById(
+            'cart-items'
+        );
 
-    if (!box) return;
+
+    if (!box) {
+        return;
+    }
+
 
     box.innerHTML = '';
 
+
     let total = 0;
 
-    for (const item in cart) {
 
-        const c = cart[item];
+    for (
+        const item in cart
+    ) {
+
+        const c =
+            cart[item];
+
 
         total +=
-            c.price * c.quantity;
+            c.price *
+            c.quantity;
+
 
         const div =
-            document.createElement('div');
+            document.createElement(
+                'div'
+            );
 
-        div.className = 'cart-item';
+
+        div.className =
+            'cart-item';
+
 
         div.innerHTML = `
+
             <div>
+
                 <strong>
                     ${item} x${c.quantity}
                 </strong>
+
             </div>
 
+
             <div>
+
                 NT$${c.price * c.quantity}
+
             </div>
+
 
             <button
                 onclick="removeItem('${item}')">
+
                 Remove
+
             </button>
+
         `;
 
+
         box.appendChild(div);
+
     }
+
 
     if (total === 0) {
 
-        box.innerHTML =
-            `<div class="empty-cart">
+        box.innerHTML = `
+
+            <div class="empty-cart">
+
                 Cart empty
-            </div>`;
+
+            </div>
+
+        `;
+
     }
+
 
     const totalEl =
-        document.getElementById('total');
+        document.getElementById(
+            'total'
+        );
+
 
     if (totalEl) {
-        totalEl.textContent = total;
+
+        totalEl.textContent =
+            total;
+
     }
 
+
     updateQtyUI();
+
 }
 
 
@@ -197,29 +401,41 @@ function updateQtyUI() {
 
     const map = {
 
-        "dr-pepper": "Dr Pepper",
+        "dr-pepper":
+            "Dr Pepper",
 
-        "chicken": "Chicken Noodle Snack",
+        "chicken":
+            "Chicken Noodle Snack",
 
-        "bundle": "Bundle Pack",
+        "bundle":
+            "Bundle Pack",
 
-        "chocolate": "Chocolate"
+        "chocolate":
+            "Chocolate"
 
     };
 
-    for (const id in map) {
+
+    for (
+        const id in map
+    ) {
 
         const el =
             document.getElementById(
                 'qty-' + id
             );
 
+
         if (el) {
 
             el.textContent =
-                cart[map[id]]?.quantity || 0;
+                cart[map[id]]
+                    ?.quantity || 0;
+
         }
+
     }
+
 }
 
 
@@ -227,90 +443,105 @@ function updateQtyUI() {
    CHECKOUT
 ========================= */
 
-window.checkout = async function() {
+window.checkout =
+    async function() {
 
-    const name =
-        document
-            .getElementById('customerName')
-            ?.value;
-
-    const total =
-        Number(
+        const name =
             document
-                .getElementById('total')
-                ?.textContent
-        );
-
-    if (
-        !name ||
-        total <= 0 ||
-        !currentUser
-    ) {
-
-        alert(
-            'Please add something to your cart first.'
-        );
-
-        return;
-    }
+                .getElementById(
+                    'customerName'
+                )
+                ?.value;
 
 
-    try {
-
-        await addDoc(
-            collection(db, "orders"),
-            {
-
-                // Customer information
-                customer: name,
-
-                // IMPORTANT:
-                // This connects the order
-                // to the logged-in customer.
-                userId: currentUser.uid,
-
-                userEmail:
-                    currentUser.email,
-
-                // Items in cart
-                items: cart,
-
-                // Order total
-                total: total,
-
-                // Firebase server time
-                createdAt:
-                    serverTimestamp()
-            }
-        );
+        const total =
+            Number(
+                document
+                    .getElementById(
+                        'total'
+                    )
+                    ?.textContent
+            );
 
 
-        // Empty the cart
-        cart = {};
+        if (
+            !name ||
+            total <= 0 ||
+            !currentUser
+        ) {
 
-        updateCart();
+            alert(
+                'Please add something to your cart first.'
+            );
 
-        // Refresh order history
-        await renderOrderHistory();
+            return;
 
-
-        alert(
-            'Order placed successfully!'
-        );
+        }
 
 
-    } catch (err) {
+        try {
 
-        console.error(
-            'Checkout failed:',
-            err
-        );
+            await addDoc(
 
-        alert(
-            'Failed to place order.'
-        );
-    }
-};
+                collection(
+                    db,
+                    "orders"
+                ),
+
+                {
+
+                    customer:
+                        name,
+
+                    userId:
+                        currentUser.uid,
+
+                    userEmail:
+                        currentUser.email,
+
+                    items:
+                        cart,
+
+                    total:
+                        total,
+
+                    createdAt:
+                        serverTimestamp()
+
+                }
+
+            );
+
+
+            cart = {};
+
+
+            updateCart();
+
+
+            await renderOrderHistory();
+
+
+            alert(
+                'Order placed successfully!'
+            );
+
+
+        } catch (err) {
+
+            console.error(
+                'Checkout failed:',
+                err
+            );
+
+
+            alert(
+                'Failed to place order.'
+            );
+
+        }
+
+    };
 
 
 /* =========================
@@ -324,11 +555,19 @@ async function renderOrderHistory() {
             'history-list'
         );
 
-    if (!box || !currentUser) {
+
+    if (
+        !box ||
+        !currentUser
+    ) {
+
         return;
+
     }
 
-    box.innerHTML = '';
+
+    box.innerHTML =
+        'Loading order history...';
 
 
     try {
@@ -351,6 +590,7 @@ async function renderOrderHistory() {
                     "createdAt",
                     "desc"
                 )
+
             );
 
 
@@ -358,95 +598,131 @@ async function renderOrderHistory() {
             await getDocs(q);
 
 
-        snap.forEach((docSnap) => {
-
-            const order =
-                docSnap.data();
-
-            const id =
-                docSnap.id;
+        box.innerHTML = '';
 
 
-            const time =
-                order.createdAt?.toDate
-                    ? order.createdAt
-                        .toDate()
-                        .toLocaleString()
-                    : "Unknown time";
+        snap.forEach(
+            (docSnap) => {
+
+                const order =
+                    docSnap.data();
 
 
-            const items =
-                order.items
-                    ? Object.entries(
-                        order.items
-                    )
-                    .map(
-                        ([name, data]) =>
-                            `${name} x${data.quantity}`
-                    )
-                    .join(", ")
-                    : "No items";
+                const id =
+                    docSnap.id;
 
 
-            const div =
-                document.createElement('div');
+                const time =
+                    order.createdAt?.toDate
 
-            div.className =
-                'cart-item';
+                        ? order.createdAt
+                            .toDate()
+                            .toLocaleString()
+
+                        : "Unknown time";
 
 
-            div.innerHTML = `
+                const items =
+                    order.items
 
-                <div>
-                    <strong>
-                        ${order.customer}
-                    </strong>
-                </div>
+                        ? Object.entries(
+                            order.items
+                        )
+                            .map(
+                                ([name, data]) =>
+                                    `${name} x${data.quantity}`
+                            )
+                            .join(", ")
 
-                <div
-                    style="
-                        font-size:12px;
-                        color:#aaa;
-                    "
-                >
-                    ${time}
-                </div>
+                        : "No items";
 
-                <div>
-                    ${items}
-                </div>
 
-                <div>
-                    Total: NT$${order.total}
-                </div>
+                const div =
+                    document.createElement(
+                        'div'
+                    );
 
-                <button
-                    onclick="deleteOrder('${id}')"
-                    style="
-                        margin-top:8px;
-                        background:#e53935;
-                        color:white;
-                        border:none;
-                        padding:6px 10px;
-                        border-radius:8px;
-                        cursor:pointer;
-                    "
-                >
-                    Delete
-                </button>
 
-            `;
+                div.className =
+                    'cart-item';
 
-            box.appendChild(div);
-        });
+
+                div.innerHTML = `
+
+                    <div>
+
+                        <strong>
+                            ${order.customer}
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            font-size:12px;
+                            color:#aaa;
+                        "
+                    >
+
+                        ${time}
+
+                    </div>
+
+
+                    <div>
+
+                        ${items}
+
+                    </div>
+
+
+                    <div>
+
+                        Total:
+                        NT$${order.total}
+
+                    </div>
+
+
+                    <button
+                        onclick="deleteOrder('${id}')"
+                        style="
+                            margin-top:8px;
+                            background:#e53935;
+                            color:white;
+                            border:none;
+                            padding:6px 10px;
+                            border-radius:8px;
+                            cursor:pointer;
+                        "
+                    >
+
+                        Delete
+
+                    </button>
+
+                `;
+
+
+                box.appendChild(div);
+
+            }
+        );
 
 
         if (snap.empty) {
 
-            box.innerHTML =
-                `<div class="empty-cart">
+            box.innerHTML = `
+
+                <div class="empty-cart">
+
                     No orders yet
-                </div>`;
+
+                </div>
+
+            `;
+
         }
 
 
@@ -457,11 +733,19 @@ async function renderOrderHistory() {
             err
         );
 
-        box.innerHTML =
-            `<div class="empty-cart">
+
+        box.innerHTML = `
+
+            <div class="empty-cart">
+
                 Failed to load history
-            </div>`;
+
+            </div>
+
+        `;
+
     }
+
 }
 
 
@@ -469,43 +753,51 @@ async function renderOrderHistory() {
    DELETE ORDER
 ========================= */
 
-window.deleteOrder = async function(orderId) {
+window.deleteOrder =
+    async function(orderId) {
 
-    if (
-        !confirm(
-            "Delete this order?"
-        )
-    ) {
-        return;
-    }
-
-
-    try {
-
-        await deleteDoc(
-            doc(
-                db,
-                "orders",
-                orderId
+        if (
+            !confirm(
+                "Delete this order?"
             )
-        );
+        ) {
+
+            return;
+
+        }
 
 
-        await renderOrderHistory();
+        try {
+
+            await deleteDoc(
+
+                doc(
+                    db,
+                    "orders",
+                    orderId
+                )
+
+            );
 
 
-    } catch (err) {
+            await renderOrderHistory();
 
-        console.error(
-            'Delete failed:',
-            err
-        );
 
-        alert(
-            'Failed to delete order.'
-        );
-    }
-};
+        } catch (err) {
+
+            console.error(
+                'Delete failed:',
+                err
+            );
+
+
+            alert(
+                'Failed to delete order.'
+            );
+
+        }
+
+    };
 
 
 /* =========================
@@ -520,6 +812,7 @@ window.toggleOrderHistory =
                 'order-history'
             );
 
+
         if (!box) {
             return;
         }
@@ -529,6 +822,7 @@ window.toggleOrderHistory =
             box.style.display === 'block'
                 ? 'none'
                 : 'block';
+
     };
 
 
@@ -536,31 +830,37 @@ window.toggleOrderHistory =
    LOGOUT
 ========================= */
 
-window.logout = async function() {
+window.logout =
+    async function() {
 
-    try {
+        try {
 
-        await signOut(auth);
+            await signOut(auth);
 
-        window.location.href =
-            'login.html';
 
-    } catch (err) {
+            window.location.href =
+                'login.html';
 
-        console.error(
-            'Logout failed:',
-            err
-        );
 
-        alert(
-            'Failed to logout.'
-        );
-    }
-};
+        } catch (err) {
+
+            console.error(
+                'Logout failed:',
+                err
+            );
+
+
+            alert(
+                'Failed to logout.'
+            );
+
+        }
+
+    };
 
 
 /* =========================
-   INITIALIZE
+   INITIALIZE CART
 ========================= */
 
 updateCart();
