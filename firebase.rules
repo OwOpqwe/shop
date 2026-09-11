@@ -1,0 +1,62 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* =========================
+       CUSTOMER ORDERS
+    ========================= */
+
+    match /orders/{orderId} {
+
+      // Customers can create an order
+      // only for their own account.
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+
+      // Customers can read only their own orders.
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+
+      // Customers can delete only their own orders.
+      allow delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+
+      // Orders cannot be edited after creation.
+      allow update: if false;
+    }
+
+
+    /* =========================
+       ADMIN OTP DATA
+    ========================= */
+
+    match /adminOtps/{uid} {
+
+      // Website users cannot access OTP data.
+      allow read, write: if false;
+    }
+
+
+    /* =========================
+       ADMIN SESSIONS
+    ========================= */
+
+    match /adminSessions/{uid} {
+
+      // Website users cannot access admin sessions.
+      allow read, write: if false;
+    }
+
+
+    /* =========================
+       EVERYTHING ELSE
+    ========================= */
+
+    // Deny access to every other
+    // Firestore collection.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
