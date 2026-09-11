@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Admin Dashboard - Snack Store</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#111;
+    color:white;
+    font-family:Arial,sans-serif;
+    min-height:100vh;
+}
+
+header{
+    background:#6f42c1;
+    padding:20px;
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+}
+
+.admin-container{
+    max-width:1100px;
+    margin:30px auto;
+    padding:20px;
+}
+
+.admin-box{
+    background:#1e1e1e;
+    padding:25px;
+    border-radius:12px;
+    margin-bottom:25px;
+}
+
+.admin-box h2{
+    margin-bottom:20px;
+}
+
+.order{
+    background:#2a2a2a;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+.order-name{
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.order-info{
+    color:#bbb;
+    margin-bottom:8px;
+}
+
+.order-items{
+    margin:10px 0;
+}
+
+.order-total{
+    font-size:18px;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+button{
+    border:none;
+    border-radius:8px;
+    padding:10px 15px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.logout-btn{
+    background:#e53935;
+    color:white;
+}
+
+.delete-btn{
+    background:#e53935;
+    color:white;
+    margin-top:10px;
+}
+
+.back-btn{
+    background:#007bff;
+    color:white;
+    margin-bottom:20px;
+}
+
+.empty{
+    color:#aaa;
+    text-align:center;
+    padding:30px;
+}
+
+.error{
+    color:#ff5555;
+    text-align:center;
+    padding:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+    🛡️ Snack Store Admin Dashboard
+
+</header>
+
+
+<div class="admin-container">
+
+
+    <button
+        class="back-btn"
+        onclick="goToStore()">
+
+        ← Back to Store
+
+    </button>
+
+
+    <div class="admin-box">
+
+        <h2>
+            All Customer Orders
+        </h2>
+
+        <div id="orders">
+
+            Loading orders...
+
+        </div>
+
+    </div>
+
+
+    <div class="admin-box">
+
+        <h2>
+            Admin Account
+        </h2>
+
+        <p id="adminEmail">
+            Checking admin account...
+        </p>
+
+        <br>
+
+        <button
+            class="logout-btn"
+            onclick="logout()">
+
+            Logout
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+<script
+    type="module"
+    src="admin.js">
+</script>
+
+</body>
+</html>
