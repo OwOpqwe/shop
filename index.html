@@ -1,370 +1,348 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
+    <title>Snack Store Admin Dashboard</title>
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-<title>Snack Store</title>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+        }
 
-<link rel="stylesheet" href="styles.css">
+        header {
+            background: #000;
+            padding: 20px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .store-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 25px;
+        }
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+        .welcome h2 {
+            margin-bottom: 5px;
+        }
+
+        .welcome p {
+            color: #bbb;
+            margin-top: 5px;
+        }
+
+        /* =========================
+           STAT CARDS
+        ========================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #1c1c1c;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            color: #aaa;
+            font-size: 16px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .sales {
+            color: #28a745;
+        }
+
+        /* =========================
+           ORDERS
+        ========================= */
+
+        .section {
+            background: #1c1c1c;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            margin-top: 0;
+        }
+
+        .order {
+            background: #252525;
+            border: 1px solid #444;
+            border-radius: 10px;
+            padding: 18px;
+            margin-top: 15px;
+        }
+
+        .order-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .order-info {
+            color: #bbb;
+            margin-bottom: 5px;
+        }
+
+        .order-items {
+            margin-top: 15px;
+            padding: 12px;
+            background: #181818;
+            border-radius: 8px;
+        }
+
+        .order-items div {
+            padding: 5px 0;
+        }
+
+        .order-total {
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .delete-btn {
+            margin-top: 15px;
+            background: #dc3545;
+            color: white;
+        }
+
+        .empty {
+            color: #aaa;
+            padding: 20px 0;
+        }
+
+        .error {
+            color: #ff6b6b;
+            padding: 20px 0;
+        }
+
+        /* =========================
+           ADMIN INFORMATION
+        ========================= */
+
+        .admin-info {
+            color: #bbb;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 700px) {
+            header {
+                align-items: flex-start;
+            }
+
+            header h1 {
+                font-size: 21px;
+            }
+
+            .header-buttons {
+                width: 100%;
+            }
+
+            .header-buttons button {
+                flex: 1;
+            }
+
+            main {
+                padding: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-number {
+                font-size: 28px;
+            }
+        }
+    </style>
 </head>
-
 
 <body>
 
+    <header>
+        <h1>🛡️ Snack Store Admin Dashboard</h1>
 
-<!-- USER INFO -->
-
-<div id="userInfo" style="display:none;">
-
-    Welcome,
-    <span id="userName"></span>
-
-
-    <button
-        id="adminDashboardBtn"
-        onclick="goToAdminDashboard()"
-        style="
-            display:none;
-            background:#6f42c1;
-            color:white;
-            border:none;
-            padding:8px 12px;
-            border-radius:8px;
-            cursor:pointer;
-            margin-left:10px;
-        ">
-
-        🛡️ Admin Dashboard
-
-    </button>
-
-
-    <button onclick="logout()">
-
-        Logout
-
-    </button>
-
-</div>
-
-
-
-<header>
-
-    Snack Store
-
-    <span class="cash-only">
-        CASH ONLY
-    </span>
-
-</header>
-
-
-
-<div class="main-container">
-
-
-<!-- =========================
-     STORE
-========================= -->
-
-<div class="store-container">
-
-
-    <!-- DR PEPPER -->
-
-    <div class="item">
-
-        <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
-        >
-
-        <h3>
-            Dr Pepper
-        </h3>
-
-        <p>
-            NT$30
-        </p>
-
-
-        <div class="quantity">
-
-            <input
-                id="input-dr-pepper"
-                type="number"
-                value="1"
-                min="1"
-            >
-
-            <button
-                onclick="addItem('dr-pepper','Dr Pepper',30)"
-                class="add-btn">
-
-                Add
-
+        <div class="header-buttons">
+            <button class="store-btn" onclick="goToStore()">
+                🏪 Back to Store
             </button>
 
-        </div>
-
-
-        <div>
-
-            In cart:
-            <span id="qty-dr-pepper">
-                0
-            </span>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- CHICKEN -->
-
-    <div class="item">
-
-        <img
-            src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
-        >
-
-        <h3>
-            Chicken Noodle Snack
-        </h3>
-
-        <p>
-            NT$25
-        </p>
-
-
-        <div class="quantity">
-
-            <input
-                id="input-chicken"
-                type="number"
-                value="1"
-                min="1"
-            >
-
-            <button
-                onclick="addItem('chicken','Chicken Noodle Snack',25)"
-                class="add-btn">
-
-                Add
-
+            <button class="logout-btn" onclick="logout()">
+                🚪 Logout
             </button>
+        </div>
+    </header>
+
+    <main>
+
+        <div class="welcome">
+            <h2>Admin Dashboard</h2>
+            <p id="adminEmail">Checking administrator access...</p>
+        </div>
+
+        <!-- =========================
+             STATISTICS
+        ========================= -->
+
+        <div class="stats">
+
+            <div class="stat-card">
+                <h3>📦 Total Orders</h3>
+                <div
+                    id="totalOrders"
+                    class="stat-number">
+                    0
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <h3>💰 Total Sales</h3>
+                <div
+                    id="totalSales"
+                    class="stat-number sales">
+                    NT$0
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <h3>👥 Customers</h3>
+                <div
+                    id="totalCustomers"
+                    class="stat-number">
+                    0
+                </div>
+            </div>
 
         </div>
 
+        <!-- =========================
+             ALL ORDERS
+        ========================= -->
 
-        <div>
+        <div class="section">
 
-            In cart:
-            <span id="qty-chicken">
-                0
-            </span>
+            <h2>📦 All Customer Orders</h2>
 
-        </div>
-
-    </div>
-
-
-
-    <!-- BUNDLE -->
-
-    <div class="item">
-
-        <div class="bundle-images">
-
-            <img
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
-            >
-
-            <img
-                src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
-            >
+            <div id="orders">
+                Loading orders...
+            </div>
 
         </div>
 
+        <!-- =========================
+             ADMIN INFORMATION
+        ========================= -->
 
-        <h3>
-            Bundle Pack
-        </h3>
+        <div class="section">
 
-        <p>
-            NT$50
-        </p>
+            <h2>🛡️ Administrator Information</h2>
 
+            <div class="admin-info">
+                <p>
+                    <strong>Administrator:</strong>
+                    Charlie
+                </p>
 
-        <div class="quantity">
+                <p>
+                    <strong>Access:</strong>
+                    Firebase administrator account
+                </p>
 
-            <input
-                id="input-bundle"
-                type="number"
-                value="1"
-                min="1"
-            >
+                <p>
+                    <strong>Store:</strong>
+                    Snack Store
+                </p>
 
-            <button
-                onclick="addItem('bundle','Bundle Pack',50)"
-                class="add-btn">
-
-                Add
-
-            </button>
-
-        </div>
-
-
-        <div>
-
-            In cart:
-            <span id="qty-bundle">
-                0
-            </span>
+                <p>
+                    <strong>Payment:</strong>
+                    Cash only
+                </p>
+            </div>
 
         </div>
 
-    </div>
+    </main>
 
-
-
-    <!-- CHOCOLATE -->
-
-    <div class="item">
-
-        <img
-            src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg"
-        >
-
-        <h3>
-            Chocolate
-        </h3>
-
-        <p>
-            NT$20
-        </p>
-
-
-        <div class="quantity">
-
-            <input
-                id="input-chocolate"
-                type="number"
-                value="1"
-                min="1"
-            >
-
-            <button
-                onclick="addItem('chocolate','Chocolate',20)"
-                class="add-btn">
-
-                Add
-
-            </button>
-
-        </div>
-
-
-        <div>
-
-            In cart:
-            <span id="qty-chocolate">
-                0
-            </span>
-
-        </div>
-
-    </div>
-
-
-</div>
-
-
-
-<!-- =========================
-     CART
-========================= -->
-
-<div class="cart-panel">
-
-
-    <div class="cart-header">
-
-        Your Cart
-
-    </div>
-
-
-    <input
-        id="customerName"
-        readonly
-    >
-
-
-    <div id="cart-items"></div>
-
-
-    <div class="cart-total">
-
-        Total: NT$<span id="total">0</span>
-
-    </div>
-
-
-    <button
-        class="checkout-btn"
-        onclick="checkout()">
-
-        Checkout
-
-    </button>
-
-
-    <button
-        class="checkout-btn"
-        style="background:#6f42c1;"
-        onclick="toggleOrderHistory()">
-
-        View Order History
-
-    </button>
-
-
-    <div
-        id="order-history"
-        style="display:none;">
-
-        <h3>
-            Order History
-        </h3>
-
-
-        <div id="history-list"></div>
-
-    </div>
-
-
-</div>
-
-
-</div>
-
-
-
-<script
-    type="module"
-    src="script.js">
-</script>
-
+    <script type="module" src="admin.js"></script>
 
 </body>
-
 </html>
+```
