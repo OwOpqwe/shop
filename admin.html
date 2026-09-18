@@ -4,11 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snack Store Admin</title>
+    <link rel="stylesheet" href="styles.css">
 
-
-<title>Snack Store Admin</title>
-
-<link rel="stylesheet" href="styles.css">
 
 <style>
     .admin-container {
@@ -50,6 +48,11 @@
     .product-form {
         display: grid;
         gap: 12px;
+    }
+
+    .product-form label {
+        font-weight: bold;
+        margin-top: 5px;
     }
 
     .product-form input,
@@ -252,27 +255,47 @@
 
     <form id="productForm" class="product-form">
 
+        <label for="productName">
+            Product Name
+        </label>
+
         <input
             type="text"
             id="productName"
+            name="productName"
             placeholder="Product name"
             required>
+
+        <label for="productPrice">
+            Price
+        </label>
 
         <input
             type="number"
             id="productPrice"
+            name="productPrice"
             placeholder="Price"
             min="0"
             required>
 
+        <label for="productImage">
+            Image URL
+        </label>
+
         <input
             type="url"
             id="productImage"
+            name="productImage"
             placeholder="Image URL"
             required>
 
+        <label for="productDescription">
+            Product Description
+        </label>
+
         <textarea
             id="productDescription"
+            name="productDescription"
             placeholder="Product description"></textarea>
 
         <div>
@@ -295,7 +318,9 @@
 
     <div
         id="productStatus"
-        class="status-message">
+        class="status-message"
+        role="status"
+        aria-live="polite">
     </div>
 
 </div>
