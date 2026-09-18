@@ -1,124 +1,96 @@
 import { auth, db } from './firebase.js';
 
 import {
-    signOut,
     onAuthStateChanged,
-    getIdTokenResult
+    getIdTokenResult,
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 import {
     collection,
     addDoc,
+    serverTimestamp,
     query,
     where,
-    getDocs,
     orderBy,
-    serverTimestamp,
+    getDocs,
     deleteDoc,
     doc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 
-/* =========================
-   STATE
-========================= */
+// ========================================
+// CART
+// ========================================
 
 let cart = {};
+
 let currentUser = null;
 
 
-/* =========================
-   AUTH
-========================= */
+// ========================================
+// CHECK LOGIN
+// ========================================
 
 onAuthStateChanged(auth, async (user) => {
 
     if (!user) {
-
         window.location.href = 'login.html';
-
         return;
     }
 
-
     currentUser = user;
 
-
-    /* =========================
-       USER NAME
-    ========================= */
-
-    const nameEl =
-        document.getElementById('userName');
+    // Show user's name
+    const nameEl = document.getElementById('userName');
 
     if (nameEl) {
-
         nameEl.textContent =
             user.displayName || user.email;
-
     }
 
-
+    // Show user information
     const panel =
         document.getElementById('userInfo');
 
     if (panel) {
-
         panel.style.display = 'block';
-
     }
 
-
+    // Fill customer name
     const customer =
         document.getElementById('customerName');
 
     if (customer) {
-
         customer.value =
             user.displayName || user.email;
-
     }
 
 
-    /* =========================
-       CHECK ADMIN
-    ========================= */
+    // ========================================
+    // CHECK ADMIN PERMISSION
+    // ========================================
 
     try {
 
         const tokenResult =
-            await getIdTokenResult(
-                user,
-                true
-            );
-
+            await getIdTokenResult(user, true);
 
         const isAdmin =
             tokenResult.claims.admin === true;
 
+        const adminMenu =
+            document.getElementById('adminDashboardMenu');
 
-        const adminButton =
-            document.getElementById(
-                'adminDashboardBtn'
-            );
-
-
-        if (adminButton) {
+        if (adminMenu) {
 
             if (isAdmin) {
-
-                adminButton.style.display =
-                    'inline-block';
-
+                adminMenu.style.display = 'block';
             } else {
-
-                adminButton.style.display =
-                    'none';
-
+                adminMenu.style.display = 'none';
             }
 
         }
-
 
     } catch (error) {
 
@@ -130,737 +102,560 @@ onAuthStateChanged(auth, async (user) => {
     }
 
 
-    /* =========================
-       LOAD ORDER HISTORY
-    ========================= */
-
+    // Load order history
     await renderOrderHistory();
 
 });
 
 
-/* =========================
-   ADMIN DASHBOARD
-========================= */
+// ========================================
+// ADD TO CART
+// ========================================
 
-window.goToAdminDashboard =
-    async function() {
-
-        if (!currentUser) {
-
-            window.location.href =
-                'login.html';
-
-            return;
-
-        }
-
-
-        try {
-
-            const tokenResult =
-                await getIdTokenResult(
-                    currentUser,
-                    true
-                );
-
-
-            if (
-                tokenResult.claims.admin !== true
-            ) {
-
-                alert(
-                    'You do not have administrator permission.'
-                );
-
-                return;
-
-            }
-
-
-            window.location.href =
-                'admin.html';
-
-
-        } catch (error) {
-
-            console.error(
-                'Admin verification failed:',
-                error
-            );
-
-
-            alert(
-                'Could not verify administrator permission.'
-            );
-
-        }
-
-    };
-
-
-/* =========================
-   ADD ITEM
-========================= */
-
-window.addItem = function(
-    id,
+window.addToCart = function (
     name,
-    price
+    price,
+    quantityId
 ) {
 
-    const input =
-        document.getElementById(
-            'input-' + id
-        );
+    const quantityInput =
+        document.getElementById(quantityId);
 
+    if (!quantityInput) return;
 
-    if (!input) {
+    const quantity =
+        parseInt(quantityInput.value);
+
+    if (isNaN(quantity) || quantity < 1) {
+        alert('Please enter a valid quantity.');
         return;
     }
-
-
-    const qty =
-        parseInt(input.value);
-
-
-    if (!qty || qty < 1) {
-        return;
-    }
-
 
     if (!cart[name]) {
 
         cart[name] = {
-
             price: price,
-
-            quantity: qty
-
+            quantity: 0
         };
 
-    } else {
-
-        cart[name].quantity += qty;
-
     }
 
+    cart[name].quantity += quantity;
 
-    input.value = 1;
+    quantityInput.value = 1;
 
-
-    updateCart();
+    renderCart();
 
 };
 
 
-/* =========================
-   REMOVE ITEM
-========================= */
+// ========================================
+// RENDER CART
+// ========================================
 
-window.removeItem = function(name) {
+function renderCart() {
 
-    if (!cart[name]) {
+    const cartItems =
+        document.getElementById('cart-items');
+
+    const cartTotal =
+        document.getElementById('cart-total');
+
+    if (!cartItems || !cartTotal) return;
+
+
+    cartItems.innerHTML = '';
+
+    let total = 0;
+
+
+    const itemNames =
+        Object.keys(cart);
+
+
+    if (itemNames.length === 0) {
+
+        cartItems.textContent =
+            'Your cart is empty.';
+
+        cartTotal.textContent = '0';
+
         return;
-    }
-
-
-    cart[name].quantity--;
-
-
-    if (cart[name].quantity <= 0) {
-
-        delete cart[name];
 
     }
 
 
-    updateCart();
+    itemNames.forEach((name) => {
+
+        const item = cart[name];
+
+        const itemTotal =
+            item.price * item.quantity;
+
+        total += itemTotal;
+
+
+        const div =
+            document.createElement('div');
+
+        div.className = 'cart-item';
+
+
+        div.innerHTML = `
+            <span>
+                ${name} ×${item.quantity}
+            </span>
+
+            <span>
+                NT$${itemTotal}
+            </span>
+
+            <button
+                onclick="removeFromCart('${name}')">
+                Remove
+            </button>
+        `;
+
+
+        cartItems.appendChild(div);
+
+    });
+
+
+    cartTotal.textContent = total;
+
+}
+
+
+// ========================================
+// REMOVE FROM CART
+// ========================================
+
+window.removeFromCart = function (name) {
+
+    delete cart[name];
+
+    renderCart();
 
 };
 
 
-/* =========================
-   UPDATE CART
-========================= */
+// ========================================
+// CHECKOUT
+// ========================================
 
-function updateCart() {
+window.checkout = async function () {
 
-    const box =
-        document.getElementById(
-            'cart-items'
+    if (!currentUser) {
+
+        alert(
+            'Please log in before placing an order.'
         );
 
-
-    if (!box) {
         return;
+
     }
 
 
-    box.innerHTML = '';
+    const itemNames =
+        Object.keys(cart);
+
+
+    if (itemNames.length === 0) {
+
+        alert('Your cart is empty.');
+
+        return;
+
+    }
+
+
+    const customerNameInput =
+        document.getElementById('customerName');
+
+
+    const customerName =
+        customerNameInput?.value ||
+        currentUser.displayName ||
+        currentUser.email;
 
 
     let total = 0;
 
 
-    for (
-        const item in cart
-    ) {
-
-        const c =
-            cart[item];
-
+    itemNames.forEach((name) => {
 
         total +=
-            c.price *
-            c.quantity;
+            cart[name].price *
+            cart[name].quantity;
+
+    });
 
 
-        const div =
-            document.createElement(
-                'div'
-            );
+    try {
 
+        await addDoc(
+            collection(db, 'orders'),
+            {
+                customer: customerName,
 
-        div.className =
-            'cart-item';
+                userId: currentUser.uid,
 
+                userEmail: currentUser.email,
 
-        div.innerHTML = `
+                items: cart,
 
-            <div>
+                total: total,
 
-                <strong>
-                    ${item} x${c.quantity}
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                NT$${c.price * c.quantity}
-
-            </div>
-
-
-            <button
-                onclick="removeItem('${item}')">
-
-                Remove
-
-            </button>
-
-        `;
-
-
-        box.appendChild(div);
-
-    }
-
-
-    if (total === 0) {
-
-        box.innerHTML = `
-
-            <div class="empty-cart">
-
-                Cart empty
-
-            </div>
-
-        `;
-
-    }
-
-
-    const totalEl =
-        document.getElementById(
-            'total'
+                createdAt: serverTimestamp()
+            }
         );
 
 
-    if (totalEl) {
-
-        totalEl.textContent =
-            total;
-
-    }
+        alert(
+            'Order placed successfully!'
+        );
 
 
-    updateQtyUI();
+        cart = {};
 
-}
+        renderCart();
 
-
-/* =========================
-   QUANTITY DISPLAY
-========================= */
-
-function updateQtyUI() {
-
-    const map = {
-
-        "dr-pepper":
-            "Dr Pepper",
-
-        "chicken":
-            "Chicken Noodle Snack",
-
-        "bundle":
-            "Bundle Pack",
-
-        "chocolate":
-            "Chocolate"
-
-    };
+        await renderOrderHistory();
 
 
-    for (
-        const id in map
-    ) {
+    } catch (error) {
 
-        const el =
-            document.getElementById(
-                'qty-' + id
-            );
+        console.error(
+            'Checkout failed:',
+            error
+        );
 
-
-        if (el) {
-
-            el.textContent =
-                cart[map[id]]
-                    ?.quantity || 0;
-
-        }
+        alert(
+            'Failed to place order.\n\n' +
+            error.message
+        );
 
     }
 
-}
+};
 
 
-/* =========================
-   CHECKOUT
-========================= */
+// ========================================
+// ORDER HISTORY
+// ========================================
 
-window.checkout =
-    async function() {
+async function renderOrderHistory() {
 
-        const name =
-            document
-                .getElementById(
-                    'customerName'
-                )
-                ?.value;
+    const historyList =
+        document.getElementById('history-list');
 
-
-        const total =
-            Number(
-                document
-                    .getElementById(
-                        'total'
-                    )
-                    ?.textContent
-            );
+    if (!historyList || !currentUser) {
+        return;
+    }
 
 
-        if (
-            !name ||
-            total <= 0 ||
-            !currentUser
-        ) {
+    historyList.innerHTML =
+        'Loading order history...';
 
-            alert(
-                'Please add something to your cart first.'
-            );
+
+    try {
+
+        const q = query(
+
+            collection(db, 'orders'),
+
+            where(
+                'userId',
+                '==',
+                currentUser.uid
+            ),
+
+            orderBy(
+                'createdAt',
+                'desc'
+            )
+
+        );
+
+
+        const snapshot =
+            await getDocs(q);
+
+
+        historyList.innerHTML = '';
+
+
+        if (snapshot.empty) {
+
+            historyList.innerHTML =
+                '<p>No orders yet.</p>';
 
             return;
 
         }
 
 
-        try {
+        snapshot.forEach((orderDoc) => {
 
-            await addDoc(
+            const order =
+                orderDoc.data();
 
-                collection(
-                    db,
-                    "orders"
-                ),
+            const orderId =
+                orderDoc.id;
 
-                {
 
-                    customer:
-                        name,
+            const time =
+                order.createdAt?.toDate
+                    ? order.createdAt
+                        .toDate()
+                        .toLocaleString()
+                    : 'Unknown time';
 
-                    userId:
-                        currentUser.uid,
 
-                    userEmail:
-                        currentUser.email,
+            let itemsHTML =
+                '<div class="history-items">';
 
-                    items:
-                        cart,
 
-                    total:
-                        total,
+            if (order.items) {
 
-                    createdAt:
-                        serverTimestamp()
+                for (
+                    const [name, data]
+                    of Object.entries(order.items)
+                ) {
+
+                    itemsHTML += `
+                        <div>
+                            ${name}
+                            ×${data.quantity}
+                            — NT$${data.price * data.quantity}
+                        </div>
+                    `;
 
                 }
 
-            );
+            }
 
 
-            cart = {};
+            itemsHTML +=
+                '</div>';
 
 
-            updateCart();
+            const div =
+                document.createElement('div');
+
+            div.className =
+                'history-order';
 
 
-            await renderOrderHistory();
+            div.innerHTML = `
+
+                <h3>
+                    ${order.customer || 'Unknown Customer'}
+                </h3>
+
+                <p>
+                    Order time:
+                    ${time}
+                </p>
+
+                ${itemsHTML}
+
+                <strong>
+                    Total:
+                    NT$${order.total || 0}
+                </strong>
+
+                <br><br>
+
+                <button
+                    onclick="deleteOrder('${orderId}')">
+                    Delete Order
+                </button>
+
+            `;
 
 
-            alert(
-                'Order placed successfully!'
-            );
+            historyList.appendChild(div);
+
+        });
 
 
-        } catch (err) {
+    } catch (error) {
 
-            console.error(
-                'Checkout failed:',
-                err
-            );
-
-
-            alert(
-                'Failed to place order.'
-            );
-
-        }
-
-    };
-
-
-/* =========================
-   ORDER HISTORY
-========================= */
-
-async function renderOrderHistory() {
-
-    const box =
-        document.getElementById(
-            'history-list'
+        console.error(
+            'Failed to load order history:',
+            error
         );
 
 
+        historyList.innerHTML = `
+            <p style="color:red;">
+                Failed to load order history.
+                <br><br>
+                ${error.message}
+            </p>
+        `;
+
+    }
+
+}
+
+
+// ========================================
+// TOGGLE ORDER HISTORY
+// ========================================
+
+window.toggleOrderHistory = function () {
+
+    const history =
+        document.getElementById('order-history');
+
+    if (!history) return;
+
+
+    if (history.style.display === 'none') {
+
+        history.style.display = 'block';
+
+        renderOrderHistory();
+
+    } else {
+
+        history.style.display = 'none';
+
+    }
+
+};
+
+
+// ========================================
+// DELETE CUSTOMER ORDER
+// ========================================
+
+window.deleteOrder = async function (
+    orderId
+) {
+
     if (
-        !box ||
-        !currentUser
+        !confirm(
+            'Are you sure you want to delete this order?'
+        )
     ) {
+        return;
+    }
+
+
+    try {
+
+        await deleteDoc(
+            doc(db, 'orders', orderId)
+        );
+
+
+        await renderOrderHistory();
+
+
+    } catch (error) {
+
+        console.error(
+            'Delete order failed:',
+            error
+        );
+
+        alert(
+            'Failed to delete order.'
+        );
+
+    }
+
+};
+
+
+// ========================================
+// ADMIN DASHBOARD
+// ========================================
+
+window.goToAdminDashboard = async function () {
+
+    if (!currentUser) {
+
+        window.location.href =
+            'login.html';
 
         return;
 
     }
 
 
-    box.innerHTML =
-        'Loading order history...';
-
-
     try {
 
-        const q =
-            query(
-
-                collection(
-                    db,
-                    "orders"
-                ),
-
-                where(
-                    "userId",
-                    "==",
-                    currentUser.uid
-                ),
-
-                orderBy(
-                    "createdAt",
-                    "desc"
-                )
-
+        const tokenResult =
+            await getIdTokenResult(
+                currentUser,
+                true
             );
 
 
-        const snap =
-            await getDocs(q);
+        if (
+            tokenResult.claims.admin !== true
+        ) {
 
+            alert(
+                'You do not have administrator permission.'
+            );
 
-        box.innerHTML = '';
-
-
-        snap.forEach(
-            (docSnap) => {
-
-                const order =
-                    docSnap.data();
-
-
-                const id =
-                    docSnap.id;
-
-
-                const time =
-                    order.createdAt?.toDate
-
-                        ? order.createdAt
-                            .toDate()
-                            .toLocaleString()
-
-                        : "Unknown time";
-
-
-                const items =
-                    order.items
-
-                        ? Object.entries(
-                            order.items
-                        )
-                            .map(
-                                ([name, data]) =>
-                                    `${name} x${data.quantity}`
-                            )
-                            .join(", ")
-
-                        : "No items";
-
-
-                const div =
-                    document.createElement(
-                        'div'
-                    );
-
-
-                div.className =
-                    'cart-item';
-
-
-                div.innerHTML = `
-
-                    <div>
-
-                        <strong>
-                            ${order.customer}
-                        </strong>
-
-                    </div>
-
-
-                    <div
-                        style="
-                            font-size:12px;
-                            color:#aaa;
-                        "
-                    >
-
-                        ${time}
-
-                    </div>
-
-
-                    <div>
-
-                        ${items}
-
-                    </div>
-
-
-                    <div>
-
-                        Total:
-                        NT$${order.total}
-
-                    </div>
-
-
-                    <button
-                        onclick="deleteOrder('${id}')"
-                        style="
-                            margin-top:8px;
-                            background:#e53935;
-                            color:white;
-                            border:none;
-                            padding:6px 10px;
-                            border-radius:8px;
-                            cursor:pointer;
-                        "
-                    >
-
-                        Delete
-
-                    </button>
-
-                `;
-
-
-                box.appendChild(div);
-
-            }
-        );
-
-
-        if (snap.empty) {
-
-            box.innerHTML = `
-
-                <div class="empty-cart">
-
-                    No orders yet
-
-                </div>
-
-            `;
+            return;
 
         }
 
 
-    } catch (err) {
+        window.location.href =
+            'admin.html';
+
+
+    } catch (error) {
 
         console.error(
-            'Order history error:',
-            err
+            'Admin verification failed:',
+            error
         );
 
 
-        box.innerHTML = `
-
-            <div class="empty-cart">
-
-                Failed to load history
-
-            </div>
-
-        `;
+        alert(
+            'Could not verify administrator permission.'
+        );
 
     }
 
-}
+};
 
 
-/* =========================
-   DELETE ORDER
-========================= */
+// ========================================
+// LOGOUT
+// ========================================
 
-window.deleteOrder =
-    async function(orderId) {
+window.logout = async function () {
 
-        if (
-            !confirm(
-                "Delete this order?"
-            )
-        ) {
+    try {
 
-            return;
+        await signOut(auth);
 
-        }
+        window.location.href =
+            'login.html';
 
+    } catch (error) {
 
-        try {
+        console.error(
+            'Logout failed:',
+            error
+        );
 
-            await deleteDoc(
+        alert(
+            'Failed to logout.'
+        );
 
-                doc(
-                    db,
-                    "orders",
-                    orderId
-                )
+    }
 
-            );
+};
 
-
-            await renderOrderHistory();
-
-
-        } catch (err) {
-
-            console.error(
-                'Delete failed:',
-                err
-            );
-
-
-            alert(
-                'Failed to delete order.'
-            );
-
-        }
-
-    };
-
-
-/* =========================
-   TOGGLE ORDER HISTORY
-========================= */
-
-window.toggleOrderHistory =
-    function() {
-
-        const box =
-            document.getElementById(
-                'order-history'
-            );
-
-
-        if (!box) {
-            return;
-        }
-
-
-        box.style.display =
-            box.style.display === 'block'
-                ? 'none'
-                : 'block';
-
-    };
-
-
-/* =========================
-   LOGOUT
-========================= */
-
-window.logout =
-    async function() {
-
-        try {
-
-            await signOut(auth);
-
-
-            window.location.href =
-                'login.html';
-
-
-        } catch (err) {
-
-            console.error(
-                'Logout failed:',
-                err
-            );
-
-
-            alert(
-                'Failed to logout.'
-            );
-
-        }
-
-    };
-
-
-/* =========================
-   INITIALIZE CART
-========================= */
-
-updateCart();
