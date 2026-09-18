@@ -337,22 +337,3 @@ button:hover {
         flex-wrap: wrap;
     }
 }
-
-
-**One important thing:** your `index.html` needs the products and cart inside a `.store-layout` like this:
-
-html
-<div class="store-layout">
-
-    <section class="products">
-        <!-- your 4 product cards -->
-    </section>
-
-    <section id="cart">
-        <!-- your existing cart -->
-    </section>
-
-</div>
-
-
-Otherwise the CSS cannot physically move the cart beside the products.
