@@ -1,520 +1,302 @@
+javascript
 import { auth } from './firebase.js';
 
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     updateProfile,
-    onAuthStateChanged,
-    getIdTokenResult,
-    signOut
+    getIdTokenResult
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 
-/* =========================
-   ADMIN SETTINGS
-========================= */
+// ========================================
+// ADMIN SETTINGS
+// ========================================
 
-// Your admin email
 const ADMIN_EMAIL = "charlie197103@gmail.com";
 
-// Temporary verification code.
-// IMPORTANT: This is NOT secure because it is visible
-// in the website's JavaScript.
+// Change this to whatever fixed code you want
 const ADMIN_CODE = "123456";
 
 
-/* =========================
-   SHOW CUSTOMER LOGIN
-========================= */
+// ========================================
+// GET HTML ELEMENTS
+// ========================================
 
-window.showLogin = function() {
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
 
-    document.getElementById('loginForm').style.display = 'block';
+const adminLoginForm = document.getElementById("adminLoginForm");
+const adminCodeForm = document.getElementById("adminCodeForm");
 
-    document.getElementById('registerForm').style.display = 'none';
-
-    document.getElementById('adminLoginForm').style.display = 'none';
-
-    document.getElementById('verificationForm').style.display = 'none';
-
-    document.getElementById('formTitle').textContent =
-        '🏪 Login to Snack Store';
-
-    hideMessages();
-};
+const errorMsg = document.getElementById("errorMsg");
+const successMsg = document.getElementById("successMsg");
 
 
-/* =========================
-   SHOW REGISTER
-========================= */
-
-window.showRegister = function() {
-
-    document.getElementById('loginForm').style.display = 'none';
-
-    document.getElementById('registerForm').style.display = 'block';
-
-    document.getElementById('adminLoginForm').style.display = 'none';
-
-    document.getElementById('verificationForm').style.display = 'none';
-
-    document.getElementById('formTitle').textContent =
-        '🏪 Register for Snack Store';
-
-    hideMessages();
-};
-
-
-/* =========================
-   SHOW ADMIN LOGIN
-========================= */
-
-window.showAdminLogin = function() {
-
-    document.getElementById('loginForm').style.display = 'none';
-
-    document.getElementById('registerForm').style.display = 'none';
-
-    document.getElementById('adminLoginForm').style.display = 'block';
-
-    document.getElementById('verificationForm').style.display = 'none';
-
-    document.getElementById('formTitle').textContent =
-        '🛡️ Admin Login';
-
-    hideMessages();
-};
-
-
-/* =========================
-   SHOW VERIFICATION
-========================= */
-
-function showVerification() {
-
-    document.getElementById('loginForm').style.display = 'none';
-
-    document.getElementById('registerForm').style.display = 'none';
-
-    document.getElementById('adminLoginForm').style.display = 'none';
-
-    document.getElementById('verificationForm').style.display = 'block';
-
-    document.getElementById('formTitle').textContent =
-        '🔐 Verify Admin Login';
-
-    hideMessages();
-
-    document.getElementById('verificationCode').value = '';
-
-    document.getElementById('verificationCode').focus();
-}
-
-
-/* =========================
-   HIDE MESSAGES
-========================= */
-
-function hideMessages() {
-
-    document.getElementById('errorMsg').style.display = 'none';
-
-    document.getElementById('successMsg').style.display = 'none';
-}
-
-
-/* =========================
-   ERROR
-========================= */
+// ========================================
+// HELPER FUNCTIONS
+// ========================================
 
 function showError(message) {
+    if (errorMsg) {
+        errorMsg.textContent = message;
+        errorMsg.style.display = "block";
+    }
 
-    const errorMsg =
-        document.getElementById('errorMsg');
-
-    errorMsg.textContent = message;
-
-    errorMsg.style.display = 'block';
-
-    document.getElementById('successMsg').style.display = 'none';
+    if (successMsg) {
+        successMsg.style.display = "none";
+    }
 }
-
-
-/* =========================
-   SUCCESS
-========================= */
 
 function showSuccess(message) {
+    if (successMsg) {
+        successMsg.textContent = message;
+        successMsg.style.display = "block";
+    }
 
-    const successMsg =
-        document.getElementById('successMsg');
-
-    successMsg.textContent = message;
-
-    successMsg.style.display = 'block';
-
-    document.getElementById('errorMsg').style.display = 'none';
+    if (errorMsg) {
+        errorMsg.style.display = "none";
+    }
 }
 
 
-/* =========================
-   REGISTER
-========================= */
+// ========================================
+// CUSTOMER LOGIN
+// ========================================
 
-window.register = async function() {
+if (loginForm) {
+    loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-    const name =
-        document.getElementById('registerName')
-            .value
-            .trim();
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
 
-    const email =
-        document.getElementById('registerEmail')
-            .value
-            .trim();
+        showError("");
+        showSuccess("");
 
-    const password =
-        document.getElementById('registerPassword')
-            .value;
-
-    const confirmPassword =
-        document.getElementById('registerConfirmPassword')
-            .value;
-
-
-    if (!name || !email || !password || !confirmPassword) {
-
-        showError('Please fill in all fields');
-
-        return;
-    }
-
-
-    if (password !== confirmPassword) {
-
-        showError('Passwords do not match');
-
-        return;
-    }
-
-
-    if (password.length < 6) {
-
-        showError('Password must be at least 6 characters');
-
-        return;
-    }
-
-
-    try {
-
-        const userCredential =
-            await createUserWithEmailAndPassword(
-                auth,
-                email,
-                password
-            );
-
-
-        await updateProfile(
-            userCredential.user,
-            {
-                displayName: name
-            }
-        );
-
-
-        await signOut(auth);
-
-
-        showSuccess(
-            'Registration successful! You can now login.'
-        );
-
-
-        setTimeout(function() {
-
-            showLogin();
-
-        }, 1500);
-
-
-    } catch(error) {
-
-        console.error(error);
-
-        showError(
-            error.message
-        );
-    }
-};
-
-
-/* =========================
-   CUSTOMER LOGIN
-========================= */
-
-window.login = async function() {
-
-    const email =
-        document.getElementById('loginEmail')
-            .value
-            .trim();
-
-    const password =
-        document.getElementById('loginPassword')
-            .value;
-
-
-    if (!email || !password) {
-
-        showError(
-            'Please enter email and password'
-        );
-
-        return;
-    }
-
-
-    try {
-
-        await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
-
-
-        showSuccess(
-            'Login successful!'
-        );
-
-
-        setTimeout(function() {
-
-            window.location.href =
-                'index.html';
-
-        }, 1000);
-
-
-    } catch(error) {
-
-        console.error(error);
-
-        showError(
-            error.message
-        );
-    }
-};
-
-
-/* =========================
-   ADMIN LOGIN
-========================= */
-
-window.adminLogin = async function() {
-
-    const email =
-        document.getElementById('adminEmail')
-            .value
-            .trim();
-
-    const password =
-        document.getElementById('adminPassword')
-            .value;
-
-
-    if (!email || !password) {
-
-        showError(
-            'Please enter your admin email and password.'
-        );
-
-        return;
-    }
-
-
-    if (
-        email.toLowerCase() !==
-        ADMIN_EMAIL.toLowerCase()
-    ) {
-
-        showError(
-            'This account is not the administrator account.'
-        );
-
-        return;
-    }
-
-
-    try {
-
-        const userCredential =
+        try {
             await signInWithEmailAndPassword(
                 auth,
                 email,
                 password
             );
 
+            window.location.href = "index.html";
 
-        const tokenResult =
-            await getIdTokenResult(
+        } catch (error) {
+            console.error("Customer login error:", error);
+
+            showError(
+                error.message || "Failed to log in."
+            );
+        }
+    });
+}
+
+
+// ========================================
+// CUSTOMER REGISTER
+// ========================================
+
+if (registerForm) {
+    registerForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const name =
+            document.getElementById("registerName").value.trim();
+
+        const email =
+            document.getElementById("registerEmail").value.trim();
+
+        const password =
+            document.getElementById("registerPassword").value;
+
+        const confirmPassword =
+            document.getElementById("registerConfirmPassword").value;
+
+        showError("");
+        showSuccess("");
+
+        // Check passwords
+        if (password !== confirmPassword) {
+            showError("Passwords do not match.");
+            return;
+        }
+
+        // Basic password length check
+        if (password.length < 6) {
+            showError(
+                "Password must be at least 6 characters."
+            );
+            return;
+        }
+
+        try {
+            const userCredential =
+                await createUserWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+            // Save the user's name
+            await updateProfile(
                 userCredential.user,
-                true
+                {
+                    displayName: name
+                }
             );
 
+            showSuccess(
+                "Account created successfully! You can now log in."
+            );
 
-        /*
-         * Check Firebase custom admin permission.
-         */
-        if (tokenResult.claims.admin !== true) {
+            registerForm.reset();
 
-            await signOut(auth);
+        } catch (error) {
+            console.error("Registration error:", error);
 
             showError(
-                'This account does not have administrator permission.'
+                error.message || "Failed to create account."
             );
+        }
+    });
+}
 
+
+// ========================================
+// ADMIN LOGIN
+// ========================================
+
+if (adminLoginForm) {
+    adminLoginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email =
+            document.getElementById("adminEmailInput").value.trim();
+
+        const password =
+            document.getElementById("adminPasswordInput").value;
+
+        showError("");
+        showSuccess("");
+
+        // Make sure the correct admin email is being used
+        if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+            showError(
+                "This email does not have administrator access."
+            );
             return;
         }
 
+        try {
+            // Sign in with Firebase
+            const userCredential =
+                await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
 
-        /*
-         * In this free version, the code is shown
-         * on screen instead of being emailed.
-         */
-        showVerification();
+            const user = userCredential.user;
 
+            // Force Firebase to refresh the ID token
+            // so we get the newest custom claims
+            const tokenResult =
+                await getIdTokenResult(user, true);
 
-        showSuccess(
-            'Admin verified. Enter the verification code: 123456'
-        );
+            // Check Firebase administrator permission
+            if (tokenResult.claims.admin !== true) {
+                showError(
+                    "This account does not have administrator permission."
+                );
+                return;
+            }
 
+            // Admin is valid.
+            // Show the fixed-code screen.
+            if (adminLoginForm) {
+                adminLoginForm.style.display = "none";
+            }
 
-    } catch(error) {
+            if (adminCodeForm) {
+                adminCodeForm.style.display = "block";
+            }
 
-        console.error(
-            'Admin login error:',
-            error
-        );
-
-        showError(
-            error.message ||
-            'Admin login failed.'
-        );
-    }
-};
-
-
-/* =========================
-   VERIFY ADMIN CODE
-========================= */
-
-window.verifyAdminCode = async function() {
-
-    const code =
-        document.getElementById('verificationCode')
-            .value
-            .trim();
-
-
-    if (!/^\d{6}$/.test(code)) {
-
-        showError(
-            'Please enter the 6-digit verification code.'
-        );
-
-        return;
-    }
-
-
-    if (code !== ADMIN_CODE) {
-
-        showError(
-            'Incorrect verification code.'
-        );
-
-        return;
-    }
-
-
-    try {
-
-        const user = auth.currentUser;
-
-
-        if (!user) {
-
-            showError(
-                'Your login session has expired. Please login again.'
+            showSuccess(
+                "Administrator verified. Enter the administrator code."
             );
 
-            showLogin();
+        } catch (error) {
+            console.error("Admin login error:", error);
 
+            showError(
+                error.message || "Failed to log in as administrator."
+            );
+        }
+    });
+}
+
+
+// ========================================
+// ADMIN FIXED CODE
+// ========================================
+
+if (adminCodeForm) {
+    adminCodeForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const enteredCode =
+            document.getElementById("adminCodeInput").value.trim();
+
+        showError("");
+        showSuccess("");
+
+        // Check the fixed code
+        if (enteredCode !== ADMIN_CODE) {
+            showError("Incorrect administrator code.");
             return;
         }
 
+        try {
+            const user = auth.currentUser;
 
-        const tokenResult =
-            await getIdTokenResult(
-                user,
-                true
+            if (!user) {
+                showError(
+                    "Your administrator login session has expired."
+                );
+                return;
+            }
+
+            // Check the Firebase admin claim again
+            const tokenResult =
+                await getIdTokenResult(user, true);
+
+            if (tokenResult.claims.admin !== true) {
+                showError(
+                    "You do not have administrator permission."
+                );
+                return;
+            }
+
+            // Everything is correct
+            showSuccess(
+                "Administrator verification successful!"
             );
 
+            // Go to dashboard
+            window.location.href = "admin.html";
 
-        if (tokenResult.claims.admin !== true) {
-
-            await signOut(auth);
+        } catch (error) {
+            console.error(
+                "Administrator code verification error:",
+                error
+            );
 
             showError(
-                'Administrator permission could not be verified.'
+                "Could not verify administrator permission."
             );
-
-            showLogin();
-
-            return;
         }
+    });
+}
 
-
-        showSuccess(
-            'Admin verification successful!'
-        );
-
-
-        setTimeout(function() {
-
-            window.location.href =
-                'index.html';
-
-        }, 1000);
-
-
-    } catch(error) {
-
-        console.error(
-            'Verification error:',
-            error
-        );
-
-        showError(
-            'Admin verification failed.'
-        );
-    }
-};
-
-
-/* =========================
-   AUTH STATE
-========================= */
-
-// Do not automatically redirect.
-// Admin users must complete verification.
-
-onAuthStateChanged(
-    auth,
-    (user) => {
-
-        // Intentionally empty.
-    }
-);
