@@ -1,189 +1,337 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<title>Snack Store Admin</title>
 
-<title>Admin Dashboard - Snack Store</title>
+<link rel="stylesheet" href="styles.css">
 
 <style>
+    .admin-container {
+        max-width: 1200px;
+        margin: auto;
+        padding: 20px;
+    }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
 
-body{
-    background:#111;
-    color:white;
-    font-family:Arial,sans-serif;
-    min-height:100vh;
-}
+    .admin-header h1 {
+        margin: 0;
+    }
 
-header{
-    background:#6f42c1;
-    padding:20px;
-    text-align:center;
-    font-size:28px;
-    font-weight:bold;
-}
+    .admin-buttons {
+        display: flex;
+        gap: 10px;
+    }
 
-.admin-container{
-    max-width:1100px;
-    margin:30px auto;
-    padding:20px;
-}
+    .admin-section {
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
 
-.admin-box{
-    background:#1e1e1e;
-    padding:25px;
-    border-radius:12px;
-    margin-bottom:25px;
-}
+    .admin-section h2 {
+        margin-top: 0;
+    }
 
-.admin-box h2{
-    margin-bottom:20px;
-}
+    .product-form {
+        display: grid;
+        gap: 12px;
+    }
 
-.order{
-    background:#2a2a2a;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:15px;
-}
+    .product-form input,
+    .product-form textarea {
+        width: 100%;
+        padding: 12px;
+        background: #222;
+        color: #fff;
+        border: 1px solid #555;
+        border-radius: 6px;
+        font-family: Arial, sans-serif;
+    }
 
-.order-name{
-    font-size:20px;
-    font-weight:bold;
-    margin-bottom:8px;
-}
+    .product-form textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
 
-.order-info{
-    color:#bbb;
-    margin-bottom:8px;
-}
+    .product-form button {
+        width: fit-content;
+    }
 
-.order-items{
-    margin:10px 0;
-}
+    .products-admin {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
 
-.order-total{
-    font-size:18px;
-    font-weight:bold;
-    margin-top:10px;
-}
+    .admin-product {
+        background: #181818;
+        border: 1px solid #333;
+        border-radius: 10px;
+        padding: 15px;
+    }
 
-button{
-    border:none;
-    border-radius:8px;
-    padding:10px 15px;
-    cursor:pointer;
-    font-weight:bold;
-}
+    .admin-product img {
+        width: 100%;
+        height: 160px;
+        object-fit: contain;
+        background: #000;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
 
-.logout-btn{
-    background:#e53935;
-    color:white;
-}
+    .admin-product h3 {
+        margin: 5px 0;
+    }
 
-.delete-btn{
-    background:#e53935;
-    color:white;
-    margin-top:10px;
-}
+    .admin-product p {
+        margin: 8px 0;
+    }
 
-.back-btn{
-    background:#007bff;
-    color:white;
-    margin-bottom:20px;
-}
+    .admin-product .price {
+        color: #00ff66;
+        font-weight: bold;
+    }
 
-.empty{
-    color:#aaa;
-    text-align:center;
-    padding:30px;
-}
+    .admin-product-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
 
-.error{
-    color:#ff5555;
-    text-align:center;
-    padding:20px;
-}
+    .edit-btn {
+        background: #00ff66;
+        color: #000;
+    }
 
+    .delete-btn {
+        background: #ff4444;
+        color: #fff;
+    }
+
+    .cancel-btn {
+        background: #555;
+        color: #fff;
+    }
+
+    .status-message {
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    .orders-list {
+        display: grid;
+        gap: 15px;
+    }
+
+    .admin-order {
+        background: #181818;
+        border: 1px solid #333;
+        border-radius: 10px;
+        padding: 15px;
+    }
+
+    .admin-order h3 {
+        margin-top: 0;
+    }
+
+    .order-total {
+        color: #00ff66;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: #111;
+        border: 1px solid #333;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        margin: 0 0 10px;
+    }
+
+    .stat-value {
+        color: #00ff66;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    @media (max-width: 800px) {
+        .products-admin {
+            grid-template-columns: 1fr;
+        }
+
+        .stats {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
+
 
 </head>
 
 <body>
 
-<header>
-
-    🛡️ Snack Store Admin Dashboard
-
-</header>
-
-
 <div class="admin-container">
 
 
-    <button
-        class="back-btn"
-        onclick="goToStore()">
+<div class="admin-header">
 
-        ← Back to Store
+    <h1>🛡️ Snack Store Admin</h1>
 
-    </button>
+    <div class="admin-buttons">
 
+        <button onclick="goToStore()">
+            ← Store
+        </button>
 
-    <div class="admin-box">
-
-        <h2>
-            All Customer Orders
-        </h2>
-
-        <div id="orders">
-
-            Loading orders...
-
-        </div>
-
-    </div>
-
-
-    <div class="admin-box">
-
-        <h2>
-            Admin Account
-        </h2>
-
-        <p id="adminEmail">
-            Checking admin account...
-        </p>
-
-        <br>
-
-        <button
-            class="logout-btn"
-            onclick="logout()">
-
+        <button onclick="logout()">
             Logout
-
         </button>
 
     </div>
 
+</div>
+
+<div class="admin-section">
+
+    <p id="adminEmail">
+        Checking administrator access...
+    </p>
+
+</div>
+
+<div class="stats">
+
+    <div class="stat-card">
+        <h3>Total Orders</h3>
+        <div id="totalOrders" class="stat-value">0</div>
+    </div>
+
+    <div class="stat-card">
+        <h3>Total Sales</h3>
+        <div id="totalSales" class="stat-value">NT$0</div>
+    </div>
+
+    <div class="stat-card">
+        <h3>Customers</h3>
+        <div id="totalCustomers" class="stat-value">0</div>
+    </div>
+
+</div>
+
+<div class="admin-section">
+
+    <h2 id="productFormTitle">
+        ➕ Add Product
+    </h2>
+
+    <form id="productForm" class="product-form">
+
+        <input
+            type="text"
+            id="productName"
+            placeholder="Product name"
+            required>
+
+        <input
+            type="number"
+            id="productPrice"
+            placeholder="Price"
+            min="0"
+            required>
+
+        <input
+            type="url"
+            id="productImage"
+            placeholder="Image URL"
+            required>
+
+        <textarea
+            id="productDescription"
+            placeholder="Product description"></textarea>
+
+        <div>
+
+            <button type="submit">
+                Save Product
+            </button>
+
+            <button
+                type="button"
+                id="cancelEdit"
+                class="cancel-btn"
+                style="display: none;">
+                Cancel
+            </button>
+
+        </div>
+
+    </form>
+
+    <div
+        id="productStatus"
+        class="status-message">
+    </div>
+
+</div>
+
+<div class="admin-section">
+
+    <h2>📦 Products</h2>
+
+    <div
+        id="productsAdmin"
+        class="products-admin">
+
+        Loading products...
+
+    </div>
+
+</div>
+
+<div class="admin-section">
+
+    <h2>🧾 Customer Orders</h2>
+
+    <div
+        id="orders"
+        class="orders-list">
+
+        Loading orders...
+
+    </div>
 
 </div>
 
 
-<script
-    type="module"
-    src="admin.js">
-</script>
+</div>
+
+<script type="module" src="admin.js"></script>
 
 </body>
 </html>
