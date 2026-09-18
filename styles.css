@@ -1,4 +1,3 @@
-css
 * {
     box-sizing: border-box;
 }
@@ -34,10 +33,14 @@ header h1 {
 ========================= */
 
 main {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: auto;
     padding: 20px;
 }
+
+/* =========================
+   PRODUCTS
+========================= */
 
 .products {
     display: grid;
@@ -162,6 +165,32 @@ button:hover {
 }
 
 /* =========================
+   DESKTOP CART BESIDE PRODUCTS
+========================= */
+
+@media (min-width: 801px) {
+
+    .store-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 350px;
+        gap: 25px;
+        align-items: start;
+    }
+
+    .store-layout .products {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .store-layout #cart {
+        margin-top: 0;
+        position: sticky;
+        top: 20px;
+    }
+}
+
+/* =========================
    USER INFO
 ========================= */
 
@@ -267,13 +296,18 @@ button:hover {
    MOBILE
 ========================= */
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
 
     main {
         padding: 12px;
     }
 
+    .store-layout {
+        display: block;
+    }
+
     .products {
+        display: grid;
         grid-template-columns: 1fr;
         gap: 15px;
     }
@@ -290,6 +324,11 @@ button:hover {
         font-size: 20px;
     }
 
+    #cart {
+        margin-top: 20px;
+        position: static;
+    }
+
     .cart-item {
         flex-wrap: wrap;
     }
@@ -300,4 +339,20 @@ button:hover {
 }
 
 
-**Important:** if your current `styles.css` already has special styling you want to keep, don't replace it with this unless you're okay with resetting those styles. The safest change is just adding the `.products` section at the bottom.
+**One important thing:** your `index.html` needs the products and cart inside a `.store-layout` like this:
+
+html
+<div class="store-layout">
+
+    <section class="products">
+        <!-- your 4 product cards -->
+    </section>
+
+    <section id="cart">
+        <!-- your existing cart -->
+    </section>
+
+</div>
+
+
+Otherwise the CSS cannot physically move the cart beside the products.
