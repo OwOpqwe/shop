@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,12 +12,14 @@
 
     <style>
         /* =========================
-           TOP MENU
+           THREE-LINE MENU
         ========================= */
 
         .menu-container {
-            position: relative;
-            display: inline-block;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
         }
 
         .menu-button {
@@ -24,10 +27,9 @@
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 10px 14px;
             font-size: 24px;
+            padding: 8px 12px;
             cursor: pointer;
-            line-height: 1;
         }
 
         .menu-button:hover {
@@ -38,13 +40,12 @@
             display: none;
             position: absolute;
             right: 0;
-            top: 50px;
+            top: 48px;
+            width: 190px;
             background: #222;
-            min-width: 190px;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
             overflow: hidden;
-            z-index: 9999;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
         .menu-dropdown.show {
@@ -53,31 +54,25 @@
 
         .menu-dropdown button {
             width: 100%;
-            display: block;
+            padding: 12px;
+            border: none;
             background: #222;
             color: white;
-            border: none;
-            padding: 14px;
             text-align: left;
-            font-size: 15px;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .menu-dropdown button:hover {
             background: #333;
         }
 
-        .admin-menu-item {
-            background: #6f42c1 !important;
+        #adminDashboardMenu {
+            background: #6f42c1;
         }
 
-        .admin-menu-item:hover {
-            background: #59339d !important;
-        }
-
-        /* Keep menu in the top-right */
-        header {
-            position: relative;
+        #adminDashboardMenu:hover {
+            background: #59339d;
         }
     </style>
 </head>
@@ -90,20 +85,17 @@
 
     <header>
 
-        <div>
-            <h1>Snack Store</h1>
-            <h2>CASH ONLY</h2>
-        </div>
+        <h1>Snack Store</h1>
+
+        <h2>CASH ONLY</h2>
 
         <!-- THREE-LINE MENU -->
 
         <div class="menu-container">
 
             <button
-                id="menuButton"
                 class="menu-button"
-                onclick="toggleMenu()"
-                aria-label="Open menu">
+                onclick="toggleMenu()">
                 ☰
             </button>
 
@@ -111,26 +103,21 @@
                 id="menuDropdown"
                 class="menu-dropdown">
 
-                <!-- Admin Dashboard -->
-                <!-- Hidden unless user is an admin -->
-
+                <!-- Only visible to admins -->
                 <button
                     id="adminDashboardMenu"
-                    class="admin-menu-item"
-                    onclick="goToAdminDashboard()"
-                    style="display: none;">
+                    onclick="goToAdminDashboard(); closeMenu();"
+                    style="display:none;">
                     🛡️ Admin Dashboard
                 </button>
 
-                <!-- Order History -->
-
-                <button onclick="toggleOrderHistory(); closeMenu();">
+                <button
+                    onclick="toggleOrderHistory(); closeMenu();">
                     📦 Order History
                 </button>
 
-                <!-- Logout -->
-
-                <button onclick="logout(); closeMenu();">
+                <button
+                    onclick="logout(); closeMenu();">
                     🚪 Logout
                 </button>
 
@@ -138,19 +125,16 @@
 
         </div>
 
+        <!-- USER INFO -->
+
+        <div id="userInfo" style="display:none;">
+
+            Welcome,
+            <span id="userName"></span>
+
+        </div>
+
     </header>
-
-
-    <!-- =========================
-         USER INFORMATION
-    ========================= -->
-
-    <div id="userInfo" style="display:none;">
-
-        Welcome,
-        <span id="userName"></span>
-
-    </div>
 
 
     <!-- =========================
@@ -302,22 +286,17 @@
                 NT$<span id="cart-total">0</span>
             </h3>
 
-            <div class="customer-section">
+            <label for="customerName">
+                Your Name
+            </label>
 
-                <label for="customerName">
-                    Your Name
-                </label>
-
-                <input
-                    type="text"
-                    id="customerName"
-                    readonly>
-
-            </div>
+            <input
+                type="text"
+                id="customerName"
+                readonly>
 
             <button
-                onclick="checkout()"
-                class="checkout-button">
+                onclick="checkout()">
                 Checkout
             </button>
 
@@ -332,7 +311,7 @@
             id="order-history"
             style="display:none;">
 
-            <h2>📦 Order History</h2>
+            <h2>Order History</h2>
 
             <div id="history-list">
                 Loading...
@@ -344,18 +323,14 @@
 
 
     <!-- =========================
-         JAVASCRIPT
+         SCRIPT
     ========================= -->
 
-    <script type="module">
+    <script type="module" src="script.js"></script>
 
-        import "./script.js";
+    <script>
 
-        // ========================================
-        // MENU
-        // ========================================
-
-        window.toggleMenu = function () {
+        function toggleMenu() {
 
             const menu =
                 document.getElementById("menuDropdown");
@@ -363,10 +338,11 @@
             if (!menu) return;
 
             menu.classList.toggle("show");
-        };
+
+        }
 
 
-        window.closeMenu = function () {
+        function closeMenu() {
 
             const menu =
                 document.getElementById("menuDropdown");
@@ -374,25 +350,28 @@
             if (!menu) return;
 
             menu.classList.remove("show");
-        };
+
+        }
 
 
-        // ========================================
-        // CLOSE MENU WHEN CLICKING OUTSIDE
-        // ========================================
+        document.addEventListener(
+            "click",
+            function(event) {
 
-        document.addEventListener("click", function (event) {
+                const container =
+                    document.querySelector(
+                        ".menu-container"
+                    );
 
-            const menuContainer =
-                document.querySelector(".menu-container");
+                if (
+                    container &&
+                    !container.contains(event.target)
+                ) {
+                    closeMenu();
+                }
 
-            if (!menuContainer) return;
-
-            if (!menuContainer.contains(event.target)) {
-                closeMenu();
             }
-
-        });
+        );
 
     </script>
 
