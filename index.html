@@ -1,346 +1,403 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Snack Store Admin Dashboard</title>
+    <title>Snack Store</title>
+
+    <link rel="stylesheet" href="styles.css">
 
     <style>
-        * {
-            box-sizing: border-box;
+        /* =========================
+           TOP MENU
+        ========================= */
+
+        .menu-container {
+            position: relative;
+            display: inline-block;
         }
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #111;
+        .menu-button {
+            background: #222;
             color: white;
-        }
-
-        header {
-            background: #000;
-            padding: 20px;
-            border-bottom: 2px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 26px;
-        }
-
-        .header-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        button {
             border: none;
             border-radius: 8px;
-            padding: 10px 15px;
-            font-size: 14px;
+            padding: 10px 14px;
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .menu-button:hover {
+            background: #333;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background: #222;
+            min-width: 190px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            z-index: 9999;
+        }
+
+        .menu-dropdown.show {
+            display: block;
+        }
+
+        .menu-dropdown button {
+            width: 100%;
+            display: block;
+            background: #222;
+            color: white;
+            border: none;
+            padding: 14px;
+            text-align: left;
+            font-size: 15px;
             cursor: pointer;
         }
 
-        .store-btn {
-            background: #28a745;
-            color: white;
+        .menu-dropdown button:hover {
+            background: #333;
         }
 
-        .logout-btn {
-            background: #dc3545;
-            color: white;
+        .admin-menu-item {
+            background: #6f42c1 !important;
         }
 
-        button:hover {
-            opacity: 0.85;
+        .admin-menu-item:hover {
+            background: #59339d !important;
         }
 
-        main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 25px;
-        }
-
-        .welcome {
-            margin-bottom: 25px;
-        }
-
-        .welcome h2 {
-            margin-bottom: 5px;
-        }
-
-        .welcome p {
-            color: #bbb;
-            margin-top: 5px;
-        }
-
-        /* =========================
-           STAT CARDS
-        ========================= */
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: #1c1c1c;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-card h3 {
-            margin: 0;
-            color: #aaa;
-            font-size: 16px;
-        }
-
-        .stat-number {
-            font-size: 32px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .sales {
-            color: #28a745;
-        }
-
-        /* =========================
-           ORDERS
-        ========================= */
-
-        .section {
-            background: #1c1c1c;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .section h2 {
-            margin-top: 0;
-        }
-
-        .order {
-            background: #252525;
-            border: 1px solid #444;
-            border-radius: 10px;
-            padding: 18px;
-            margin-top: 15px;
-        }
-
-        .order-name {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .order-info {
-            color: #bbb;
-            margin-bottom: 5px;
-        }
-
-        .order-items {
-            margin-top: 15px;
-            padding: 12px;
-            background: #181818;
-            border-radius: 8px;
-        }
-
-        .order-items div {
-            padding: 5px 0;
-        }
-
-        .order-total {
-            margin-top: 15px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #28a745;
-        }
-
-        .delete-btn {
-            margin-top: 15px;
-            background: #dc3545;
-            color: white;
-        }
-
-        .empty {
-            color: #aaa;
-            padding: 20px 0;
-        }
-
-        .error {
-            color: #ff6b6b;
-            padding: 20px 0;
-        }
-
-        /* =========================
-           ADMIN INFORMATION
-        ========================= */
-
-        .admin-info {
-            color: #bbb;
-            line-height: 1.6;
-        }
-
-        /* =========================
-           MOBILE
-        ========================= */
-
-        @media (max-width: 700px) {
-            header {
-                align-items: flex-start;
-            }
-
-            header h1 {
-                font-size: 21px;
-            }
-
-            .header-buttons {
-                width: 100%;
-            }
-
-            .header-buttons button {
-                flex: 1;
-            }
-
-            main {
-                padding: 15px;
-            }
-
-            .stats {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .stat-card {
-                padding: 15px;
-            }
-
-            .stat-number {
-                font-size: 28px;
-            }
+        /* Keep menu in the top-right */
+        header {
+            position: relative;
         }
     </style>
 </head>
 
 <body>
 
+    <!-- =========================
+         HEADER
+    ========================= -->
+
     <header>
-        <h1>🛡️ Snack Store Admin Dashboard</h1>
 
-        <div class="header-buttons">
-            <button class="store-btn" onclick="goToStore()">
-                🏪 Back to Store
-            </button>
-
-            <button class="logout-btn" onclick="logout()">
-                🚪 Logout
-            </button>
+        <div>
+            <h1>Snack Store</h1>
+            <h2>CASH ONLY</h2>
         </div>
+
+        <!-- THREE-LINE MENU -->
+
+        <div class="menu-container">
+
+            <button
+                id="menuButton"
+                class="menu-button"
+                onclick="toggleMenu()"
+                aria-label="Open menu">
+                ☰
+            </button>
+
+            <div
+                id="menuDropdown"
+                class="menu-dropdown">
+
+                <!-- Admin Dashboard -->
+                <!-- Hidden unless user is an admin -->
+
+                <button
+                    id="adminDashboardMenu"
+                    class="admin-menu-item"
+                    onclick="goToAdminDashboard()"
+                    style="display: none;">
+                    🛡️ Admin Dashboard
+                </button>
+
+                <!-- Order History -->
+
+                <button onclick="toggleOrderHistory(); closeMenu();">
+                    📦 Order History
+                </button>
+
+                <!-- Logout -->
+
+                <button onclick="logout(); closeMenu();">
+                    🚪 Logout
+                </button>
+
+            </div>
+
+        </div>
+
     </header>
+
+
+    <!-- =========================
+         USER INFORMATION
+    ========================= -->
+
+    <div id="userInfo" style="display:none;">
+
+        Welcome,
+        <span id="userName"></span>
+
+    </div>
+
+
+    <!-- =========================
+         PRODUCTS
+    ========================= -->
 
     <main>
 
-        <div class="welcome">
-            <h2>Admin Dashboard</h2>
-            <p id="adminEmail">Checking administrator access...</p>
-        </div>
+        <section class="products">
+
+            <!-- DR PEPPER -->
+
+            <div class="product-card">
+
+                <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
+                    alt="Dr Pepper">
+
+                <h3>Dr Pepper</h3>
+
+                <p>NT$30</p>
+
+                <div class="product-actions">
+
+                    <input
+                        type="number"
+                        id="qty-drpepper"
+                        value="1"
+                        min="1">
+
+                    <button
+                        onclick="addToCart('Dr Pepper', 30, 'qty-drpepper')">
+                        Add
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- CHICKEN NOODLE SNACK -->
+
+            <div class="product-card">
+
+                <img
+                    src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
+                    alt="Chicken Noodle Snack">
+
+                <h3>Chicken Noodle Snack</h3>
+
+                <p>NT$25</p>
+
+                <div class="product-actions">
+
+                    <input
+                        type="number"
+                        id="qty-noodle"
+                        value="1"
+                        min="1">
+
+                    <button
+                        onclick="addToCart('Chicken Noodle Snack', 25, 'qty-noodle')">
+                        Add
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- BUNDLE PACK -->
+
+            <div class="product-card">
+
+                <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
+                    alt="Bundle Pack">
+
+                <h3>Bundle Pack</h3>
+
+                <p>1 Dr Pepper + 1 Chicken Noodle Snack</p>
+
+                <p>NT$50</p>
+
+                <div class="product-actions">
+
+                    <input
+                        type="number"
+                        id="qty-bundle"
+                        value="1"
+                        min="1">
+
+                    <button
+                        onclick="addToCart('Bundle Pack', 50, 'qty-bundle')">
+                        Add
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- CHOCOLATE -->
+
+            <div class="product-card">
+
+                <img
+                    src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg"
+                    alt="Chocolate">
+
+                <h3>Chocolate</h3>
+
+                <p>NT$20</p>
+
+                <div class="product-actions">
+
+                    <input
+                        type="number"
+                        id="qty-chocolate"
+                        value="1"
+                        min="1">
+
+                    <button
+                        onclick="addToCart('Chocolate', 20, 'qty-chocolate')">
+                        Add
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
 
         <!-- =========================
-             STATISTICS
+             CART
         ========================= -->
 
-        <div class="stats">
+        <aside class="cart">
 
-            <div class="stat-card">
-                <h3>📦 Total Orders</h3>
-                <div
-                    id="totalOrders"
-                    class="stat-number">
-                    0
-                </div>
+            <h2>🛒 Cart</h2>
+
+            <div id="cart-items">
+                Your cart is empty.
             </div>
 
-            <div class="stat-card">
-                <h3>💰 Total Sales</h3>
-                <div
-                    id="totalSales"
-                    class="stat-number sales">
-                    NT$0
-                </div>
+            <h3>
+                Total:
+                NT$<span id="cart-total">0</span>
+            </h3>
+
+            <div class="customer-section">
+
+                <label for="customerName">
+                    Your Name
+                </label>
+
+                <input
+                    type="text"
+                    id="customerName"
+                    readonly>
+
             </div>
 
-            <div class="stat-card">
-                <h3>👥 Customers</h3>
-                <div
-                    id="totalCustomers"
-                    class="stat-number">
-                    0
-                </div>
-            </div>
+            <button
+                onclick="checkout()"
+                class="checkout-button">
+                Checkout
+            </button>
 
-        </div>
+        </aside>
+
 
         <!-- =========================
-             ALL ORDERS
+             ORDER HISTORY
         ========================= -->
 
-        <div class="section">
+        <section
+            id="order-history"
+            style="display:none;">
 
-            <h2>📦 All Customer Orders</h2>
+            <h2>📦 Order History</h2>
 
-            <div id="orders">
-                Loading orders...
+            <div id="history-list">
+                Loading...
             </div>
 
-        </div>
-
-        <!-- =========================
-             ADMIN INFORMATION
-        ========================= -->
-
-        <div class="section">
-
-            <h2>🛡️ Administrator Information</h2>
-
-            <div class="admin-info">
-                <p>
-                    <strong>Administrator:</strong>
-                    Charlie
-                </p>
-
-                <p>
-                    <strong>Access:</strong>
-                    Firebase administrator account
-                </p>
-
-                <p>
-                    <strong>Store:</strong>
-                    Snack Store
-                </p>
-
-                <p>
-                    <strong>Payment:</strong>
-                    Cash only
-                </p>
-            </div>
-
-        </div>
+        </section>
 
     </main>
 
-    <script type="module" src="admin.js"></script>
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================= -->
+
+    <script type="module">
+
+        import "./script.js";
+
+        // ========================================
+        // MENU
+        // ========================================
+
+        window.toggleMenu = function () {
+
+            const menu =
+                document.getElementById("menuDropdown");
+
+            if (!menu) return;
+
+            menu.classList.toggle("show");
+        };
+
+
+        window.closeMenu = function () {
+
+            const menu =
+                document.getElementById("menuDropdown");
+
+            if (!menu) return;
+
+            menu.classList.remove("show");
+        };
+
+
+        // ========================================
+        // CLOSE MENU WHEN CLICKING OUTSIDE
+        // ========================================
+
+        document.addEventListener("click", function (event) {
+
+            const menuContainer =
+                document.querySelector(".menu-container");
+
+            if (!menuContainer) return;
+
+            if (!menuContainer.contains(event.target)) {
+                closeMenu();
+            }
+
+        });
+
+    </script>
 
 </body>
+
 </html>
+```
