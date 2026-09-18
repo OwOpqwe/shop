@@ -1,196 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Snack Store</title>
-
     <link rel="stylesheet" href="styles.css">
-
-    <style>
-        /* =========================
-           PRODUCT IMAGE SIZE
-        ========================= */
-
-        .product-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: contain;
-        }
-
-        /* Bundle image slightly larger */
-
-        .product-card:nth-child(3) img {
-            height: 220px;
-        }
-
-
-        /* =========================
-           THREE-LINE MENU
-        ========================= */
-
-        .menu-container {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            z-index: 1000;
-        }
-
-        .menu-button {
-            background: #222;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 24px;
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-
-        .menu-button:hover {
-            background: #333;
-        }
-
-        .menu-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 48px;
-            width: 190px;
-            background: #222;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-
-        .menu-dropdown.show {
-            display: block;
-        }
-
-        .menu-dropdown button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            background: #222;
-            color: white;
-            text-align: left;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .menu-dropdown button:hover {
-            background: #333;
-        }
-
-        #adminDashboardMenu {
-            background: #6f42c1;
-        }
-
-        #adminDashboardMenu:hover {
-            background: #59339d;
-        }
-
-
-        /* =========================
-           MOBILE
-        ========================= */
-
-        @media (max-width: 600px) {
-
-            .product-card img {
-                height: 140px;
-            }
-
-            .product-card:nth-child(3) img {
-                height: 160px;
-            }
-
-        }
-    </style>
 </head>
-
 
 <body>
 
-    <!-- =========================
-         HEADER
-    ========================= -->
+<header>
+    <h1>🍿 Snack Store</h1>
+    <div class="cash-only">💵 Cash Only</div>
+</header>
 
-    <header>
+<button class="menu-button" onclick="toggleMenu()" aria-label="Open menu">
+    ☰
+</button>
 
-        <h1>Snack Store</h1>
+<div id="menu" class="menu">
 
-        <h2>CASH ONLY</h2>
+    <button
+        id="adminDashboardMenu"
+        style="display: none;"
+        onclick="goToAdminDashboard(); closeMenu();">
+        🛡️ Admin Dashboard
+    </button>
 
+    <button onclick="toggleOrderHistory(); closeMenu();">
+        📋 Order History
+    </button>
 
-        <!-- THREE-LINE MENU -->
+    <button onclick="logout();">
+        🚪 Logout
+    </button>
 
-        <div class="menu-container">
+</div>
 
-            <button
-                class="menu-button"
-                onclick="toggleMenu()">
-                ☰
-            </button>
+<main>
 
+    <section id="userInfo">
 
-            <div
-                id="menuDropdown"
-                class="menu-dropdown">
+        <h2>Welcome, <span id="userName">Customer</span>!</h2>
 
-                <!-- Admin Dashboard -->
+        <label for="customerName">
+            Customer Name
+        </label>
 
-                <button
-                    id="adminDashboardMenu"
-                    onclick="goToAdminDashboard(); closeMenu();"
-                    style="display:none;">
-                    🛡️ Admin Dashboard
-                </button>
+        <input
+            type="text"
+            id="customerName"
+            readonly>
 
+    </section>
 
-                <!-- Order History -->
-
-                <button
-                    onclick="toggleOrderHistory(); closeMenu();">
-                    📦 Order History
-                </button>
-
-
-                <!-- Logout -->
-
-                <button
-                    onclick="logout(); closeMenu();">
-                    🚪 Logout
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <!-- USER INFO -->
-
-        <div id="userInfo" style="display:none;">
-
-            Welcome,
-            <span id="userName"></span>
-
-        </div>
-
-    </header>
-
-
-    <!-- =========================
-         PRODUCTS
-    ========================= -->
-
-    <main>
+    <div class="store-layout">
 
         <section class="products">
-
-
-            <!-- DR PEPPER -->
 
             <div class="product-card">
 
@@ -198,29 +64,26 @@
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
                     alt="Dr Pepper">
 
-                <h3>Dr Pepper</h3>
+                <h2>Dr Pepper</h2>
 
-                <p>NT$30</p>
+                <p class="price">NT$30</p>
 
                 <div class="product-actions">
 
                     <input
                         type="number"
-                        id="qty-drpepper"
+                        id="qty-dr-pepper"
                         value="1"
                         min="1">
 
                     <button
-                        onclick="addToCart('Dr Pepper', 30, 'qty-drpepper')">
+                        onclick="addToCart('Dr Pepper', 30, 'qty-dr-pepper')">
                         Add
                     </button>
 
                 </div>
 
             </div>
-
-
-            <!-- CHICKEN NOODLE SNACK -->
 
             <div class="product-card">
 
@@ -228,20 +91,20 @@
                     src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
                     alt="Chicken Noodle Snack">
 
-                <h3>Chicken Noodle Snack</h3>
+                <h2>Chicken Noodle Snack</h2>
 
-                <p>NT$25</p>
+                <p class="price">NT$25</p>
 
                 <div class="product-actions">
 
                     <input
                         type="number"
-                        id="qty-noodle"
+                        id="qty-chicken"
                         value="1"
                         min="1">
 
                     <button
-                        onclick="addToCart('Chicken Noodle Snack', 25, 'qty-noodle')">
+                        onclick="addToCart('Chicken Noodle Snack', 25, 'qty-chicken')">
                         Add
                     </button>
 
@@ -249,20 +112,17 @@
 
             </div>
 
-
-            <!-- BUNDLE PACK -->
-
             <div class="product-card">
 
                 <img
                     src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
                     alt="Bundle Pack">
 
-                <h3>Bundle Pack</h3>
+                <h2>Bundle Pack</h2>
 
                 <p>1 Dr Pepper + 1 Chicken Noodle Snack</p>
 
-                <p>NT$50</p>
+                <p class="price">NT$50</p>
 
                 <div class="product-actions">
 
@@ -281,18 +141,15 @@
 
             </div>
 
-
-            <!-- CHOCOLATE -->
-
             <div class="product-card">
 
                 <img
                     src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg"
                     alt="Chocolate">
 
-                <h3>Chocolate</h3>
+                <h2>Chocolate</h2>
 
-                <p>NT$20</p>
+                <p class="price">NT$20</p>
 
                 <div class="product-actions">
 
@@ -313,12 +170,7 @@
 
         </section>
 
-
-        <!-- =========================
-             CART
-        ========================= -->
-
-        <aside class="cart">
+        <section id="cart">
 
             <h2>🛒 Cart</h2>
 
@@ -326,114 +178,58 @@
                 Your cart is empty.
             </div>
 
-            <h3>
+            <div>
                 Total:
-                NT$<span id="cart-total">0</span>
-            </h3>
-
-
-            <label for="customerName">
-                Your Name
-            </label>
-
-            <input
-                type="text"
-                id="customerName"
-                readonly>
-
-
-            <button
-                onclick="checkout()">
-                Checkout
-            </button>
-
-        </aside>
-
-
-        <!-- =========================
-             ORDER HISTORY
-        ========================= -->
-
-        <section
-            id="order-history"
-            style="display:none;">
-
-            <h2>Order History</h2>
-
-            <div id="history-list">
-                Loading...
+                <span id="cart-total">0</span>
+                NT$
             </div>
+
+            <br>
+
+            <button onclick="checkout()">
+                💵 Checkout
+            </button>
 
         </section>
 
-    </main>
+    </div>
 
+    <section id="order-history" style="display: none;">
 
-    <!-- =========================
-         JAVASCRIPT
-    ========================= -->
+        <h2>📋 Order History</h2>
 
-    <script type="module" src="script.js"></script>
+        <div id="history-list">
+            Loading order history...
+        </div>
 
+    </section>
 
-    <script>
+</main>
 
-        function toggleMenu() {
+<script>
+function toggleMenu() {
+    const menu = document.getElementById("menu");
 
-            const menu =
-                document.getElementById(
-                    "menuDropdown"
-                );
+    if (!menu) return;
 
-            if (!menu) return;
+    if (menu.style.display === "block") {
+        menu.style.display = "none";
+    } else {
+        menu.style.display = "block";
+    }
+}
 
-            menu.classList.toggle("show");
+function closeMenu() {
+    const menu = document.getElementById("menu");
 
-        }
+    if (menu) {
+        menu.style.display = "none";
+    }
+}
+</script>
 
-
-        function closeMenu() {
-
-            const menu =
-                document.getElementById(
-                    "menuDropdown"
-                );
-
-            if (!menu) return;
-
-            menu.classList.remove("show");
-
-        }
-
-
-        /* Close menu when clicking outside */
-
-        document.addEventListener(
-            "click",
-            function(event) {
-
-                const container =
-                    document.querySelector(
-                        ".menu-container"
-                    );
-
-                if (
-                    container &&
-                    !container.contains(
-                        event.target
-                    )
-                ) {
-
-                    closeMenu();
-
-                }
-
-            }
-        );
-
-    </script>
+<script type="module" src="script.js"></script>
 
 </body>
-
 </html>
 
