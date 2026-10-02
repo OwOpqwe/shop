@@ -3,8 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Snack Store</title>
+
     <link rel="stylesheet" href="styles.css">
+
+    <style>
+        /* AI Assistant */
+
+        #snackAIButton {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 2000;
+            border-radius: 30px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0, 255, 102, 0.25);
+            font-size: 16px;
+        }
+
+        #snackAI {
+            display: none;
+            position: fixed;
+            right: 20px;
+            bottom: 85px;
+            z-index: 2000;
+            width: 350px;
+            max-width: calc(100vw - 30px);
+            height: 480px;
+            max-height: calc(100vh - 120px);
+            background: #111;
+            border: 1px solid #00ff66;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-direction: column;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .ai-header {
+            background: #181818;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .ai-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #00ff66;
+        }
+
+        #closeAI {
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+        }
+
+        #aiMessages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ai-message {
+            padding: 10px 12px;
+            border-radius: 10px;
+            max-width: 90%;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .ai-message.user {
+            background: #00ff66;
+            color: #000;
+            align-self: flex-end;
+        }
+
+        .ai-message.bot {
+            background: #252525;
+            color: white;
+            align-self: flex-start;
+        }
+
+        .ai-message.system {
+            background: #292929;
+            color: #aaa;
+            align-self: center;
+            font-size: 12px;
+        }
+
+        .ai-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid #333;
+            background: #181818;
+        }
+
+        #aiInput {
+            flex: 1;
+            min-width: 0;
+            padding: 10px;
+            background: #222;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 6px;
+        }
+
+        #aiSend {
+            padding: 10px 15px;
+        }
+
+        #aiSend:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 500px) {
+            #snackAI {
+                right: 10px;
+                bottom: 80px;
+                width: calc(100vw - 20px);
+                height: 65vh;
+            }
+
+            #snackAIButton {
+                right: 12px;
+                bottom: 12px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -14,7 +148,10 @@
     <div class="cash-only">💵 Cash Only</div>
 </header>
 
-<button class="menu-button" onclick="toggleMenu()" aria-label="Open menu">
+<button
+    class="menu-button"
+    onclick="toggleMenu()"
+    aria-label="Open menu">
     ☰
 </button>
 
@@ -41,7 +178,10 @@
 
     <section id="userInfo">
 
-        <h2>Welcome, <span id="userName">Customer</span>!</h2>
+        <h2>
+            Welcome,
+            <span id="userName">Customer</span>!
+        </h2>
 
         <label for="customerName">
             Customer Name
@@ -56,117 +196,11 @@
 
     <div class="store-layout">
 
-        <section class="products">
+        <section
+            class="products"
+            id="products">
 
-            <div class="product-card">
-
-                <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
-                    alt="Dr Pepper">
-
-                <h2>Dr Pepper</h2>
-
-                <p class="price">NT$30</p>
-
-                <div class="product-actions">
-
-                    <input
-                        type="number"
-                        id="qty-dr-pepper"
-                        value="1"
-                        min="1">
-
-                    <button
-                        onclick="addToCart('Dr Pepper', 30, 'qty-dr-pepper')">
-                        Add
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div class="product-card">
-
-                <img
-                    src="https://images.cdn.saveonfoods.com/detail/00074410700799.jpg"
-                    alt="Chicken Noodle Snack">
-
-                <h2>Chicken Noodle Snack</h2>
-
-                <p class="price">NT$25</p>
-
-                <div class="product-actions">
-
-                    <input
-                        type="number"
-                        id="qty-chicken"
-                        value="1"
-                        min="1">
-
-                    <button
-                        onclick="addToCart('Chicken Noodle Snack', 25, 'qty-chicken')">
-                        Add
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div class="product-card">
-
-                <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Dr_Pepper_Dose_2024.jpg/500px-Dr_Pepper_Dose_2024.jpg"
-                    alt="Bundle Pack">
-
-                <h2>Bundle Pack</h2>
-
-                <p>1 Dr Pepper + 1 Chicken Noodle Snack</p>
-
-                <p class="price">NT$50</p>
-
-                <div class="product-actions">
-
-                    <input
-                        type="number"
-                        id="qty-bundle"
-                        value="1"
-                        min="1">
-
-                    <button
-                        onclick="addToCart('Bundle Pack', 50, 'qty-bundle')">
-                        Add
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div class="product-card">
-
-                <img
-                    src="https://i.ebayimg.com/images/g/WboAAOSwPhBoI-cE/s-l1200.jpg"
-                    alt="Chocolate">
-
-                <h2>Chocolate</h2>
-
-                <p class="price">NT$20</p>
-
-                <div class="product-actions">
-
-                    <input
-                        type="number"
-                        id="qty-chocolate"
-                        value="1"
-                        min="1">
-
-                    <button
-                        onclick="addToCart('Chocolate', 20, 'qty-chocolate')">
-                        Add
-                    </button>
-
-                </div>
-
-            </div>
+            <p>Loading products...</p>
 
         </section>
 
@@ -194,7 +228,9 @@
 
     </div>
 
-    <section id="order-history" style="display: none;">
+    <section
+        id="order-history"
+        style="display: none;">
 
         <h2>📋 Order History</h2>
 
@@ -206,17 +242,78 @@
 
 </main>
 
+
+<!-- AI Assistant Button -->
+
+<button
+    id="snackAIButton"
+    onclick="toggleSnackAI()">
+    🤖 Snack AI
+</button>
+
+
+<!-- AI Assistant Window -->
+
+<div
+    id="snackAI"
+    role="dialog"
+    aria-label="Snack AI Recommendation Assistant">
+
+    <div class="ai-header">
+
+        <h2>🤖 Snack AI</h2>
+
+        <button
+            id="closeAI"
+            onclick="toggleSnackAI()"
+            aria-label="Close AI assistant">
+            ✕
+        </button>
+
+    </div>
+
+    <div id="aiMessages">
+
+        <div class="ai-message bot">
+            Hi! 👋 I'm Snack AI.
+
+            Tell me what you're craving, your budget, or what kind of snack you want. I'll recommend something from our store!
+        </div>
+
+    </div>
+
+    <form
+        class="ai-input-area"
+        id="aiForm">
+
+        <input
+            type="text"
+            id="aiInput"
+            placeholder="Ask for a recommendation..."
+            autocomplete="off"
+            required>
+
+        <button
+            type="submit"
+            id="aiSend">
+            Send
+        </button>
+
+    </form>
+
+</div>
+
+
 <script>
 function toggleMenu() {
     const menu = document.getElementById("menu");
 
     if (!menu) return;
 
-    if (menu.style.display === "block") {
-        menu.style.display = "none";
-    } else {
-        menu.style.display = "block";
-    }
+    menu.style.display =
+        menu.style.display === "block"
+            ? "none"
+            : "block";
 }
 
 function closeMenu() {
@@ -232,4 +329,3 @@ function closeMenu() {
 
 </body>
 </html>
-
