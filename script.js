@@ -125,6 +125,7 @@ async function loadProducts() {
                 name: product.name || 'Unnamed Product',
                 price: Number(product.price || 0),
                 image: product.image || '',
+                image2: product.image2 || '',
                 description: product.description || ''
             });
         });
@@ -180,18 +181,68 @@ function renderProducts() {
             'product-card';
 
 
-        const image =
-            document.createElement('img');
+        /* =========================
+           PRODUCT IMAGES
+        ========================= */
 
-        image.src =
-            product.image;
+        const imageContainer =
+            document.createElement('div');
 
-        image.alt =
-            product.name;
+        imageContainer.className =
+            'product-images';
 
-        image.onerror = function() {
-            this.style.display = 'none';
-        };
+        imageContainer.style.display =
+            'flex';
+
+        imageContainer.style.justifyContent =
+            'center';
+
+        imageContainer.style.alignItems =
+            'center';
+
+        imageContainer.style.gap =
+            '10px';
+
+        imageContainer.style.width =
+            '100%';
+
+
+        if (product.image) {
+
+            const image =
+                document.createElement('img');
+
+            image.src =
+                product.image;
+
+            image.alt =
+                product.name;
+
+            image.onerror = function() {
+                this.style.display = 'none';
+            };
+
+            imageContainer.appendChild(image);
+        }
+
+
+        if (product.image2) {
+
+            const image2 =
+                document.createElement('img');
+
+            image2.src =
+                product.image2;
+
+            image2.alt =
+                product.name + ' second image';
+
+            image2.onerror = function() {
+                this.style.display = 'none';
+            };
+
+            imageContainer.appendChild(image2);
+        }
 
 
         const title =
@@ -269,7 +320,7 @@ function renderProducts() {
         actions.appendChild(quantity);
         actions.appendChild(addButton);
 
-        card.appendChild(image);
+        card.appendChild(imageContainer);
         card.appendChild(title);
 
         if (product.description) {
