@@ -19,18 +19,22 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 
-// ========================================
-// CART
-// ========================================
+/* =========================
+   SETTINGS
+========================= */
+
+const AI_API_URL =
+    "https://csllm.vercel.app/api/chat";
 
 let cart = {};
-
 let currentUser = null;
+let products = [];
+let aiMessages = [];
 
 
-// ========================================
-// CHECK LOGIN
-// ========================================
+/* =========================
+   LOGIN
+========================= */
 
 onAuthStateChanged(auth, async (user) => {
 
@@ -41,23 +45,14 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUser = user;
 
-    // Show user's name
-    const nameEl = document.getElementById('userName');
+    const nameEl =
+        document.getElementById('userName');
 
     if (nameEl) {
         nameEl.textContent =
             user.displayName || user.email;
     }
 
-    // Show user information
-    const panel =
-        document.getElementById('userInfo');
-
-    if (panel) {
-        panel.style.display = 'block';
-    }
-
-    // Fill customer name
     const customer =
         document.getElementById('customerName');
 
@@ -65,11 +60,6 @@ onAuthStateChanged(auth, async (user) => {
         customer.value =
             user.displayName || user.email;
     }
-
-
-    // ========================================
-    // CHECK ADMIN PERMISSION
-    // ========================================
 
     try {
 
@@ -80,16 +70,13 @@ onAuthStateChanged(auth, async (user) => {
             tokenResult.claims.admin === true;
 
         const adminMenu =
-            document.getElementById('adminDashboardMenu');
+            document.getElementById(
+                'adminDashboardMenu'
+            );
 
         if (adminMenu) {
-
-            if (isAdmin) {
-                adminMenu.style.display = 'block';
-            } else {
-                adminMenu.style.display = 'none';
-            }
-
+            adminMenu.style.display =
+                isAdmin ? 'block' : 'none';
         }
 
     } catch (error) {
@@ -98,60 +85,247 @@ onAuthStateChanged(auth, async (user) => {
             'Admin check failed:',
             error
         );
-
     }
 
-
-    // Load order history
+    await loadProducts();
     await renderOrderHistory();
-
 });
 
 
-// ========================================
-// ADD TO CART
-// ========================================
+/* =========================
+   LOAD PRODUCTS
+========================= */
 
-window.addToCart = function (
-    name,
-    price,
-    quantityId
-) {
+async function loadProducts() {
 
-    const quantityInput =
-        document.getElementById(quantityId);
+    const container =
+        document.getElementById('products');
 
-    if (!quantityInput) return;
+    if (!container) return;
 
-    const quantity =
-        parseInt(quantityInput.value);
+    container.innerHTML =
+        '<p>Loading products...</p>';
 
-    if (isNaN(quantity) || quantity < 1) {
-        alert('Please enter a valid quantity.');
+    try {
+
+        const snapshot =
+            await getDocs(
+                collection(db, 'products')
+            );
+
+        products = [];
+
+        snapshot.forEach((productDoc) => {
+
+            const product =
+                productDoc.data();
+
+            products.push({
+                id: productDoc.id,
+                name: product.name || 'Unnamed Product',
+                price: Number(product.price || 0),
+                image: product.image || '',
+                description: product.description || ''
+            });
+        });
+
+        renderProducts();
+
+    } catch (error) {
+
+        console.error(
+            'Failed to load products:',
+            error
+        );
+
+        container.innerHTML = `
+            <p style="color: red;">
+                Failed to load products.
+                <br><br>
+                ${escapeHTML(error.message)}
+            </p>
+        `;
+    }
+}
+
+
+/* =========================
+   DISPLAY PRODUCTS
+========================= */
+
+function renderProducts() {
+
+    const container =
+        document.getElementById('products');
+
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (products.length === 0) {
+
+        container.innerHTML = `
+            <p>No products are currently available.</p>
+        `;
+
         return;
     }
 
-    if (!cart[name]) {
+    products.forEach((product) => {
 
-        cart[name] = {
-            price: price,
-            quantity: 0
+        const card =
+            document.createElement('div');
+
+        card.className =
+            'product-card';
+
+
+        const image =
+            document.createElement('img');
+
+        image.src =
+            product.image;
+
+        image.alt =
+            product.name;
+
+        image.onerror = function() {
+            this.style.display = 'none';
         };
 
+
+        const title =
+            document.createElement('h2');
+
+        title.textContent =
+            product.name;
+
+
+        const description =
+            document.createElement('p');
+
+        description.textContent =
+            product.description;
+
+
+        const price =
+            document.createElement('p');
+
+        price.className =
+            'price';
+
+        price.textContent =
+            'NT$' + product.price;
+
+
+        const actions =
+            document.createElement('div');
+
+        actions.className =
+            'product-actions';
+
+
+        const quantity =
+            document.createElement('input');
+
+        quantity.type =
+            'number';
+
+        quantity.value =
+            '1';
+
+        quantity.min =
+            '1';
+
+        quantity.max =
+            '99';
+
+        quantity.setAttribute(
+            'aria-label',
+            'Quantity for ' + product.name
+        );
+
+
+        const addButton =
+            document.createElement('button');
+
+        addButton.textContent =
+            'Add';
+
+        addButton.addEventListener(
+            'click',
+            () => {
+
+                addToCart(
+                    product.id,
+                    quantity.value
+                );
+
+                quantity.value = 1;
+            }
+        );
+
+
+        actions.appendChild(quantity);
+        actions.appendChild(addButton);
+
+        card.appendChild(image);
+        card.appendChild(title);
+
+        if (product.description) {
+            card.appendChild(description);
+        }
+
+        card.appendChild(price);
+        card.appendChild(actions);
+
+        container.appendChild(card);
+    });
+}
+
+
+/* =========================
+   CART
+========================= */
+
+function addToCart(productId, quantityValue) {
+
+    const product =
+        products.find(
+            item => item.id === productId
+        );
+
+    if (!product) {
+        alert('Product not found.');
+        return;
     }
 
-    cart[name].quantity += quantity;
+    const quantity =
+        parseInt(quantityValue, 10);
 
-    quantityInput.value = 1;
+    if (
+        !Number.isInteger(quantity) ||
+        quantity < 1 ||
+        quantity > 99
+    ) {
+        alert('Please enter a quantity between 1 and 99.');
+        return;
+    }
+
+    if (!cart[productId]) {
+
+        cart[productId] = {
+            name: product.name,
+            price: product.price,
+            quantity: 0
+        };
+    }
+
+    cart[productId].quantity += quantity;
 
     renderCart();
+}
 
-};
-
-
-// ========================================
-// RENDER CART
-// ========================================
 
 function renderCart() {
 
@@ -163,17 +337,14 @@ function renderCart() {
 
     if (!cartItems || !cartTotal) return;
 
-
     cartItems.innerHTML = '';
 
     let total = 0;
 
-
-    const itemNames =
+    const itemIds =
         Object.keys(cart);
 
-
-    if (itemNames.length === 0) {
+    if (itemIds.length === 0) {
 
         cartItems.textContent =
             'Your cart is empty.';
@@ -181,70 +352,74 @@ function renderCart() {
         cartTotal.textContent = '0';
 
         return;
-
     }
 
+    itemIds.forEach((id) => {
 
-    itemNames.forEach((name) => {
-
-        const item = cart[name];
+        const item = cart[id];
 
         const itemTotal =
             item.price * item.quantity;
 
         total += itemTotal;
 
-
         const div =
             document.createElement('div');
 
-        div.className = 'cart-item';
+        div.className =
+            'cart-item';
 
 
-        div.innerHTML = `
-            <span>
-                ${name} ×${item.quantity}
-            </span>
+        const name =
+            document.createElement('span');
 
-            <span>
-                NT$${itemTotal}
-            </span>
+        name.textContent =
+            item.name + ' ×' + item.quantity;
 
-            <button
-                onclick="removeFromCart('${name}')">
-                Remove
-            </button>
-        `;
 
+        const price =
+            document.createElement('span');
+
+        price.textContent =
+            'NT$' + itemTotal;
+
+
+        const removeButton =
+            document.createElement('button');
+
+        removeButton.textContent =
+            'Remove';
+
+        removeButton.addEventListener(
+            'click',
+            () => removeFromCart(id)
+        );
+
+
+        div.appendChild(name);
+        div.appendChild(price);
+        div.appendChild(removeButton);
 
         cartItems.appendChild(div);
-
     });
 
-
     cartTotal.textContent = total;
-
 }
 
 
-// ========================================
-// REMOVE FROM CART
-// ========================================
+function removeFromCart(productId) {
 
-window.removeFromCart = function (name) {
-
-    delete cart[name];
+    delete cart[productId];
 
     renderCart();
+}
 
-};
 
+/* =========================
+   CHECKOUT
+========================= */
 
-// ========================================
-// CHECKOUT
-// ========================================
-
-window.checkout = async function () {
+window.checkout = async function() {
 
     if (!currentUser) {
 
@@ -253,26 +428,20 @@ window.checkout = async function () {
         );
 
         return;
-
     }
 
-
-    const itemNames =
+    const itemIds =
         Object.keys(cart);
 
-
-    if (itemNames.length === 0) {
+    if (itemIds.length === 0) {
 
         alert('Your cart is empty.');
 
         return;
-
     }
-
 
     const customerNameInput =
         document.getElementById('customerName');
-
 
     const customerName =
         customerNameInput?.value ||
@@ -282,13 +451,19 @@ window.checkout = async function () {
 
     let total = 0;
 
+    const orderItems = {};
 
-    itemNames.forEach((name) => {
+    itemIds.forEach((id) => {
+
+        const item = cart[id];
 
         total +=
-            cart[name].price *
-            cart[name].quantity;
+            item.price * item.quantity;
 
+        orderItems[item.name] = {
+            price: item.price,
+            quantity: item.quantity
+        };
     });
 
 
@@ -298,31 +473,21 @@ window.checkout = async function () {
             collection(db, 'orders'),
             {
                 customer: customerName,
-
                 userId: currentUser.uid,
-
                 userEmail: currentUser.email,
-
-                items: cart,
-
+                items: orderItems,
                 total: total,
-
                 createdAt: serverTimestamp()
             }
         );
 
-
-        alert(
-            'Order placed successfully!'
-        );
-
+        alert('Order placed successfully!');
 
         cart = {};
 
         renderCart();
 
         await renderOrderHistory();
-
 
     } catch (error) {
 
@@ -335,56 +500,36 @@ window.checkout = async function () {
             'Failed to place order.\n\n' +
             error.message
         );
-
     }
-
 };
 
 
-// ========================================
-// ORDER HISTORY
-// ========================================
+/* =========================
+   ORDER HISTORY
+========================= */
 
 async function renderOrderHistory() {
 
     const historyList =
         document.getElementById('history-list');
 
-    if (!historyList || !currentUser) {
-        return;
-    }
-
+    if (!historyList || !currentUser) return;
 
     historyList.innerHTML =
         'Loading order history...';
 
-
     try {
 
         const q = query(
-
             collection(db, 'orders'),
-
-            where(
-                'userId',
-                '==',
-                currentUser.uid
-            ),
-
-            orderBy(
-                'createdAt',
-                'desc'
-            )
-
+            where('userId', '==', currentUser.uid),
+            orderBy('createdAt', 'desc')
         );
-
 
         const snapshot =
             await getDocs(q);
 
-
         historyList.innerHTML = '';
-
 
         if (snapshot.empty) {
 
@@ -392,9 +537,7 @@ async function renderOrderHistory() {
                 '<p>No orders yet.</p>';
 
             return;
-
         }
-
 
         snapshot.forEach((orderDoc) => {
 
@@ -404,41 +547,12 @@ async function renderOrderHistory() {
             const orderId =
                 orderDoc.id;
 
-
             const time =
                 order.createdAt?.toDate
                     ? order.createdAt
                         .toDate()
                         .toLocaleString()
                     : 'Unknown time';
-
-
-            let itemsHTML =
-                '<div class="history-items">';
-
-
-            if (order.items) {
-
-                for (
-                    const [name, data]
-                    of Object.entries(order.items)
-                ) {
-
-                    itemsHTML += `
-                        <div>
-                            ${name}
-                            ×${data.quantity}
-                            — NT$${data.price * data.quantity}
-                        </div>
-                    `;
-
-                }
-
-            }
-
-
-            itemsHTML +=
-                '</div>';
 
 
             const div =
@@ -448,38 +562,81 @@ async function renderOrderHistory() {
                 'history-order';
 
 
-            div.innerHTML = `
+            const title =
+                document.createElement('h3');
 
-                <h3>
-                    ${order.customer || 'Unknown Customer'}
-                </h3>
+            title.textContent =
+                order.customer || 'Unknown Customer';
 
-                <p>
-                    Order time:
-                    ${time}
-                </p>
 
-                ${itemsHTML}
+            const date =
+                document.createElement('p');
 
-                <strong>
-                    Total:
-                    NT$${order.total || 0}
-                </strong>
+            date.textContent =
+                'Order time: ' + time;
 
-                <br><br>
 
-                <button
-                    onclick="deleteOrder('${orderId}')">
-                    Delete Order
-                </button>
+            const items =
+                document.createElement('div');
 
-            `;
+            items.className =
+                'history-items';
 
+
+            if (order.items) {
+
+                Object.entries(order.items).forEach(
+                    ([name, data]) => {
+
+                        const item =
+                            document.createElement('div');
+
+                        item.textContent =
+                            name +
+                            ' ×' +
+                            data.quantity +
+                            ' — NT$' +
+                            (
+                                Number(data.price || 0) *
+                                Number(data.quantity || 0)
+                            );
+
+                        items.appendChild(item);
+                    }
+                );
+            }
+
+
+            const total =
+                document.createElement('strong');
+
+            total.textContent =
+                'Total: NT$' +
+                Number(order.total || 0);
+
+
+            const removeButton =
+                document.createElement('button');
+
+            removeButton.textContent =
+                'Delete Order';
+
+            removeButton.addEventListener(
+                'click',
+                () => deleteOrder(orderId)
+            );
+
+
+            div.appendChild(title);
+            div.appendChild(date);
+            div.appendChild(items);
+            div.appendChild(total);
+            div.appendChild(document.createElement('br'));
+            div.appendChild(document.createElement('br'));
+            div.appendChild(removeButton);
 
             historyList.appendChild(div);
-
         });
-
 
     } catch (error) {
 
@@ -488,31 +645,59 @@ async function renderOrderHistory() {
             error
         );
 
-
         historyList.innerHTML = `
-            <p style="color:red;">
+            <p style="color: red;">
                 Failed to load order history.
                 <br><br>
-                ${error.message}
+                ${escapeHTML(error.message)}
             </p>
         `;
-
     }
-
 }
 
 
-// ========================================
-// TOGGLE ORDER HISTORY
-// ========================================
+/* =========================
+   DELETE ORDER
+========================= */
 
-window.toggleOrderHistory = function () {
+async function deleteOrder(orderId) {
+
+    if (!confirm(
+        'Are you sure you want to delete this order?'
+    )) {
+        return;
+    }
+
+    try {
+
+        await deleteDoc(
+            doc(db, 'orders', orderId)
+        );
+
+        await renderOrderHistory();
+
+    } catch (error) {
+
+        console.error(
+            'Delete order failed:',
+            error
+        );
+
+        alert('Failed to delete order.');
+    }
+}
+
+
+/* =========================
+   TOGGLE ORDER HISTORY
+========================= */
+
+window.toggleOrderHistory = function() {
 
     const history =
         document.getElementById('order-history');
 
     if (!history) return;
-
 
     if (history.style.display === 'none') {
 
@@ -523,70 +708,22 @@ window.toggleOrderHistory = function () {
     } else {
 
         history.style.display = 'none';
-
     }
-
 };
 
 
-// ========================================
-// DELETE CUSTOMER ORDER
-// ========================================
+/* =========================
+   ADMIN DASHBOARD
+========================= */
 
-window.deleteOrder = async function (
-    orderId
-) {
-
-    if (
-        !confirm(
-            'Are you sure you want to delete this order?'
-        )
-    ) {
-        return;
-    }
-
-
-    try {
-
-        await deleteDoc(
-            doc(db, 'orders', orderId)
-        );
-
-
-        await renderOrderHistory();
-
-
-    } catch (error) {
-
-        console.error(
-            'Delete order failed:',
-            error
-        );
-
-        alert(
-            'Failed to delete order.'
-        );
-
-    }
-
-};
-
-
-// ========================================
-// ADMIN DASHBOARD
-// ========================================
-
-window.goToAdminDashboard = async function () {
+window.goToAdminDashboard = async function() {
 
     if (!currentUser) {
 
-        window.location.href =
-            'login.html';
+        window.location.href = 'login.html';
 
         return;
-
     }
-
 
     try {
 
@@ -596,23 +733,17 @@ window.goToAdminDashboard = async function () {
                 true
             );
 
-
-        if (
-            tokenResult.claims.admin !== true
-        ) {
+        if (tokenResult.claims.admin !== true) {
 
             alert(
                 'You do not have administrator permission.'
             );
 
             return;
-
         }
-
 
         window.location.href =
             'admin.html';
-
 
     } catch (error) {
 
@@ -621,21 +752,18 @@ window.goToAdminDashboard = async function () {
             error
         );
 
-
         alert(
             'Could not verify administrator permission.'
         );
-
     }
-
 };
 
 
-// ========================================
-// LOGOUT
-// ========================================
+/* =========================
+   LOGOUT
+========================= */
 
-window.logout = async function () {
+window.logout = async function() {
 
     try {
 
@@ -651,11 +779,267 @@ window.logout = async function () {
             error
         );
 
-        alert(
-            'Failed to logout.'
-        );
-
+        alert('Failed to logout.');
     }
-
 };
 
+
+/* =========================
+   AI ASSISTANT
+========================= */
+
+window.toggleSnackAI = function() {
+
+    const panel =
+        document.getElementById('snackAI');
+
+    if (!panel) return;
+
+    const isOpen =
+        panel.style.display === 'flex';
+
+    panel.style.display =
+        isOpen ? 'none' : 'flex';
+
+    if (!isOpen) {
+        document.getElementById('aiInput').focus();
+    }
+};
+
+
+/* =========================
+   AI MESSAGE DISPLAY
+========================= */
+
+function addAIMessage(text, type) {
+
+    const container =
+        document.getElementById('aiMessages');
+
+    if (!container) return;
+
+    const message =
+        document.createElement('div');
+
+    message.className =
+        'ai-message ' + type;
+
+    message.textContent = text;
+
+    container.appendChild(message);
+
+    container.scrollTop =
+        container.scrollHeight;
+
+    return message;
+}
+
+
+/* =========================
+   AI RECOMMENDATIONS
+========================= */
+
+const aiForm =
+    document.getElementById('aiForm');
+
+if (aiForm) {
+
+    aiForm.addEventListener(
+        'submit',
+        async (event) => {
+
+            event.preventDefault();
+
+            const input =
+                document.getElementById('aiInput');
+
+            const sendButton =
+                document.getElementById('aiSend');
+
+            const userMessage =
+                input.value.trim();
+
+            if (!userMessage) return;
+
+            if (products.length === 0) {
+
+                addAIMessage(
+                    'Sorry, there are currently no products available for me to recommend.',
+                    'bot'
+                );
+
+                return;
+            }
+
+            addAIMessage(
+                userMessage,
+                'user'
+            );
+
+            input.value = '';
+
+            sendButton.disabled = true;
+
+            sendButton.textContent =
+                '...';
+
+
+            /*
+                Give the AI the current
+                product list.
+            */
+
+            const productInformation =
+                products.map((product) => {
+
+                    return (
+                        'Product: ' + product.name +
+                        '\nPrice: NT$' + product.price +
+                        '\nDescription: ' +
+                        (product.description || 'No description')
+                    );
+
+                }).join('\n\n');
+
+
+            const systemMessage = `
+You are Snack AI, the friendly recommendation assistant for Snack Store.
+
+Your job is to help customers choose snacks and drinks.
+
+IMPORTANT RULES:
+
+1. Only recommend products from the available product list below.
+2. Never invent products, prices, or discounts.
+3. Always use the listed prices.
+4. Consider the customer's budget and preferences.
+5. Explain briefly why you recommend each product.
+6. If the customer asks for something unavailable, politely explain that it is not currently in the store.
+7. Keep your answers friendly, helpful, and reasonably short.
+8. You can suggest combinations of products if they fit the customer's budget.
+9. Do not claim that an item has been added to the cart. Customers must add it themselves.
+
+CURRENT STORE PRODUCTS:
+
+${productInformation}
+`;
+
+
+            /*
+                Keep recent conversation
+                so the AI remembers context.
+            */
+
+            aiMessages.push({
+                role: 'user',
+                content: userMessage
+            });
+
+            if (aiMessages.length > 12) {
+                aiMessages =
+                    aiMessages.slice(-12);
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        AI_API_URL,
+                        {
+                            method: 'POST',
+
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+
+                            body: JSON.stringify({
+
+                                messages: [
+                                    {
+                                        role: 'system',
+                                        content: systemMessage
+                                    },
+                                    ...aiMessages
+                                ],
+
+                                responseType: 'text',
+
+                                graphType: 'none'
+                            })
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        'AI server returned status ' +
+                        response.status
+                    );
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                const reply =
+                    data.reply ||
+                    data.message ||
+                    'Sorry, I could not generate a recommendation.';
+
+
+                aiMessages.push({
+                    role: 'assistant',
+                    content: reply
+                });
+
+
+                addAIMessage(
+                    reply,
+                    'bot'
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    'Snack AI error:',
+                    error
+                );
+
+                aiMessages.pop();
+
+                addAIMessage(
+                    'Sorry, I could not connect to Snack AI. Please try again later.',
+                    'bot'
+                );
+
+            } finally {
+
+                sendButton.disabled = false;
+
+                sendButton.textContent =
+                    'Send';
+
+                input.focus();
+            }
+        }
+    );
+}
+
+
+/* =========================
+   HTML ESCAPING
+========================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
