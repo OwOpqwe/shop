@@ -28,7 +28,7 @@ const AI_API_URL =
 
 let cart = {};
 let currentUser = null;
-let products = [];
+let product = [];
 let aiMessages = [];
 
 
@@ -87,40 +87,40 @@ onAuthStateChanged(auth, async (user) => {
         );
     }
 
-    await loadProducts();
+    await loadproduct();
     await renderOrderHistory();
 });
 
 
 /* =========================
-   LOAD PRODUCTS
+   LOAD product
 ========================= */
 
-async function loadProducts() {
+async function loadproduct() {
 
     const container =
-        document.getElementById('products');
+        document.getElementById('product');
 
     if (!container) return;
 
     container.innerHTML =
-        '<p>Loading products...</p>';
+        '<p>Loading product...</p>';
 
     try {
 
         const snapshot =
             await getDocs(
-                collection(db, 'products')
+                collection(db, 'product')
             );
 
-        products = [];
+        product = [];
 
         snapshot.forEach((productDoc) => {
 
             const product =
                 productDoc.data();
 
-            products.push({
+            product.push({
                 id: productDoc.id,
                 name: product.name || 'Unnamed Product',
                 price: Number(product.price || 0),
@@ -130,18 +130,18 @@ async function loadProducts() {
             });
         });
 
-        renderProducts();
+        renderproduct();
 
     } catch (error) {
 
         console.error(
-            'Failed to load products:',
+            'Failed to load product:',
             error
         );
 
         container.innerHTML = `
             <p style="color: red;">
-                Failed to load products.
+                Failed to load product.
                 <br><br>
                 ${escapeHTML(error.message)}
             </p>
@@ -151,28 +151,28 @@ async function loadProducts() {
 
 
 /* =========================
-   DISPLAY PRODUCTS
+   DISPLAY product
 ========================= */
 
-function renderProducts() {
+function renderproduct() {
 
     const container =
-        document.getElementById('products');
+        document.getElementById('product');
 
     if (!container) return;
 
     container.innerHTML = '';
 
-    if (products.length === 0) {
+    if (product.length === 0) {
 
         container.innerHTML = `
-            <p>No products are currently available.</p>
+            <p>No product are currently available.</p>
         `;
 
         return;
     }
 
-    products.forEach((product) => {
+    product.forEach((product) => {
 
         const card =
             document.createElement('div');
@@ -342,7 +342,7 @@ function renderProducts() {
 function addToCart(productId, quantityValue) {
 
     const product =
-        products.find(
+        product.find(
             item => item.id === productId
         );
 
@@ -912,10 +912,10 @@ if (aiForm) {
 
             if (!userMessage) return;
 
-            if (products.length === 0) {
+            if (product.length === 0) {
 
                 addAIMessage(
-                    'Sorry, there are currently no products available for me to recommend.',
+                    'Sorry, there are currently no product available for me to recommend.',
                     'bot'
                 );
 
@@ -941,7 +941,7 @@ if (aiForm) {
             */
 
             const productInformation =
-                products.map((product) => {
+                product.map((product) => {
 
                     return (
                         'Product: ' + product.name +
@@ -960,17 +960,17 @@ Your job is to help customers choose snacks and drinks.
 
 IMPORTANT RULES:
 
-1. Only recommend products from the available product list below.
-2. Never invent products, prices, or discounts.
+1. Only recommend product from the available product list below.
+2. Never invent product, prices, or discounts.
 3. Always use the listed prices.
 4. Consider the customer's budget and preferences.
 5. Explain briefly why you recommend each product.
 6. If the customer asks for something unavailable, politely explain that it is not currently in the store.
 7. Keep your answers friendly, helpful, and reasonably short.
-8. You can suggest combinations of products if they fit the customer's budget.
+8. You can suggest combinations of product if they fit the customer's budget.
 9. Do not claim that an item has been added to the cart. Customers must add it themselves.
 
-CURRENT STORE PRODUCTS:
+CURRENT STORE product:
 
 ${productInformation}
 `;
